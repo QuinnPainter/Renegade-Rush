@@ -9,11 +9,8 @@ PADVALUE := 0xFF
 # ROM version (typically starting at 0 and incremented for each published version)
 VERSION := 0
 
-# 4-ASCII letter game ID
-GAMEID := BOIL
-
 # Game title, up to 11 ASCII chars
-TITLE := BOILERPLATE
+TITLE := RENEGADERUSH
 
 # New licensee, 2 ASCII chars
 # Homebrew games FTW!
@@ -34,7 +31,7 @@ MBC := 0x00
 SRAMSIZE := 0x00
 
 # ROM name
-ROMNAME := boilerplate
+ROMNAME := RenegadeRush
 ROMEXT  := gb
 
 
@@ -57,10 +54,10 @@ ASFLAGS += -h
 # FIXFLAGS += -s
 
 # Game Boy mode
-# LDFLAGS += -d
+LDFLAGS += -d
 
 # No banked WRAM mode
 # LDFLAGS += -w
 
 # 32k mode
-# LDFLAGS += -t
+LDFLAGS += -t
