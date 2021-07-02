@@ -39,7 +39,7 @@ ROMEXT  := gb
 # "Sensible defaults" are included
 
 # Disable automatic `nop` after `halt`
-ASFLAGS += -h
+# ASFLAGS += -h
 
 # Export all labels
 # This means they must all have unique names, but they will all show up in the .sym and .map files
@@ -61,3 +61,6 @@ LDFLAGS += -d
 
 # 32k mode
 LDFLAGS += -t
+
+# Non-Japanese Region
+FIXFLAGS += -j
