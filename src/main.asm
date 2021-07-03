@@ -20,6 +20,15 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	ld d, 0
 	rst memset
 
+    ld hl, $8000
+    ld de, Tiles
+    ld bc, TilesEnd - Tiles
+    rst memcpy
+
+    ; Init display registers
+	ld a, %11100100 ; Init background palette
+	ld [rBGP], a
+
     ; Shut sound down
     xor a
     ld [rNR52], a
@@ -39,3 +48,4 @@ GameLoop:
 
 
 VBlank::
+    reti
