@@ -14,10 +14,10 @@ endif
 
 ASSETSDIR = Assets
 
-all: $(RESDIR)/tiles.2bpp
+all: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap
 
-$(RESDIR)/tiles.2bpp: $(ASSETSDIR)/tiles.png | $(RESDIR)
-	$(GFX) -u -o $(RESDIR)/tiles.2bpp $(ASSETSDIR)/tiles.png
+$(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
+	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/lines.png
 
 $(RESDIR):
 	$(MKDIR_P) $(RESDIR)

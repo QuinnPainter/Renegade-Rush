@@ -1,5 +1,5 @@
 SECTION "Tiles", ROM0
 
 Tiles::
-INCBIN "res/tiles.2bpp"
+INCBIN "res/lines.2bpp"
 TilesEnd::
