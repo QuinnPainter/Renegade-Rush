@@ -27,7 +27,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     rst memcpy
 
     ; TEMP : seed random
-    ld hl, $38
+    ld hl, $9574;$38
     call seedRandom
 
     ; Initialise variables
@@ -42,11 +42,17 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     xor a
     ld [CurrentRoadScrollSubpixel], a
     ld [RoadScrollCtr], a
-    ld [NeedMoreRoad], a
     ld [CurRoadLeft], a
     ld [CurRoadRight], a
     ld [TarRoadLeft], a
     ld [TarRoadRight], a
+    ld [NeedMoreRoad], a
+
+    ; Generate enough road for the whole screen, plus 1 extra line
+    REPT 19 ; could make this into a regular loop instead of REPT, if needed
+    call GenRoadRow
+    call CopyRoadBuffer
+    ENDR
 
     ; Init display registers
 	ld a, %11100100 ; Init background palette
@@ -68,16 +74,14 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ; Disable all interrupts except VBlank
 	ld a, IEF_VBLANK
 	ld [rIE], a
+    xor a
+    ld [rIF], a ; Discard all pending interrupts (there would normally be a VBlank pending)
 	ei
 GameLoop:
     ; Generate more road if needed
     ld a, [NeedMoreRoad]
     and a
-    jr z, .skipRoadGen
-    call GenRoadRow
-    xor a
-    ld [NeedMoreRoad], a
-.skipRoadGen:
+    call nz, GenRoadRow
 
     halt
     jp GameLoop
@@ -170,7 +174,8 @@ GenRoadRow:
     ld c, a
     rst memcpyFast
 
-
+    xor a
+    ld [NeedMoreRoad], a
     ret
 
 ; Copies the road buffer into VRAM
