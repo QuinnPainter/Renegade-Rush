@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "gameconstants.inc"
 
 SECTION "MainGameCode", ROM0
 
@@ -144,6 +145,23 @@ GenRoadRow:
     ld a, l
     and %00011100
     ld [TarRoadLeft], a
+
+    sra a ; needs to be shifted right to discard subtile position
+    sra a
+    ld b, a ; b = TarRoadLeft
+    ld a, [TarRoadRight]
+    sra a
+    sra a
+    add b ; a = TarRoadRight + TarRoadLeft
+    sub MaxRoadOffset ; a = (TarRoadRight + TarRoadLeft) - MaxRoadOffset
+    jr c, .doneChangeLeft ; Current offset is within limits, carry on
+    ld c, a ; c = (TarRoadRight + TarRoadLeft) - MaxRoadOffset
+    ld a, b ; a = TarRoadLeft
+    sub c ; Take away from TarRoadLeft so it becomes within MaxRoadOffset
+    add a ; same as "sla a"
+    add a
+    ld [TarRoadLeft], a
+
 .doneChangeLeft:
 
     ld a, [CurRoadLeft]
@@ -194,6 +212,23 @@ GenRoadRow:
     ld a, l
     and %00011100
     ld [TarRoadRight], a
+
+    sra a ; needs to be shifted right to discard subtile position
+    sra a
+    ld b, a ; b = TarRoadRight
+    ld a, [TarRoadLeft]
+    sra a
+    sra a
+    add b ; a = TarRoadLeft + TarRoadRight
+    sub MaxRoadOffset ; a = (TarRoadLeft + TarRoadRight) - MaxRoadOffset
+    jr c, .doneChangeRight ; Current offset is within limits, carry on
+    ld c, a ; c = (TarRoadLeft + TarRoadRight) - MaxRoadOffset
+    ld a, b ; a = TarRoadRight
+    sub c ; Take away from TarRoadRight so it becomes within MaxRoadOffset
+    add a ; same as "sla a"
+    add a
+    ld [TarRoadRight], a
+
 .doneChangeRight:
 
     ld a, [CurRoadRight]
