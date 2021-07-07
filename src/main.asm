@@ -116,13 +116,15 @@ VBlank::
     reti
 
 ; Generates a new line of road, and puts it into RoadGenBuffer
+; could split right + left side into different functions, and run them on alternate frames?
 GenRoadRow:
-    ; Check if we've reached the target left position
+    ; -------------------- Left Side --------------------
+    ; Check if we've reached the target position
     ld a, [TarRoadLeft]
     ld b, a
     ld a, [CurRoadLeft]
     and %00011111 ; remove status bits so CP works
-    cp b ; C Set if CurRoadLeft < TarRoadLeft
+    cp b ; C Set if CurRoad < TarRoad
     jr z, .genNewTarLeft
     jr c, .curLeftIncrement
     ; RoadLeft > TarRoadLeft, turning left
@@ -137,39 +139,81 @@ GenRoadRow:
     jr .doneChangeLeft
 .genNewTarLeft:
     call genRandom
-    ld b, %00011100
-    and b
+    and %11100000 ; check that 3 bits are all 0 = 1 in 8
+    jr nz, .doneChangeLeft ; 1 in 8: gen new turn, 7 in 8: stay straight
+    ld a, l
+    and %00011100
     ld [TarRoadLeft], a
 .doneChangeLeft:
-
-
-    ; Check if we've reached the target right position
-    /*ld a, [TarRoadRight]
-    ld b, a
-    ld a, [CurRoadRight]
-    cp b
-    jr nz, .dontRenewRight
-    call genRandom
-    ld [TarRoadRight], a
-.dontRenewRight:*/
 
     ld a, [CurRoadLeft]
     ld l, a
     xor a
-    ld h, a ; hl = left
-    add hl, hl ; hl = left * 2
-    add hl, hl ; hl = left * 4
+    ld h, a ; hl = index
+    add hl, hl ; hl = index * 2
+    add hl, hl ; hl = index * 4
     ld d, h
-    ld e, l ; de = left * 4
-    add hl, hl ; hl = left * 8
-    add hl, de ; hl = left * 8 + left * 4 = left * 12
+    ld e, l ; de = index * 4
+    add hl, hl ; hl = index * 8
+    add hl, de ; hl = index * 8 + index * 4 = index * 12
 
     ld de, Tilemap
-    add hl, de ; hl = left * 12 + Tilemap
+    add hl, de ; hl = index * 12 + Tilemap
 
     ld d, h ; Move HL into DE for Memcpy
     ld e, l
     ld hl, RoadGenBuffer
+    ld a, 12 ; Half road is 12 tiles wide = 12 bytes
+    ld c, a
+    rst memcpyFast
+
+    ; -------------------- Right Side --------------------
+    ; Having this code duplicated kinda sucks. Maybe replace with a macro?
+    ; Check if we've reached the target position
+    ld a, [TarRoadRight]
+    ld b, a
+    ld a, [CurRoadRight]
+    and %00011111 ; remove status bits so CP works
+    cp b ; C Set if CurRoad < TarRoad
+    jr z, .genNewTarRight
+    jr c, .curRightIncrement
+    ; RoadRight > TarRoadRight, turning right
+    dec a
+    and %11011111 ; disable "turning right" bit
+    ld [CurRoadRight], a
+    jr .doneChangeRight
+.curRightIncrement: ; Turning left
+    inc a
+    or %00100000 ; enable "turning right" bit
+    ld [CurRoadRight], a
+    jr .doneChangeRight
+.genNewTarRight:
+    call genRandom
+    and %11100000 ; check that 3 bits are all 0 = 1 in 8
+    jr nz, .doneChangeRight ; 1 in 8: gen new turn, 7 in 8: stay straight
+    ld a, l
+    and %00011100
+    ld [TarRoadRight], a
+.doneChangeRight:
+
+    ld a, [CurRoadRight]
+    or %01000000 ; enable "right side of road" bit
+    ld l, a
+    xor a
+    ld h, a ; hl = index
+    add hl, hl ; hl = index * 2
+    add hl, hl ; hl = index * 4
+    ld d, h
+    ld e, l ; de = index * 4
+    add hl, hl ; hl = index * 8
+    add hl, de ; hl = index * 8 + index * 4 = index * 12
+
+    ld de, Tilemap
+    add hl, de ; hl = index * 12 + Tilemap
+
+    ld d, h ; Move HL into DE for Memcpy
+    ld e, l
+    ld hl, RoadGenBuffer + 12
     ld a, 12 ; Half road is 12 tiles wide = 12 bytes
     ld c, a
     rst memcpyFast

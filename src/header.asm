@@ -23,6 +23,8 @@ SECTION "rst08",ROM0[$08]
 ; Input - HL = Destination address
 ; Input - C = Number of bytes
 ; Input - A = Value to fill with
+; Sets  - C to 0
+; Sets  - H L to garbage
 memsetFast::
 	ld [hli], a
 	dec c
@@ -53,8 +55,8 @@ SECTION "rst20",ROM0[$20]
 ; Input - HL = Destination address
 ; Input - DE = Start address
 ; Input - C = Data length
-; Sets	- A C to 0
-; Sets	- H L D E to garbage
+; Sets	- C to 0
+; Sets	- A H L D E to garbage
 memcpyFast::
 	ld a, [de]
 	ld [hli], a
@@ -82,8 +84,8 @@ SECTION "joypad",ROM0[$60]
 
 SECTION "Header", ROM0[$100]
 
-	; This is your ROM's entry point
-	; You have 4 bytes of code to do... something
+	; This is the ROM's entry point
+	; There's 4 bytes of code to do... something
 	di
 	jp EntryPoint
 
