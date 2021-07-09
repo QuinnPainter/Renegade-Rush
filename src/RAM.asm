@@ -1,10 +1,12 @@
+INCLUDE "hardware.inc/hardware.inc"
+
 SECTION "Variables", WRAM0
 CurrentRoadScrollSpeed:: DS 2 ; Speed of road scroll, in pixels per frame. 8.8 fixed-point.
-CurrentRoadScrollSubpixel:: DB ; Can be thought of as the fractional part of rSCY, making an 8.8 fixed-point number.
+CurrentRoadScrollPos:: DS 2 ; 8.8 fixed-point number. Top byte is copied into rSCY every frame.
 RoadScrollCtr:: DB ; Increases by 1 for each pixel scrolled, so a new road line is made every 8 pixels
 RoadGenBuffer:: DS 24 ; Cache of the road tiles which are then copied to VRAM during Vblank
 RoadTileWriteAddr:: DS 2 ; The next VRAM address to write a road tile to.
-NeedMoreRoad:: DB ; Whether there is a pending request for more road to be generated (0 - false, nonzero - true)
+RoadLineReady:: DB ; Whether there is a line of road generated and ready to copy into VRAM (0 - false, nonzero - true)
 
 ; Road positions are the following format:
 ; First 3 bits - not stored in RAM, but are used in road gen
@@ -19,5 +21,15 @@ CurRoadRight:: DB ; X position of the right of the road.
 TarRoadLeft:: DB ; Target X position of the left. Road generation will try to lead the road here.
 TarRoadRight:: DB ; Target X position of the right. Road generation will try to lead the road here.
 
+SECTION "VRAM 8000", VRAM[_VRAM8000]
+RoadTilesVRAM::
+    DS 16
+RoadTilesVRAMEnd::
+
+SECTION "VRAM 8800", VRAM[_VRAM8800]
+PlayerTilesVRAM::
+    DS 10
+PlayerTilesVRAMEnd::
+
 SECTION "StackArea", WRAM0[$DF00]
-DS $FF ; Reserve 255 bytes for the stack at the end of WRAM.
+    DS $FF ; Reserve 255 bytes for the stack at the end of WRAM.

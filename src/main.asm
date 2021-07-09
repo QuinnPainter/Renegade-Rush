@@ -20,16 +20,32 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	ld bc, $A000 - $8000
 	ld d, 0
 	rst memset
+    ; Initialize sprite buffer to 0
+	ld hl, SpriteBuffer
+	ld c, SpriteBufferEnd - SpriteBuffer
+	ld d, 0
+	rst memsetFast
 
     ; Copy tileset into VRAM
-    ld hl, $8000
+    ; maybe should combine these MEMCPYs into one, since they're contiguous anyway?
+    ld hl, RoadTilesVRAM
     ld de, Tiles
     ld bc, TilesEnd - Tiles
+    rst memcpy
+    ld hl, PlayerTilesVRAM
+    ld de, PlayerTiles
+    ld bc, PlayerTilesEnd - PlayerTiles
     rst memcpy
 
     ; TEMP : seed random
     ld hl, $9574;$38
     call seedRandom
+
+    ; Copies the OAM DMA routine into HRAM
+    ld hl, DMARoutineHRAM
+    ld de, DMARoutine
+    ld c, 14
+    rst memcpyFast
 
     ; Initialise variables
     ld a, $9A
@@ -41,13 +57,14 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld a, $44
     ld [CurrentRoadScrollSpeed + 1], a
     xor a
-    ld [CurrentRoadScrollSubpixel], a
+    ld [CurrentRoadScrollPos], a
+    ld [CurrentRoadScrollPos + 1], a
     ld [RoadScrollCtr], a
     ld [CurRoadLeft], a
     ld [CurRoadRight], a
     ld [TarRoadLeft], a
     ld [TarRoadRight], a
-    ld [NeedMoreRoad], a
+    ld [RoadLineReady], a
 
     ; Generate enough road for the whole screen, plus 1 extra line
     REPT 19 ; could make this into a regular loop instead of REPT, if needed
@@ -57,53 +74,43 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 
     ; Init display registers
 	ld a, %11100100 ; Init background palette
-	ld [rBGP], a
+	ldh [rBGP], a
     xor a ; Init scroll registers
-	ld [rSCY], a
+	ldh [rSCY], a
     ld a, 16
-	ld [rSCX], a
+	ldh [rSCX], a
 
     ; Shut sound down
     xor a
-    ld [rNR52], a
+    ldh [rNR52], a
 
     ; Enable screen and initialise screen settings
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8000 \
         | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJOFF | LCDCF_BGON
-    ld [rLCDC], a
+    ldh [rLCDC], a
 
     ; Disable all interrupts except VBlank
 	ld a, IEF_VBLANK
-	ld [rIE], a
+	ldh [rIE], a
     xor a
-    ld [rIF], a ; Discard all pending interrupts (there would normally be a VBlank pending)
+    ldh [rIF], a ; Discard all pending interrupts (there would normally be a VBlank pending)
 	ei
 GameLoop:
-    ; Generate more road if needed
-    ld a, [NeedMoreRoad]
-    and a
-    call nz, GenRoadRow
-
-    halt
-    jp GameLoop
-
-
-VBlank::
+    ; Update road scroll, and generate new line of road if needed
     ld a, [CurrentRoadScrollSpeed + 1] ; Load subpixel portion of road speed
     ld b, a ; put that into B
-    ld a, [CurrentRoadScrollSubpixel] ; Load current subpixel into A
+    ld a, [CurrentRoadScrollPos + 1] ; Load current subpixel into A
     sub b ; Apply subpixel speed to current subpixel position
-    ld [CurrentRoadScrollSubpixel], a ; Save back current subpixel pos
+    ld [CurrentRoadScrollPos + 1], a ; Save back current subpixel pos
     ld a, [CurrentRoadScrollSpeed] ; Load pixel portion of road speed
     jr nc, .noSubpixelOverflow
     add 1 ; If subpixels overflowed, apply a full pixel to road speed
 .noSubpixelOverflow: ; A now contains the number of pixels to scroll this frame
     ld b, a ; move it to B
-    ; Update the road scroll
-    ld a, [rSCY]
-	sub b
-	ld [rSCY], a
-    ; Update RoadScrollCtr, and copy new road line if needed
+    ld a, [CurrentRoadScrollPos] ; \
+	sub b                        ; | Update the road scroll pixel
+	ld [CurrentRoadScrollPos], a ; /
+    ; Update RoadScrollCtr, and generate new road line if needed
     ld a, [RoadScrollCtr]
     add b ; B is still the number of lines scrolled this frame
     ld [RoadScrollCtr], a
@@ -111,9 +118,27 @@ VBlank::
     jr nc, .noNewLine ; if RoadScrollCtr <= 7 (i.e. < 8), no new line is needed
     sub 8
     ld [RoadScrollCtr], a
-    call CopyRoadBuffer
+    call GenRoadRow
 .noNewLine:
 
+    call readInput
+
+    halt
+    jp GameLoop
+
+
+VBlank::
+    ; Copy new road line onto the background tilemap if one is ready
+    ld a, [RoadLineReady]
+    and a ; update zero flag
+    call nz, CopyRoadBuffer
+
+    ; Update Scroll Y
+    ld a, [CurrentRoadScrollPos]
+    ldh [rSCY], a
+
+    ; Copy sprite buffer into OAM
+    call DMARoutineHRAM
     reti
 
 ; Generates a new line of road, and puts it into RoadGenBuffer
@@ -253,8 +278,8 @@ GenRoadRow:
     ld c, a
     rst memcpyFast
 
-    xor a
-    ld [NeedMoreRoad], a
+    ld a, 1
+    ld [RoadLineReady], a
     ret
 
 ; Copies the road buffer into VRAM
@@ -285,6 +310,6 @@ CopyRoadBuffer:
     ld [RoadTileWriteAddr], a
     ld a, l
     ld [RoadTileWriteAddr + 1], a
-    ld a, 1
-    ld [NeedMoreRoad], a
+    xor a
+    ld [RoadLineReady], a
     ret
