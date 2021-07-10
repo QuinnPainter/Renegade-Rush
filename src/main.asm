@@ -52,7 +52,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld [RoadTileWriteAddr], a
     ld a, $20
     ld [RoadTileWriteAddr + 1], a
-    ld a, 2
+    ld a, $2
     ld [CurrentRoadScrollSpeed], a
     ld a, $44
     ld [CurrentRoadScrollSpeed + 1], a
@@ -65,6 +65,8 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld [TarRoadLeft], a
     ld [TarRoadRight], a
     ld [RoadLineReady], a
+    jp initPlayer
+.doneInitPlayer::
 
     ; Generate enough road for the whole screen, plus 1 extra line
     REPT 19 ; could make this into a regular loop instead of REPT, if needed
@@ -75,6 +77,8 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ; Init display registers
 	ld a, %11100100 ; Init background palette
 	ldh [rBGP], a
+    ld [rOBP0], a ; Init sprite palettes
+	ld [rOBP1], a
     xor a ; Init scroll registers
 	ldh [rSCY], a
     ld a, 16
@@ -85,8 +89,8 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ldh [rNR52], a
 
     ; Enable screen and initialise screen settings
-    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8000 \
-        | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJOFF | LCDCF_BGON
+    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 \
+        | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJON | LCDCF_BGON
     ldh [rLCDC], a
 
     ; Disable all interrupts except VBlank
@@ -103,10 +107,8 @@ GameLoop:
     sub b ; Apply subpixel speed to current subpixel position
     ld [CurrentRoadScrollPos + 1], a ; Save back current subpixel pos
     ld a, [CurrentRoadScrollSpeed] ; Load pixel portion of road speed
-    jr nc, .noSubpixelOverflow
-    add 1 ; If subpixels overflowed, apply a full pixel to road speed
-.noSubpixelOverflow: ; A now contains the number of pixels to scroll this frame
-    ld b, a ; move it to B
+    adc 0 ; If subpixels overflowed, apply a full pixel to road speed
+    ld b, a ; ; A and B now contains the number of pixels to scroll this frame
     ld a, [CurrentRoadScrollPos] ; \
 	sub b                        ; | Update the road scroll pixel
 	ld [CurrentRoadScrollPos], a ; /
@@ -122,6 +124,10 @@ GameLoop:
 .noNewLine:
 
     call readInput
+
+    jp updatePlayer
+.doneUpdatePlayer::
+
 
     halt
     jp GameLoop

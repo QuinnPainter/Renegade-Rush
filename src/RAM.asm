@@ -22,14 +22,14 @@ TarRoadLeft:: DB ; Target X position of the left. Road generation will try to le
 TarRoadRight:: DB ; Target X position of the right. Road generation will try to lead the road here.
 
 SECTION "VRAM 8000", VRAM[_VRAM8000]
-RoadTilesVRAM::
-    DS 16
-RoadTilesVRAMEnd::
+PlayerTilesVRAM::
+    DS 10 ; 10 tiles * 16 bytes per tile
+PlayerTilesVRAMEnd::
 
 SECTION "VRAM 8800", VRAM[_VRAM8800]
-PlayerTilesVRAM::
-    DS 10
-PlayerTilesVRAMEnd::
+RoadTilesVRAM::
+    DS 16 * 16 ; 16 tiles * 16 bytes per tile
+RoadTilesVRAMEnd::
 
 SECTION "StackArea", WRAM0[$DF00]
     DS $FF ; Reserve 255 bytes for the stack at the end of WRAM.

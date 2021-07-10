@@ -2,6 +2,8 @@
     "rgbdsz80.includePath": [
         "src/",
         "src/constants",
-        "src/macros"
+        "src/macros",
+        "src/include",
+        "src/include/hardware.inc"
     ]
 }

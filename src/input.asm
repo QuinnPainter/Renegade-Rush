@@ -7,10 +7,10 @@ newButtons:: DB ; Buttons that changed to pressed in the last frame
 SECTION "InputCode", ROM0
 ; Reads the joypad state
 ; Sets - A and B to the joypad state
-; in the order Start, Select, B, A, Down, Up, Left, Right
+; in the order Down, Up, Left, Right, Start, Select, B, A (from bit 7 to 0)
 ; 0 is released, 1 is pressed
 readInput::
-    ld a, ~P1F_5 ; Read buttons
+    ld a, ~P1F_4 ; Read directions
 	ldh [rP1], a
     call .knownret ; Waste 10 cycles
 	ldh a, [rP1]
@@ -19,7 +19,7 @@ readInput::
 	and $0F ; only get last 4 bits
 	swap a	; swap last 4 bits with first 4
 	ld b, a
-	ld a, ~P1F_4 ; Read directions
+	ld a, ~P1F_5 ; Read buttons
 	ldh [rP1], a
     call .knownret ; Waste 10 cycles
 	ldh a, [rP1]
