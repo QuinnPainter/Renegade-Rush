@@ -130,6 +130,20 @@ updatePlayer::
     SetPlayerTilesAndAttributes 0
 .DoneSetSprite:
 
+    ld a, [PlayerY]
+    cp $10 ; Cap minimum Y to $10 (top of the screen)
+    jr nc, .aboveMinY
+    ld a, $10
+    ld [PlayerY], a
+.aboveMinY:
+
+    ld a, [PlayerY]
+    cp $89 ; Cap maximum Y to $89 (bottom of the screen)
+    jr c, .belowMaxY
+    ld a, $89
+    ld [PlayerY], a
+.belowMaxY:
+
     ; Move the 6 player car sprites to (PlayerX, PlayerY)
     ld a, [PlayerX]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * 0) + OAMA_X], a
