@@ -299,23 +299,22 @@ CopyRoadBuffer:
     ld c, 24
     rst memcpyFast
 
-    ld a, [RoadTileWriteAddr]
-    ld h, a
     ld a, [RoadTileWriteAddr + 1]
-    ld l, a
-    ld de, -32 ; $FFE0
-    add hl, de
-    ; if we're below 9800 (start of tilemap)
-    ; we have to reset to the end of the tilemap ($9BE0)
-    ld a, h
+    sub 32
+    ld c, a
+    jr nc, .noCarry
+    ld a, [RoadTileWriteAddr]
+    dec a
     cp $97
     jr nz, .noReset
-    ld hl, $9BE0
+    ld c, $E0 ; if we're below 9800 (start of tilemap)
+    ld a, $9B ; we have to reset to the end of the tilemap ($9BE0)
 .noReset:
-    ld a, h
     ld [RoadTileWriteAddr], a
-    ld a, l
+    ld a, c
+.noCarry:
     ld [RoadTileWriteAddr + 1], a
+    
     xor a
     ld [RoadLineReady], a
     ret
