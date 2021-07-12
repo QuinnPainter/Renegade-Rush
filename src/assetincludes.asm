@@ -22,3 +22,8 @@ SECTION "PlayerAttrmap", ROM0
 PlayerAttrmap::
 INCBIN "res/player.attrmap"
 PlayerAttrmapEnd::
+
+SECTION "RoadCollisionROM", ROM0
+RoadCollisionROM::
+INCBIN "res/roadcollision.bin"
+RoadCollisionROMEnd::

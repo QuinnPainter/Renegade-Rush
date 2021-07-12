@@ -2,6 +2,7 @@ GFX = rgbgfx
 PYTHON = python
 ADDOFFSET = $(PYTHON) scripts/AddBinaryOffset.py
 SWAPATTR = $(PYTHON) scripts/SwapFlipBits.py
+ROADCOLGEN = $(PYTHON) scripts/GenRoadCollision.py
 
 RESDIR = res
 
@@ -17,7 +18,11 @@ endif
 
 ASSETSDIR = Assets
 
-all: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap
+all: road player
+
+road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
+
+player: $(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/lines.png
@@ -26,6 +31,9 @@ $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 $(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap: $(ASSETSDIR)/player.png | $(RESDIR)
 	$(GFX) -u -m -o $(RESDIR)/player.2bpp -t $(RESDIR)/player.tilemap -a $(RESDIR)/player.attrmap $(ASSETSDIR)/player.png
 	$(SWAPATTR) $(RESDIR)/player.attrmap
+
+$(RESDIR)/roadcollision.bin: $(RESDIR)/lines.tilemap | $(RESDIR)
+	$(ROADCOLGEN) $(RESDIR)/roadcollision.bin $(RESDIR)/lines.tilemap
 
 $(RESDIR):
 	$(MKDIR_P) $(RESDIR)

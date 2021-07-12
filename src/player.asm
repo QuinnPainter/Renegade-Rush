@@ -162,4 +162,29 @@ updatePlayer::
     add 8
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * 4) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * 5) + OAMA_Y], a
+
+    ; Collision detection with the road edges
+    ld a, [PlayerY]
+    ld b, a
+    ld a, [CurrentRoadScrollPos]
+    add b ; a = PlayerY + CurrentRoadScrollPos
+    sub 16 ; a = (PlayerY + CurrentRoadScrollPos) - 16 (sprites are offset by 16)
+    ld l, a
+    ld h, RoadCollisionTableLeftX >> 8 ; HL = address into RoadCollisionTableLeftX
+    ld a, [PlayerX]
+    cp [hl] ; C: Set if no borrow (a < [hl])
+    jr nc, .noLeftCollide
+    ld a, [hl]
+    ld [PlayerX], a
+.noLeftCollide:
+    ld h, RoadCollisionTableRightX >> 8
+    ld a, [PlayerX]
+    add 16 ; car is 16 pix wide
+    cp [hl]
+    jr c, .noRightCollide
+    ld a, [hl]
+    sub 16
+    ld [PlayerX], a
+.noRightCollide:
+
     jp GameLoop.doneUpdatePlayer
