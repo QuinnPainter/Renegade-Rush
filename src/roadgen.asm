@@ -164,7 +164,7 @@ InitRoadGen::
     ld [RoadTileWriteAddr + 1], a
     ld a, $2
     ld [CurrentRoadScrollSpeed], a
-    ld a, $44
+    ld a, $CC
     ld [CurrentRoadScrollSpeed + 1], a
     ld a, 17 * 8
     ld [RoadCollisionWriteIndexLeft], a
@@ -216,24 +216,6 @@ CopyRoadBuffer::
     ld a, c
 .noCarry:
     ld [RoadTileWriteAddr + 1], a
-    
-    /*ld a, [RoadTileWriteAddr]
-    ld h, a
-    ld a, [RoadTileWriteAddr + 1]
-    ld l, a
-    ld bc, $FFE0 ;(~32) + 1 (2's complement for subtraction)
-    add hl, bc
-    ; if we're below 9800 (start of tilemap)
-    ; we have to reset to the end of the tilemap ($9BE0)
-    ld a, h
-    cp $97
-    jr nz, .noReset
-    ld hl, $9BE0
-.noReset:
-    ld a, h
-    ld [RoadTileWriteAddr], a
-    ld a, l
-    ld [RoadTileWriteAddr + 1], a*/
     
     xor a
     ld [RoadLineReady], a

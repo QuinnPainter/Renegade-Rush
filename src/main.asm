@@ -118,6 +118,10 @@ GameLoop:
 
 
 VBlank::
+    push af
+    push bc
+    push de
+
     ; Copy new road line onto the background tilemap if one is ready
     ld a, [RoadLineReady]
     and a ; update zero flag
@@ -129,4 +133,8 @@ VBlank::
 
     ; Copy sprite buffer into OAM
     call DMARoutineHRAM
+
+    pop de
+    pop bc
+    pop af
     reti
