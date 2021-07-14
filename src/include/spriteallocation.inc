@@ -1,0 +1,3 @@
+; In-game
+RSRESET
+DEF PLAYER_SPRITE RB 6

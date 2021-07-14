@@ -1,8 +1,7 @@
 INCLUDE "hardware.inc/hardware.inc"
-INCLUDE "gameconstants.inc"
 
-MinRoadWidth EQU 6
-MaxRoadOffset EQU (14 - MinRoadWidth)
+MIN_ROAD_WIDTH EQU 6
+MAX_ROAD_OFFSET EQU (14 - MIN_ROAD_WIDTH)
 
 ; Generates one side of the road.
 ; \1 = 0 for left side, 1 for right side
@@ -58,7 +57,7 @@ ENDC
     sra a
     sra a
     add b ; a = TarOtherSide + TarRoad
-    sub MaxRoadOffset ; a = (TarOtherSide + TarRoad) - MaxRoadOffset
+    sub MAX_ROAD_OFFSET ; a = (TarOtherSide + TarRoad) - MaxRoadOffset
     jr c, .doneChange\@ ; Current offset is within limits, carry on
     ld c, a ; c = (TarOtherSide + TarRoad) - MaxRoadOffset
     ld a, b ; a = TarRoad

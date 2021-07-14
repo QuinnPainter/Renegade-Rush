@@ -18,11 +18,13 @@ endif
 
 ASSETSDIR = Assets
 
-all: road player
+all: road player policecar
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
 
 player: $(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap
+
+policecar: $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecar.attrmap
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/lines.png
@@ -31,6 +33,10 @@ $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 $(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap: $(ASSETSDIR)/player.png | $(RESDIR)
 	$(GFX) -u -m -o $(RESDIR)/player.2bpp -t $(RESDIR)/player.tilemap -a $(RESDIR)/player.attrmap $(ASSETSDIR)/player.png
 	$(SWAPATTR) $(RESDIR)/player.attrmap
+
+$(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecar.attrmap: $(ASSETSDIR)/policecar.png | $(RESDIR)
+	$(GFX) -u -m -o $(RESDIR)/policecar.2bpp -t $(RESDIR)/policecar.tilemap -a $(RESDIR)/policecar.attrmap $(ASSETSDIR)/policecar.png
+	$(SWAPATTR) $(RESDIR)/policecar.attrmap
 
 $(RESDIR)/roadcollision.bin: $(RESDIR)/lines.tilemap | $(RESDIR)
 	$(ROADCOLGEN) $(RESDIR)/roadcollision.bin $(RESDIR)/lines.tilemap

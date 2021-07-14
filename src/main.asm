@@ -26,7 +26,6 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	rst memsetFast
 
     ; Copy tileset into VRAM
-    ; maybe should combine these MEMCPYs into one, since they're contiguous anyway?
     ld hl, RoadTilesVRAM
     ld de, Tiles
     ld bc, TilesEnd - Tiles
@@ -34,6 +33,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld hl, PlayerTilesVRAM
     ld de, PlayerTiles
     ld bc, PlayerTilesEnd - PlayerTiles
+    rst memcpy
+    ld hl, PoliceCarTilesVRAM
+    ld de, PoliceCarTiles
+    ld bc, PoliceCarTilesEnd - PoliceCarTiles
     rst memcpy
 
     ; TEMP : seed random

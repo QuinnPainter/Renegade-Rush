@@ -1,7 +1,8 @@
 include "hardware.inc/hardware.inc"
+include "spriteallocation.inc"
 
-PlayerMinY EQU $50 ; Cap minimum Y to $50 ($10 is top of the screen)
-PlayerMaxY EQU $80 ; Cap maximum Y to $80 ($89 is bottom of the screen)
+PLAYER_MIN_Y EQU $50 ; Cap minimum Y to $50 ($10 is top of the screen)
+PLAYER_MAX_Y EQU $80 ; Cap maximum Y to $80 ($89 is bottom of the screen)
 
 ; Add / Subtract two 16 bit numbers in RAM
 ; \1 = Number 1 - result is saved back to here
@@ -35,31 +36,31 @@ ENDM
 MACRO SetPlayerTilesAndAttributes
     ld hl, PlayerTilemap + \1 ; Set player tiles
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 0) + OAMA_TILEID], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_TILEID], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 1) + OAMA_TILEID], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_TILEID], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 2) + OAMA_TILEID], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_TILEID], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 3) + OAMA_TILEID], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_TILEID], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 4) + OAMA_TILEID], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_TILEID], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 5) + OAMA_TILEID], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_TILEID], a
 
     ld hl, PlayerAttrmap + \1 ; Set player sprite attributes
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 0) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_FLAGS], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 1) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_FLAGS], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 2) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_FLAGS], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 3) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_FLAGS], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 4) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_FLAGS], a
     ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 5) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_FLAGS], a
 ENDM
 
 SECTION "PlayerVariables", WRAM0
@@ -195,37 +196,37 @@ updatePlayer::
 .DoneSetSprite:
 
     ld a, [PlayerY]
-    cp PlayerMinY ; Cap minimum Y
+    cp PLAYER_MIN_Y ; Cap minimum Y
     jr nc, .aboveMinY
-    ld a, PlayerMinY
+    ld a, PLAYER_MIN_Y
     ld [PlayerY], a
 .aboveMinY:
 
     ld a, [PlayerY]
-    cp PlayerMaxY ; Cap maximum Y
+    cp PLAYER_MAX_Y ; Cap maximum Y
     jr c, .belowMaxY
-    ld a, PlayerMaxY
+    ld a, PLAYER_MAX_Y
     ld [PlayerY], a
 .belowMaxY:
 
     ; Move the 6 player car sprites to (PlayerX, PlayerY)
     ld a, [PlayerX]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 0) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 2) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 4) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_X], a
     add 8
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 1) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 3) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 5) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_X], a
     ld a, [PlayerY]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 0) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 1) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_Y], a
     add 8
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 2) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 3) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_Y], a
     add 8
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 4) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * 5) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_Y], a
 
     ; Collision detection with the road edges
     ld a, [PlayerY]
