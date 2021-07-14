@@ -1,11 +1,14 @@
 include "hardware.inc/hardware.inc"
 
-; Change PlayerX or PlayerY by a given amount.
-; \1 = PlayerX or PlayerY
-; \2 = Amount to change by (memory address). Usually PlayerXSpeed or PlayerYSpeed
+PlayerMinY EQU $50 ; Cap minimum Y to $50 ($10 is top of the screen)
+PlayerMaxY EQU $80 ; Cap maximum Y to $80 ($89 is bottom of the screen)
+
+; Add / Subtract two 16 bit numbers in RAM
+; \1 = Number 1 - result is saved back to here
+; \2 = Number 2
 ; \3 = 0 for subtract, 1 for add
 ; Sets - H L A to garbage
-MACRO PlayerMove
+MACRO AddSub16
     ld hl, \2
     ld a, [hli]
     ld l, [hl]
@@ -62,8 +65,12 @@ ENDM
 SECTION "PlayerVariables", WRAM0
 PlayerX:: DS 2 ; Coordinates of the top-left of the player. 8.8 fixed point.
 PlayerY:: DS 2
-PlayerXSpeed:: DS 2 ; Speed of the player in pixels per frame. 8.8 fixed point.
+PlayerXSpeed:: DS 2 ; Speed of the player moving around on the screen in pixels per frame. 8.8 fixed point.
 PlayerYSpeed:: DS 2
+PlayerMaxRoadSpeed:: DS 2 ; Max and min speeds of the car, in terms of road scroll speed. 8.8 fixed point.
+PlayerMinRoadSpeed:: DS 2
+PlayerAcceleration:: DS 2 ; Player's road scroll acceleration - pixels per frame per frame. 8.8 fixed point.
+CurrentRoadScrollSpeed:: DS 2 ; Speed of road scroll, in pixels per frame. 8.8 fixed-point.
 
 SECTION "PlayerCode", ROM0
 
@@ -74,12 +81,29 @@ initPlayer::
     ld [PlayerY], a
     ld a, $2
     ld [PlayerXSpeed], a
-    ld [PlayerYSpeed], a
+    ld a, $2
+    ld [CurrentRoadScrollSpeed], a
+    ld a, $CC
+    ld [CurrentRoadScrollSpeed + 1], a
+    ld a, $1
+    ld [PlayerMinRoadSpeed], a
     xor a
+    ld [PlayerMinRoadSpeed + 1], a
+    ld a, $6
+    ld [PlayerMaxRoadSpeed], a
+    xor a
+    ld [PlayerMaxRoadSpeed + 1], a
+    xor a
+    ld [PlayerAcceleration], a
+    ld a, $05
+    ld [PlayerAcceleration + 1], a
+    ld a, $55
+    ld [PlayerYSpeed + 1], a
+    xor a
+    ld [PlayerYSpeed], a
     ld [PlayerX + 1], a
     ld [PlayerY + 1], a
     ld [PlayerXSpeed + 1], a
-    ld [PlayerYSpeed + 1], a
     jp EntryPoint.doneInitPlayer
 
 updatePlayer::
@@ -90,14 +114,16 @@ updatePlayer::
     and PADF_UP
     jr z, .upNotPressed
     ; Subtract PlayerYSpeed from Player Y
-    PlayerMove PlayerY, PlayerYSpeed, 0
+    AddSub16 PlayerY, PlayerYSpeed, 0
+    AddSub16 CurrentRoadScrollSpeed, PlayerAcceleration, 1
 .upNotPressed:
 
     ld a, b
     and PADF_DOWN
     jr z, .downNotPressed
     ; Add PlayerYSpeed to Player Y
-    PlayerMove PlayerY, PlayerYSpeed, 1
+    AddSub16 PlayerY, PlayerYSpeed, 1
+    AddSub16 CurrentRoadScrollSpeed, PlayerAcceleration, 0
 .downNotPressed:
 
     ld a, b
@@ -105,7 +131,7 @@ updatePlayer::
     jr z, .leftNotPressed
     ld c, 1 ; movement state = turning left
     ; Subtract PlayerXSpeed from Player X
-    PlayerMove PlayerX, PlayerXSpeed, 0
+    AddSub16 PlayerX, PlayerXSpeed, 0
 .leftNotPressed:
 
     ld a, b
@@ -113,8 +139,46 @@ updatePlayer::
     jr z, .rightNotPressed
     ld c, 2 ; movement state = turning right
     ; Add PlayerXSpeed to Player X
-    PlayerMove PlayerX, PlayerXSpeed, 1
+    AddSub16 PlayerX, PlayerXSpeed, 1
 .rightNotPressed:
+
+    ; Enforce minimum road speed
+    ld a, [PlayerMinRoadSpeed]
+    ld b, a
+    ld a, [CurrentRoadScrollSpeed]
+    cp b ; C: Set if (CurrentRoadScrollSpeed < PlayerMinRoadSpeed)
+    jr nc, .scrollSpeedAboveMin
+    jr nz, .scrollSpeedBelowMin
+    ld a, [PlayerMinRoadSpeed + 1]
+    ld b, a
+    ld a, [CurrentRoadScrollSpeed + 1]
+    cp b
+    jr nc, .scrollSpeedAboveMin
+.scrollSpeedBelowMin:
+    ld a, [PlayerMinRoadSpeed]
+    ld [CurrentRoadScrollSpeed], a
+    ld a, [PlayerMinRoadSpeed + 1]
+    ld [CurrentRoadScrollSpeed + 1], a
+.scrollSpeedAboveMin:
+
+    ; Enforce maximum road speed (comment this out to engage hyperspeed!)
+    ld a, [PlayerMaxRoadSpeed]
+    ld b, a
+    ld a, [CurrentRoadScrollSpeed]
+    cp b ; C: Set if (CurrentRoadScrollSpeed < PlayerMaxRoadSpeed)
+    jr c, .scrollSpeedBelowMax
+    jr nz, .scrollSpeedAboveMax
+    ld a, [PlayerMaxRoadSpeed + 1]
+    ld b, a
+    ld a, [CurrentRoadScrollSpeed + 1]
+    cp b
+    jr c, .scrollSpeedBelowMax
+.scrollSpeedAboveMax:
+    ld a, [PlayerMaxRoadSpeed]
+    ld [CurrentRoadScrollSpeed], a
+    ld a, [PlayerMaxRoadSpeed + 1]
+    ld [CurrentRoadScrollSpeed + 1], a
+.scrollSpeedBelowMax:
 
     ld a, c
     and a ; get flags
@@ -131,16 +195,16 @@ updatePlayer::
 .DoneSetSprite:
 
     ld a, [PlayerY]
-    cp $10 ; Cap minimum Y to $10 (top of the screen)
+    cp PlayerMinY ; Cap minimum Y
     jr nc, .aboveMinY
-    ld a, $10
+    ld a, PlayerMinY
     ld [PlayerY], a
 .aboveMinY:
 
     ld a, [PlayerY]
-    cp $89 ; Cap maximum Y to $89 (bottom of the screen)
+    cp PlayerMaxY ; Cap maximum Y
     jr c, .belowMaxY
-    ld a, $89
+    ld a, PlayerMaxY
     ld [PlayerY], a
 .belowMaxY:
 

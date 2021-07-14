@@ -1,6 +1,9 @@
 INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "gameconstants.inc"
 
+MinRoadWidth EQU 6
+MaxRoadOffset EQU (14 - MinRoadWidth)
+
 ; Generates one side of the road.
 ; \1 = 0 for left side, 1 for right side
 ; Sets - A B C D E H L to garbage
@@ -122,7 +125,6 @@ PURGE RoadCollisionWriteIndex
 ENDM
 
 SECTION "RoadVariables", WRAM0
-CurrentRoadScrollSpeed:: DS 2 ; Speed of road scroll, in pixels per frame. 8.8 fixed-point.
 CurrentRoadScrollPos:: DS 2 ; 8.8 fixed-point number. Top byte is copied into rSCY every frame.
 RoadScrollCtr:: DB ; Increases by 1 for each pixel scrolled, so a new road line is made every 8 pixels
 RoadGenBuffer:: DS 24 ; Cache of the road tiles which are then copied to VRAM during Vblank
@@ -162,10 +164,6 @@ InitRoadGen::
     ld [RoadTileWriteAddr], a
     ld a, $20
     ld [RoadTileWriteAddr + 1], a
-    ld a, $2
-    ld [CurrentRoadScrollSpeed], a
-    ld a, $CC
-    ld [CurrentRoadScrollSpeed + 1], a
     ld a, 17 * 8
     ld [RoadCollisionWriteIndexLeft], a
     ld [RoadCollisionWriteIndexRight], a
