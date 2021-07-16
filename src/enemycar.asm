@@ -1,5 +1,6 @@
 include "hardware.inc/hardware.inc"
 include "spriteallocation.inc"
+include "macros.inc"
 
 ; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
 ; \1 = Offset into tilemap (number of tiles)
@@ -69,5 +70,53 @@ initEnemyCar::
     ret
 
 updateEnemyCar::
+    ; Take car speed from road speed to get the Y offset
+    Sub16 CurrentRoadScrollSpeed, EnemyCarRoadSpeed, Scratchpad
+    ; Add Y offset to Y coordinate
+    Add16 Scratchpad, EnemyCarY, EnemyCarY
+
     SetCarTilesAndAttributes 0
+
+    ; Move the 6 car sprites to (EnemyCarX, EnemyCarY)
+    ld a, [EnemyCarX]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_X], a
+    add 8
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_X], a
+    ld a, [EnemyCarY]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_Y], a
+    add 8
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_Y], a
+    add 8
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_Y], a
+
+    ; Collision detection with the road edges
+    ld a, [EnemyCarY]
+    ld b, a
+    ld a, [CurrentRoadScrollPos]
+    add b ; a = EnemyCarY + CurrentRoadScrollPos
+    sub 16 ; a = (EnemyCarY + CurrentRoadScrollPos) - 16 (sprites are offset by 16)
+    ld l, a
+    ld h, RoadCollisionTableLeftX >> 8 ; HL = address into RoadCollisionTableLeftX
+    ld a, [EnemyCarX]
+    cp [hl] ; C: Set if no borrow (a < [hl])
+    jr nc, .noLeftCollide
+    ld a, [hl]
+    ld [EnemyCarX], a
+.noLeftCollide:
+    ld h, RoadCollisionTableRightX >> 8
+    ld a, [EnemyCarX]
+    add 16 ; car is 16 pix wide
+    cp [hl]
+    jr c, .noRightCollide
+    ld a, [hl]
+    sub 16
+    ld [EnemyCarX], a
+.noRightCollide:
     ret

@@ -1,34 +1,9 @@
 include "hardware.inc/hardware.inc"
 include "spriteallocation.inc"
+include "macros.inc"
 
 PLAYER_MIN_Y EQU $50 ; Cap minimum Y to $50 ($10 is top of the screen)
 PLAYER_MAX_Y EQU $80 ; Cap maximum Y to $80 ($89 is bottom of the screen)
-
-; Add / Subtract two 16 bit numbers in RAM
-; \1 = Number 1 - result is saved back to here
-; \2 = Number 2
-; \3 = 0 for subtract, 1 for add
-; Sets - H L A to garbage
-MACRO AddSub16
-    ld hl, \2
-    ld a, [hli]
-    ld l, [hl]
-    ld h, a
-    ld a, [\1 + 1]
-IF \3 == 0 
-    sub l
-ELSE
-    add l
-ENDC
-    ld [\1 + 1], a
-    ld a, [\1]
-IF \3 == 0
-    sbc h
-ELSE
-    adc h
-ENDC
-    ld [\1], a
-ENDM
 
 ; Set the player tiles and attributes from PlayerTilemap and PlayerAttrmap
 ; \1 = Offset into tilemap (number of tiles)
@@ -115,16 +90,16 @@ updatePlayer::
     and PADF_UP
     jr z, .upNotPressed
     ; Subtract PlayerYSpeed from Player Y
-    AddSub16 PlayerY, PlayerYSpeed, 0
-    AddSub16 CurrentRoadScrollSpeed, PlayerAcceleration, 1
+    Sub16 PlayerY, PlayerYSpeed, PlayerY
+    Add16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
 .upNotPressed:
 
     ld a, b
     and PADF_DOWN
     jr z, .downNotPressed
     ; Add PlayerYSpeed to Player Y
-    AddSub16 PlayerY, PlayerYSpeed, 1
-    AddSub16 CurrentRoadScrollSpeed, PlayerAcceleration, 0
+    Add16 PlayerY, PlayerYSpeed, PlayerY
+    Sub16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
 .downNotPressed:
 
     ld a, b
@@ -132,7 +107,7 @@ updatePlayer::
     jr z, .leftNotPressed
     ld c, 1 ; movement state = turning left
     ; Subtract PlayerXSpeed from Player X
-    AddSub16 PlayerX, PlayerXSpeed, 0
+    Sub16 PlayerX, PlayerXSpeed, PlayerX
 .leftNotPressed:
 
     ld a, b
@@ -140,7 +115,7 @@ updatePlayer::
     jr z, .rightNotPressed
     ld c, 2 ; movement state = turning right
     ; Add PlayerXSpeed to Player X
-    AddSub16 PlayerX, PlayerXSpeed, 1
+    Add16 PlayerX, PlayerXSpeed, PlayerX
 .rightNotPressed:
 
     ; Enforce minimum road speed

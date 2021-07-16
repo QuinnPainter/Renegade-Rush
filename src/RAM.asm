@@ -15,3 +15,7 @@ RoadTilesVRAMEnd::
 
 SECTION "StackArea", WRAM0[$DF00]
     DS $FF ; Reserve 255 bytes for the stack at the end of WRAM.
+
+SECTION "Scratchpad", HRAM
+Scratchpad::
+    DS 16 ; Reserve 16 bytes for use as a data scratchpad

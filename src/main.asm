@@ -54,6 +54,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 .doneInitRoad::
     jp initPlayer
 .doneInitPlayer::
+    call initEnemyCar
 
     ; Generate enough road for the whole screen, plus 1 extra line
     REPT 19 ; could make this into a regular loop instead of REPT, if needed
@@ -114,6 +115,7 @@ GameLoop:
 
     jp updatePlayer
 .doneUpdatePlayer::
+    call updateEnemyCar
 
 
     halt
