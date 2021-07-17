@@ -3,10 +3,13 @@ include "spriteallocation.inc"
 include "macros.inc"
 
 ; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
-; \1 = Offset into tilemap (number of tiles)
+; C = Offset into tilemap (number of tiles)
 ; Sets - A to garbage
-MACRO SetCarTilesAndAttributes
-    ld hl, PoliceCarTilemap + \1 ; Set tiles
+MACRO set_car_tiles
+    ld b, 0
+
+    ld hl, PoliceCarTilemap ; Set tiles
+    add hl, bc
     ld a, [hli]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_TILEID], a
     ld a, [hli]
@@ -20,7 +23,8 @@ MACRO SetCarTilesAndAttributes
     ld a, [hli]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_TILEID], a
 
-    ld hl, PoliceCarAttrmap + \1 ; Set sprite attributes
+    ld hl, PoliceCarAttrmap ; Set sprite attributes
+    add hl, bc
     ld a, [hli]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_FLAGS], a
     ld a, [hli]
@@ -41,6 +45,8 @@ EnemyCarY:: DS 2
 EnemyCarXSpeed:: DS 2 ; Speed of the car moving left and right on the screen in pixels per frame. 8.8 fixed point.
 EnemyCarRoadSpeed:: DS 2 ; Speed of the car, in terms of road scroll speed. 8.8 fixed point.
 EnemyCarAcceleration:: DS 2 ; Car's road scroll acceleration - pixels per frame per frame. 8.8 fixed point.
+EnemyCarAnimationTimer:: DS 1 ; Incremented every frame. Used to update animations.
+EnemyCarAnimationState:: DS 1 ; Current state of the animation. 0 = state 1, FF = state 2
 
 SECTION "EnemyCarCode", ROM0
 
@@ -67,15 +73,37 @@ initEnemyCar::
     ld [EnemyCarAcceleration], a
     ld a, $05
     ld [EnemyCarAcceleration + 1], a
+    xor a
+    ld [EnemyCarAnimationTimer], a
+    ld [EnemyCarAnimationState], a
     ret
 
 updateEnemyCar::
-    ; Take car speed from road speed to get the Y offset
-    Sub16 CurrentRoadScrollSpeed, EnemyCarRoadSpeed, Scratchpad
-    ; Add Y offset to Y coordinate
-    Add16 Scratchpad, EnemyCarY, EnemyCarY
+    ; Update animation state
+    ld a, [EnemyCarAnimationTimer]
+    inc a
+    ld [EnemyCarAnimationTimer], a
+    and %00001111 ; every 16 frames
+    jr nz, .noUpdateAnimation
+    ld a, [EnemyCarAnimationState]
+    cpl
+    ld [EnemyCarAnimationState], a
+.noUpdateAnimation:
 
-    SetCarTilesAndAttributes 0
+    ; Take car speed from road speed to get the Y offset
+    sub_16 CurrentRoadScrollSpeed, EnemyCarRoadSpeed, Scratchpad
+    ; Add Y offset to Y coordinate
+    add_16 Scratchpad, EnemyCarY, EnemyCarY
+
+    ld c, 0
+    ld a, [EnemyCarAnimationState]
+    and a
+    jr z, .animState1
+    ld a, 18
+    add c
+    ld c, a
+.animState1:
+    set_car_tiles
 
     ; Move the 6 car sprites to (EnemyCarX, EnemyCarY)
     ld a, [EnemyCarX]

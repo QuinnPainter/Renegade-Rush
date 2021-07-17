@@ -3,7 +3,7 @@
 ; \2 = Number 2
 ; \3 = Where to save result
 ; Sets - H L A to garbage
-MACRO Add16
+MACRO add_16
     ld hl, \2
     ld a, [hli]
     ld l, [hl]
@@ -21,7 +21,7 @@ ENDM
 ; \2 = Number 2
 ; \3 = Where to save result
 ; Sets - H L A to garbage
-MACRO Sub16
+MACRO sub_16
     ld hl, \2
     ld a, [hli]
     ld l, [hl]

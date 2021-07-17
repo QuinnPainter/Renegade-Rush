@@ -8,7 +8,7 @@ PLAYER_MAX_Y EQU $80 ; Cap maximum Y to $80 ($89 is bottom of the screen)
 ; Set the player tiles and attributes from PlayerTilemap and PlayerAttrmap
 ; \1 = Offset into tilemap (number of tiles)
 ; Sets - A to garbage
-MACRO SetPlayerTilesAndAttributes
+MACRO set_player_tiles
     ld hl, PlayerTilemap + \1 ; Set player tiles
     ld a, [hli]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_TILEID], a
@@ -90,16 +90,16 @@ updatePlayer::
     and PADF_UP
     jr z, .upNotPressed
     ; Subtract PlayerYSpeed from Player Y
-    Sub16 PlayerY, PlayerYSpeed, PlayerY
-    Add16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
+    sub_16 PlayerY, PlayerYSpeed, PlayerY
+    add_16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
 .upNotPressed:
 
     ld a, b
     and PADF_DOWN
     jr z, .downNotPressed
     ; Add PlayerYSpeed to Player Y
-    Add16 PlayerY, PlayerYSpeed, PlayerY
-    Sub16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
+    add_16 PlayerY, PlayerYSpeed, PlayerY
+    sub_16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
 .downNotPressed:
 
     ld a, b
@@ -107,7 +107,7 @@ updatePlayer::
     jr z, .leftNotPressed
     ld c, 1 ; movement state = turning left
     ; Subtract PlayerXSpeed from Player X
-    Sub16 PlayerX, PlayerXSpeed, PlayerX
+    sub_16 PlayerX, PlayerXSpeed, PlayerX
 .leftNotPressed:
 
     ld a, b
@@ -115,7 +115,7 @@ updatePlayer::
     jr z, .rightNotPressed
     ld c, 2 ; movement state = turning right
     ; Add PlayerXSpeed to Player X
-    Add16 PlayerX, PlayerXSpeed, PlayerX
+    add_16 PlayerX, PlayerXSpeed, PlayerX
 .rightNotPressed:
 
     ; Enforce minimum road speed
@@ -161,13 +161,13 @@ updatePlayer::
     jr z, .ForwardSprite
     cp 1
     jr z, .LeftSprite
-    SetPlayerTilesAndAttributes 12 ; right sprite
+    set_player_tiles 12 ; right sprite
     jr .DoneSetSprite
 .LeftSprite:
-    SetPlayerTilesAndAttributes 6
+    set_player_tiles 6
     jr .DoneSetSprite
 .ForwardSprite:
-    SetPlayerTilesAndAttributes 0
+    set_player_tiles 0
 .DoneSetSprite:
 
     ld a, [PlayerY]
