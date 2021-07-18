@@ -148,3 +148,58 @@ updateEnemyCar::
     ld [EnemyCarX], a
 .noRightCollide:
     ret
+
+; Input - A = Index of object to check collision for
+objCollisionCheck:
+    ld hl, ObjCollisionArray
+    add l
+    ld l, a ; HL = address of base object
+    ld b, a ; save location of base object for later
+
+    ld a, [hli]
+    ld c, a ; C = Collision Flags
+    ld a, [hli]
+    ld d, a ; D = Top Y
+    ld a, [hli]
+    ld e, a ; E = Bottom Y
+    ld a, [hli]
+    ldh [Scratchpad], a ; Scratchpad 0 = Left X
+    ld a, [hli]
+    ldh [Scratchpad + 1], a ; Scratchpad 1 = Right X
+
+    ld l, LOW(ObjCollisionArray) ; reset to the start of the array
+.checkColLoop:
+    ld b, a          ; \
+    cp l             ; |  Check if the current object is the same as the base object
+    jr z, .noCol5Inc ; /
+    ld a, [hli]      ; \
+    and c            ; |  Check if the objects have corresponding flags
+    jr z, .noCol4Inc ; /
+    ld a, [hli]
+    cp e ; C set if other object top Y < this object bottom Y (no collision)
+    jr c, .noCol3Inc
+    ld a, [hli]
+    cp d ; C unset if this object top Y <= other object bottom Y (no collision)
+    jr nc, .noCol2Inc
+    ldh a, [Scratchpad + 1]
+    cp [hl] ; C set if this object right X < other object left X (no collision)
+    inc l
+    jr c, .noCol1Inc
+    ldh a, [Scratchpad]
+    cp [hl] ; C unset if other object right X <= this object left X (no collision)
+    jr c, .noCol1Inc
+    ; all conditions passed - we have a collision
+.noCol5Inc:
+    inc l
+.noCol4Inc:
+    inc l
+.noCol3Inc:
+    inc l
+.noCol2Inc:
+    inc l
+.noCol1Inc:
+    inc l
+    ld a, LOW(ObjCollisionArrayEnd) ; \
+    cp l                            ; | Check if we got to the end of the array
+    jr nz, .checkColLoop            ; /
+    ret
