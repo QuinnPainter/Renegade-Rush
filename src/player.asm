@@ -83,7 +83,7 @@ initPlayer::
     jp EntryPoint.doneInitPlayer
 
 updatePlayer::
-    ld c, 0 ; C holds the movement state: 0 = not turning, 1 = turning left, 2 = turning right
+    ld c, 0 ; C holds the movement state: 0 = not turning, -1 = turning left, 1 = turning right
 
     ld a, [curButtons]
     ld b, a ; save curButtons into b
@@ -105,7 +105,7 @@ updatePlayer::
     ld a, b
     and PADF_LEFT
     jr z, .leftNotPressed
-    ld c, 1 ; movement state = turning left
+    dec c ; movement state = turning left
     ; Subtract PlayerXSpeed from Player X
     sub_16 PlayerX, PlayerXSpeed, PlayerX
 .leftNotPressed:
@@ -113,7 +113,7 @@ updatePlayer::
     ld a, b
     and PADF_RIGHT
     jr z, .rightNotPressed
-    ld c, 2 ; movement state = turning right
+    inc c ; movement state = turning right
     ; Add PlayerXSpeed to Player X
     add_16 PlayerX, PlayerXSpeed, PlayerX
 .rightNotPressed:
@@ -159,7 +159,7 @@ updatePlayer::
     ld a, c
     and a ; get flags
     jr z, .ForwardSprite
-    cp 1
+    cp -1
     jr z, .LeftSprite
     set_player_tiles 12 ; right sprite
     jr .DoneSetSprite
