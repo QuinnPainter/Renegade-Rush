@@ -40,13 +40,16 @@ MACRO set_car_tiles
 ENDM
 
 SECTION "EnemyCarVariables", WRAM0
-EnemyCarX:: DS 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
-EnemyCarY:: DS 2
-EnemyCarXSpeed:: DS 2 ; Speed of the car moving left and right on the screen in pixels per frame. 8.8 fixed point.
-EnemyCarRoadSpeed:: DS 2 ; Speed of the car, in terms of road scroll speed. 8.8 fixed point.
-EnemyCarAcceleration:: DS 2 ; Car's road scroll acceleration - pixels per frame per frame. 8.8 fixed point.
-EnemyCarAnimationTimer:: DS 1 ; Incremented every frame. Used to update animations.
-EnemyCarAnimationState:: DS 1 ; Current state of the animation. 0 = state 1, FF = state 2
+EnemyCarX: DS 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
+EnemyCarY: DS 2
+EnemyCarXSpeed: DS 2 ; Speed of the car moving left and right on the screen in pixels per frame. 8.8 fixed point.
+EnemyCarRoadSpeed: DS 2 ; Speed of the car, in terms of road scroll speed. 8.8 fixed point.
+EnemyCarAcceleration: DS 2 ; Car's road scroll acceleration - pixels per frame per frame. 8.8 fixed point.
+EnemyCarAnimationTimer: DS 1 ; Incremented every frame. Used to update animations.
+EnemyCarAnimationState: DS 1 ; Current state of the animation. 0 = state 1, FF = state 2
+RemainingKnockbackFrames: DS 1 ; Number of frames left in the knockback animation.
+CurrentKnockbackSpeedX: DS 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
+CurrentKnockbackSpeedY: DS 2
 
 SECTION "EnemyCarCode", ROM0
 
@@ -76,6 +79,11 @@ initEnemyCar::
     xor a
     ld [EnemyCarAnimationTimer], a
     ld [EnemyCarAnimationState], a
+    ld [RemainingKnockbackFrames], a
+    ld [CurrentKnockbackSpeedX], a
+    ld [CurrentKnockbackSpeedX + 1], a
+    ld [CurrentKnockbackSpeedY], a
+    ld [CurrentKnockbackSpeedY + 1], a
     ret
 
 updateEnemyCar::
