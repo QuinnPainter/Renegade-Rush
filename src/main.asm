@@ -50,6 +50,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     rst memcpyFast
 
     ; Initialise variables
+    call collisionInit
     jp InitRoadGen
 .doneInitRoad::
     jp initPlayer

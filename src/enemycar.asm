@@ -105,25 +105,6 @@ updateEnemyCar::
 .animState1:
     set_car_tiles
 
-    ; Move the 6 car sprites to (EnemyCarX, EnemyCarY)
-    ld a, [EnemyCarX]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_X], a
-    add 8
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_X], a
-    ld a, [EnemyCarY]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_Y], a
-    add 8
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_Y], a
-    add 8
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_Y], a
-
     ; Collision detection with the road edges
     ld a, [EnemyCarY]
     ld b, a
@@ -147,74 +128,44 @@ updateEnemyCar::
     sub 16
     ld [EnemyCarX], a
 .noRightCollide:
-    ret
 
-; Input - A = Index of object to check collision for
-; Sets - A = Nonzero if collided, 0 if not
-; Sets - B = Collided object flags
-; Sets - C = Collided object top Y
-; Sets - D = Collided object left X
-; Sets - E H L to garbage
-objCollisionCheck:
-    ld hl, ObjCollisionArray
-    add l
-    ld l, a ; HL = address of base object
-    ld b, a ; save location of base object for later
+    ; Update entry in object collision array
+    ld hl, ObjCollisionArray + ENEMYCAR_COLLISION_1
+    ld a, %00000001 ; Collision Layer Flags
+    ld [hli], a
+    ld a, [EnemyCarY] ; Top Y
+    ld [hli], a
+    add 24 ; Bottom Y - car is 24 px tall
+    ld [hli], a
+    ld a, [EnemyCarX] ; Left X
+    ld [hli], a
+    add 16 ; Right X - car is 16 px wide
+    ld [hl], a
 
-    ld a, [hli]
-    ld c, a ; C = Collision Flags
-    ld a, [hli]
-    ld d, a ; D = Top Y
-    ld a, [hli]
-    ld e, a ; E = Bottom Y
-    ld a, [hli]
-    ldh [Scratchpad], a ; Scratchpad 0 = Left X
-    ld a, [hli]
-    ldh [Scratchpad + 1], a ; Scratchpad 1 = Right X
+    ld a, ENEMYCAR_COLLISION_1
+    call objCollisionCheck
+    and a
+    jr z, .noCol
+    ld c, 6
+    set_car_tiles
+.noCol:
 
-    ld l, LOW(ObjCollisionArray) ; reset to the start of the array
-.checkColLoop:
-    ld b, a          ; \
-    cp l             ; |  Check if the current object is the same as the base object
-    jr z, .noCol5Inc ; /
-    ld a, [hli]      ; \
-    and c            ; |  Check if the objects have corresponding flags
-    jr z, .noCol4Inc ; /
-    ld a, [hli]
-    cp e ; C set if other object top Y < this object bottom Y (no collision)
-    jr c, .noCol3Inc
-    ld a, [hli]
-    cp d ; C unset if this object top Y <= other object bottom Y (no collision)
-    jr nc, .noCol2Inc
-    ldh a, [Scratchpad + 1]
-    cp [hl] ; C set if this object right X < other object left X (no collision)
-    inc l
-    jr c, .noCol1Inc
-    ldh a, [Scratchpad]
-    cp [hl] ; C unset if other object right X <= this object left X (no collision)
-    jr c, .noCol1Inc
-    ; all conditions passed - we have a collision
-    dec l ; ignore Right X
-    ld a, [hld]
-    ld d, a ; save Left X in D
-    dec l ; ignore Bottom Y
-    ld a, [hld]
-    ld c, a ; save Top Y in C
-    ld a, [hld]
-    ld b, a ; save collision flags in B
-    ret ; A = nonzero - there was a collision
-.noCol5Inc:
-    inc l
-.noCol4Inc:
-    inc l
-.noCol3Inc:
-    inc l
-.noCol2Inc:
-    inc l
-.noCol1Inc:
-    inc l
-    ld a, LOW(ObjCollisionArrayEnd) ; \
-    cp l                            ; | Check if we got to the end of the array
-    jr nz, .checkColLoop            ; /
-    xor a ; A = 0 - no collision
+    ; Move the 6 car sprites to (EnemyCarX, EnemyCarY)
+    ld a, [EnemyCarX]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_X], a
+    add 8
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_X], a
+    ld a, [EnemyCarY]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_Y], a
+    add 8
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_Y], a
+    add 8
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_Y], a
     ret
