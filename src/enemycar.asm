@@ -150,6 +150,11 @@ updateEnemyCar::
     ret
 
 ; Input - A = Index of object to check collision for
+; Sets - A = Nonzero if collided, 0 if not
+; Sets - B = Collided object flags
+; Sets - C = Collided object top Y
+; Sets - D = Collided object left X
+; Sets - E H L to garbage
 objCollisionCheck:
     ld hl, ObjCollisionArray
     add l
@@ -189,6 +194,15 @@ objCollisionCheck:
     cp [hl] ; C unset if other object right X <= this object left X (no collision)
     jr c, .noCol1Inc
     ; all conditions passed - we have a collision
+    dec l ; ignore Right X
+    ld a, [hld]
+    ld d, a ; save Left X in D
+    dec l ; ignore Bottom Y
+    ld a, [hld]
+    ld c, a ; save Top Y in C
+    ld a, [hld]
+    ld b, a ; save collision flags in B
+    ret ; A = nonzero - there was a collision
 .noCol5Inc:
     inc l
 .noCol4Inc:
@@ -202,4 +216,5 @@ objCollisionCheck:
     ld a, LOW(ObjCollisionArrayEnd) ; \
     cp l                            ; | Check if we got to the end of the array
     jr nz, .checkColLoop            ; /
+    xor a ; A = 0 - no collision
     ret
