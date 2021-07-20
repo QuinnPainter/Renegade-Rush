@@ -7,9 +7,15 @@
 ; Byte 3 = Y Position (of bottom)
 ; Byte 4 = X Position (of left)
 ; Byte 5 = X Position (of right)
+; Byte 6 = Movement Info (used for car collisions)
+;   Bits 0 - 3 = Car Speed
+;   Bit 4 - Moving Up
+;   Bit 5 - Moving Down
+;   Bit 6 - Moving Right
+;   Bit 7 - Moving Left
 SECTION "ObjCollisionArray", WRAM0, ALIGN[6]
 ObjCollisionArray::
-    DS 5 * 10 ; 5 bytes * 10 collision objects. Don't think all 10 slots are used, could reduce this later?
+    DS 6 * 10 ; 5 bytes * 10 collision objects. Don't think all 10 slots are used, could reduce this later?
 ObjCollisionArrayEnd::
 
 SECTION "CollisionCode", ROM0
@@ -28,7 +34,8 @@ collisionInit::
 ; Sets - B = Collided object flags
 ; Sets - C = Collided object top Y
 ; Sets - D = Collided object left X
-; Sets - E H L to garbage
+; Sets - E = Collided object movement info (only applies to cars)
+; Sets - H L to garbage
 objCollisionCheck::
     ld hl, ObjCollisionArray
     add l
@@ -68,6 +75,9 @@ objCollisionCheck::
     cp [hl] ; C unset if other object right X <= this object left X (no collision)
     jr nc, .noCol1Inc
     ; all conditions passed - we have a collision
+    inc l
+    ld a, [hld]
+    ld e, a ; save movement info in E
     dec l ; ignore Right X
     ld a, [hld]
     ld d, a ; save Left X in D
@@ -87,6 +97,7 @@ objCollisionCheck::
     inc l
 .noCol1Inc:
     inc l
+    inc l ; skip movement info byte
     ld a, LOW(ObjCollisionArrayEnd) ; \
     cp l                            ; | Check if we got to the end of the array
     jr nz, .checkColLoop            ; /

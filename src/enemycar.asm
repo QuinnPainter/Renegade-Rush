@@ -98,6 +98,15 @@ updateEnemyCar::
     ld [EnemyCarAnimationState], a
 .noUpdateAnimation:
 
+    ld a, [RemainingKnockbackFrames]
+    and a
+    jr z, .noKnockback
+    dec a
+    ld [RemainingKnockbackFrames], a
+    add_16 CurrentKnockbackSpeedX, EnemyCarX, EnemyCarX
+    add_16 CurrentKnockbackSpeedY, EnemyCarY, EnemyCarY
+.noKnockback:
+
     ; Take car speed from road speed to get the Y offset
     sub_16 CurrentRoadScrollSpeed, EnemyCarRoadSpeed, Scratchpad
     ; Add Y offset to Y coordinate
