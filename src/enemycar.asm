@@ -1,6 +1,10 @@
 include "hardware.inc/hardware.inc"
 include "spriteallocation.inc"
 include "macros.inc"
+include "collision.inc"
+
+BASE_KNOCKBACK_FRAMES EQU 30
+BASE_KNOCKBACK_SPEED EQU $00FF
 
 ; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
 ; C = Offset into tilemap (number of tiles)
@@ -122,29 +126,7 @@ updateEnemyCar::
 .animState1:
     set_car_tiles
 
-    ; Collision detection with the road edges
-    ld a, [EnemyCarY]
-    ld b, a
-    ld a, [CurrentRoadScrollPos]
-    add b ; a = EnemyCarY + CurrentRoadScrollPos
-    sub 16 ; a = (EnemyCarY + CurrentRoadScrollPos) - 16 (sprites are offset by 16)
-    ld l, a
-    ld h, RoadCollisionTableLeftX >> 8 ; HL = address into RoadCollisionTableLeftX
-    ld a, [EnemyCarX]
-    cp [hl] ; C: Set if no borrow (a < [hl])
-    jr nc, .noLeftCollide
-    ld a, [hl]
-    ld [EnemyCarX], a
-.noLeftCollide:
-    ld h, RoadCollisionTableRightX >> 8
-    ld a, [EnemyCarX]
-    add 16 ; car is 16 pix wide
-    cp [hl]
-    jr c, .noRightCollide
-    ld a, [hl]
-    sub 16
-    ld [EnemyCarX], a
-.noRightCollide:
+    RoadEdgeCollision EnemyCarX, EnemyCarY
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + ENEMYCAR_COLLISION_1
@@ -163,8 +145,15 @@ updateEnemyCar::
     call objCollisionCheck
     and a
     jr z, .noCol
-    ld c, 6
-    set_car_tiles
+    ; collision happened - now apply knockback
+    ld a, e ; move movement info to A
+    and $07 ; isolate the last 3 bits of speed value. (bug - speeds above 7 will be treated as 0. does this matter? 7 is crazy fast)
+    srl a ; shift right once. now A is in the range 0-3
+    ld c, a
+    ld b, BASE_KNOCKBACK_FRAMES
+    call shiftLeft ; shift the base knockback by the modified speed value. multiplies by 0, 1, 2 or 4
+    ld a, b
+    ld [RemainingKnockbackFrames], a ; save new knockback frames
 .noCol:
 
     ; Move the 6 car sprites to (EnemyCarX, EnemyCarY)

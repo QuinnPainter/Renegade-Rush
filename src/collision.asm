@@ -15,7 +15,7 @@
 ;   Bit 7 - Moving Left
 SECTION "ObjCollisionArray", WRAM0, ALIGN[6]
 ObjCollisionArray::
-    DS 6 * 10 ; 5 bytes * 10 collision objects. Don't think all 10 slots are used, could reduce this later?
+    DS 6 * 10 ; 6 bytes * 10 collision objects. Don't think all 10 slots are used, could reduce this later?
 ObjCollisionArrayEnd::
 
 SECTION "CollisionCode", ROM0

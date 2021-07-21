@@ -1,6 +1,7 @@
 include "hardware.inc/hardware.inc"
 include "spriteallocation.inc"
 include "macros.inc"
+include "collision.inc"
 
 PLAYER_MIN_Y EQU $50 ; Cap minimum Y to $50 ($10 is top of the screen)
 PLAYER_MAX_Y EQU $80 ; Cap maximum Y to $80 ($89 is bottom of the screen)
@@ -184,29 +185,7 @@ updatePlayer::
     ld [PlayerY], a
 .belowMaxY:
 
-    ; Collision detection with the road edges
-    ld a, [PlayerY]
-    ld b, a
-    ld a, [CurrentRoadScrollPos]
-    add b ; a = PlayerY + CurrentRoadScrollPos
-    sub 16 ; a = (PlayerY + CurrentRoadScrollPos) - 16 (sprites are offset by 16)
-    ld l, a
-    ld h, RoadCollisionTableLeftX >> 8 ; HL = address into RoadCollisionTableLeftX
-    ld a, [PlayerX]
-    cp [hl] ; C: Set if no borrow (a < [hl])
-    jr nc, .noLeftCollide
-    ld a, [hl]
-    ld [PlayerX], a
-.noLeftCollide:
-    ld h, RoadCollisionTableRightX >> 8
-    ld a, [PlayerX]
-    add 16 ; car is 16 pix wide
-    cp [hl]
-    jr c, .noRightCollide
-    ld a, [hl]
-    sub 16
-    ld [PlayerX], a
-.noRightCollide:
+    RoadEdgeCollision PlayerX, PlayerY
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + PLAYER_COLLISION
