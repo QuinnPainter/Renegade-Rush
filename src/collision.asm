@@ -65,9 +65,11 @@ objCollisionCheck::
     cp e ; C unset if this object bottom Y <= other object top Y (no collision)
     jr nc, .noCol3Inc
     ld a, [hli]
+    dec a ; decrement to make consistent with other side
     cp d ; C set if other object bottom Y < this object top Y (no collision)
     jr c, .noCol2Inc
     ldh a, [Scratchpad + 1]
+    dec a ; decrement to make consistent with other side
     cp [hl] ; C set if this object right X < other object left X (no collision)
     inc l
     jr c, .noCol1Inc
