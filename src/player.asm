@@ -85,11 +85,14 @@ initPlayer::
 
 updatePlayer::
     ld c, 0 ; C holds the movement state: 0 = not turning, -1 = turning left, 1 = turning right
+    ld a, [CurrentRoadScrollSpeed]
+    ld d, a ; D is the movement state used in collision detection
 
     ld a, [curButtons]
     ld b, a ; save curButtons into b
     and PADF_UP
     jr z, .upNotPressed
+    set 5, d ; set moving down bit
     ; Subtract PlayerYSpeed from Player Y
     sub_16 PlayerY, PlayerYSpeed, PlayerY
     add_16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
@@ -98,6 +101,7 @@ updatePlayer::
     ld a, b
     and PADF_DOWN
     jr z, .downNotPressed
+    set 4, d ; set moving up bit
     ; Add PlayerYSpeed to Player Y
     add_16 PlayerY, PlayerYSpeed, PlayerY
     sub_16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
@@ -106,6 +110,7 @@ updatePlayer::
     ld a, b
     and PADF_LEFT
     jr z, .leftNotPressed
+    set 7, d ; set moving left bit
     dec c ; movement state = turning left
     ; Subtract PlayerXSpeed from Player X
     sub_16 PlayerX, PlayerXSpeed, PlayerX
@@ -114,6 +119,7 @@ updatePlayer::
     ld a, b
     and PADF_RIGHT
     jr z, .rightNotPressed
+    set 6, d ; set moving right bit
     inc c ; movement state = turning right
     ; Add PlayerXSpeed to Player X
     add_16 PlayerX, PlayerXSpeed, PlayerX
@@ -198,7 +204,8 @@ updatePlayer::
     ld a, [PlayerX] ; Left X
     ld [hli], a
     add 16 ; Right X - player is 16 px wide
-    ld [hl], a
+    ld [hli], a
+    ld [hl], d ; movement info
 
     ; Move the 6 player car sprites to (PlayerX, PlayerY)
     ld a, [PlayerX]
