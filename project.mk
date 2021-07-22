@@ -19,14 +19,14 @@ LICENSEE := HB
 OLDLIC := 0x33
 
 # MBC type, tells which hardware is in the cart
-# See https://gbdev.io/pandocs/#_0147-cartridge-type or consult any copy of Pan Docs
+# See https://gbdev.io/pandocs/The_Cartridge_Header.html#0147---cartridge-type or consult any copy of Pan Docs
 # If using no MBC, consider enabling `-t` below
-MBC := 0x00
+MBC := MBC5
 
 # ROM size is set automatically by RGBFIX
 
 # Size of the on-board SRAM; MBC type should indicate the presence of RAM
-# See https://gbdev.io/pandocs/#_0149-ram-size or consult any copy of Pan Docs
+# See https://gbdev.io/pandocs/The_Cartridge_Header.html#0149---ram-size or consult any copy of Pan Docs
 # Set this to 0 when using MBC2's built-in SRAM
 SRAMSIZE := 0x00
 
@@ -60,7 +60,7 @@ LDFLAGS += -d
 # LDFLAGS += -w
 
 # 32k mode
-LDFLAGS += -t
+# LDFLAGS += -t
 
 # Non-Japanese Region
 FIXFLAGS += -j
