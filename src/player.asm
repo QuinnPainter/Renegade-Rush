@@ -23,7 +23,7 @@ initPlayer::
     ld [PlayerX], a
     ld a, $70
     ld [PlayerY], a
-    ld a, $0
+    ld a, $1
     ld [PlayerXSpeed], a
     ld a, $2
     ld [CurrentRoadScrollSpeed], a
@@ -47,7 +47,7 @@ initPlayer::
     ld [PlayerYSpeed], a
     ld [PlayerX + 1], a
     ld [PlayerY + 1], a
-    ld a, $55
+    ld a, $7F
     ld [PlayerXSpeed + 1], a
     jp EntryPoint.doneInitPlayer
 
@@ -162,7 +162,7 @@ updatePlayer::
     ld [PlayerY], a
 .belowMaxY:
 
-    ;RoadEdgeCollision PlayerX, PlayerY
+    ;road_edge_collision PlayerX, PlayerY
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + PLAYER_COLLISION

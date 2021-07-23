@@ -23,3 +23,4 @@ ENDM
     compact_incbin PoliceCarTiles, "res/policecar.2bpp", ROMX
     compact_incbin PoliceCarTilemap, "res/policecar.tilemap", ROMX
     compact_incbin PoliceCarAttrmap, "res/policecar.attrmap", ROMX
+    compact_incbin PoliceCarCollision, "res/policecarcol.bin", ROMX

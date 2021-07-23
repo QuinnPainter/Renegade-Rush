@@ -4,7 +4,6 @@ include "macros.inc"
 include "collision.inc"
 
 BASE_KNOCKBACK_FRAMES EQU 10
-BASE_KNOCKBACK_SPEED EQU $0088
 
 SECTION "EnemyCarVariables", WRAM0
 EnemyCarX: DS 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
@@ -89,7 +88,7 @@ updateEnemyCar::
 .animState1:
     call setCarTiles
 
-    ;RoadEdgeCollision EnemyCarX, EnemyCarY
+    ;road_edge_collision EnemyCarX, EnemyCarY
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + ENEMYCAR_COLLISION_1
@@ -107,56 +106,9 @@ updateEnemyCar::
     ld a, ENEMYCAR_COLLISION_1
     call objCollisionCheck
     and a
-    jr z, .noCol ; collision happened - now apply knockback
-    push bc ; save C for the Y collision calculation
-    ; calculate knockback frames
-    ld a, e ; move movement info to A
-    and $07 ; isolate the last 3 bits of speed value. (bug - speeds above 7 will be treated as 0. does this matter? 7 is crazy fast)
-    srl a ; shift right once. now A is in the range 0-3
-    ld c, a
-    ld b, BASE_KNOCKBACK_FRAMES
-    call shiftLeft ; shift the base knockback by the modified speed value. multiplies by 1, 2, 4 or 8
-    ld a, b
-    ld [RemainingKnockbackFrames], a ; save new knockback frames
-    ; calculate knockback X speed
-    ld a, [EnemyCarX]
-    sub d ; subtract x pos of other object
-    call absolute ; get absolute value of A
-    ld hl, BASE_KNOCKBACK_SPEED ; positive knockback speed
-    jr z, .xPositive
-    ld b, a ; save A (offset value)
-    neg_16 ; make base knockback negative if offset was negative
-    ld a, b ; restore a = offset
-.xPositive:
-    srl a
-    srl a
-    srl a ; shift left 3 times, now A is in the range 0-2 (could be 3 if the objects are particularly wide?)
-    ld c, a
-    call shiftLeft16 ; shift the base knock speed by the modified distance value. multiplies by 1, 2, 4 (or 8)
-    ld a, h
-    ld [CurrentKnockbackSpeedX], a ; save new knockback X speed
-    ld a, l
-    ld [CurrentKnockbackSpeedX + 1], a
-    ; calculate knockback Y speed
-    pop bc
-    ld a, [EnemyCarY]
-    sub c ; subtract Y pos of other object
-    call absolute ; get absolute value of A
-    ld hl, BASE_KNOCKBACK_SPEED ; positive knockback speed
-    jr z, .yPositive
-    ld b, a ; save A (offset value)
-    neg_16 ; make base knockback negative if offset was negative
-    ld a, b ; restore a = offset
-.yPositive:
-    srl a
-    srl a
-    srl a ; shift left 3 times, now A is in the range 0-2 (could be 3 if the objects are particularly wide?)
-    ld c, a
-    call shiftLeft16 ; shift the base knock speed by the modified distance value. multiplies by 1, 2, 4 (or 8)
-    ld a, h
-    ld [CurrentKnockbackSpeedY], a ; save new knockback Y speed
-    ld a, l
-    ld [CurrentKnockbackSpeedY + 1], a
+    jp z, .noCol ; collision happened - now apply knockback
+    rom_bank_switch BANK("PoliceCarCollision")
+    process_knockback BASE_KNOCKBACK_FRAMES, RemainingKnockbackFrames, EnemyCarX, EnemyCarY, PoliceCarCollision, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY
 .noCol:
 
     ; Move the 6 car sprites to (EnemyCarX, EnemyCarY)

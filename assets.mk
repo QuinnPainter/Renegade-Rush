@@ -3,6 +3,7 @@ PYTHON = python
 ADDOFFSET = $(PYTHON) scripts/AddBinaryOffset.py
 SWAPATTR = $(PYTHON) scripts/SwapFlipBits.py
 ROADCOLGEN = $(PYTHON) scripts/GenRoadCollision.py
+CARCOLGEN = $(PYTHON) scripts/GenCarCollision.py
 
 RESDIR = res
 
@@ -24,7 +25,7 @@ road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
 
 player: $(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap
 
-policecar: $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecar.attrmap
+policecar: $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecar.attrmap $(RESDIR)/policecarcol.bin
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/lines.png
@@ -38,6 +39,9 @@ $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecar.attrmap
 	$(GFX) -u -m -o $(RESDIR)/policecar.2bpp -t $(RESDIR)/policecar.tilemap -a $(RESDIR)/policecar.attrmap $(ASSETSDIR)/policecar.png
 	$(SWAPATTR) $(RESDIR)/policecar.attrmap
 	$(ADDOFFSET) $(RESDIR)/policecar.tilemap 10
+
+$(RESDIR)/policecarcol.bin: | $(RESDIR)
+	$(CARCOLGEN) $(RESDIR)/policecarcol.bin 2.3
 
 $(RESDIR)/roadcollision.bin: $(RESDIR)/lines.tilemap | $(RESDIR)
 	$(ROADCOLGEN) $(RESDIR)/roadcollision.bin $(RESDIR)/lines.tilemap

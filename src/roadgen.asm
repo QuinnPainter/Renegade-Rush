@@ -7,7 +7,7 @@ MAX_ROAD_OFFSET EQU (14 - MIN_ROAD_WIDTH)
 ; Generates one side of the road.
 ; \1 = 0 for left side, 1 for right side
 ; Sets - A B C D E H L to garbage
-MACRO GenRoadSide
+MACRO gen_road_side
 IF \1 == 0
 DEF TarRoad EQUS "TarRoadLeft"
 DEF TarOtherSide EQUS "TarRoadRight"
@@ -183,8 +183,8 @@ InitRoadGen::
 ; Generates a new line of road, and puts it into RoadGenBuffer
 ; could split right + left side and run them on alternate frames?
 GenRoadRow::
-    GenRoadSide 0 ; left side
-    GenRoadSide 1 ; right side
+    gen_road_side 0 ; left side
+    gen_road_side 1 ; right side
 
     ld a, 1
     ld [RoadLineReady], a
