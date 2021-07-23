@@ -101,6 +101,8 @@ updateEnemyCar::
     ld a, [EnemyCarX] ; Left X
     ld [hli], a
     add 16 ; Right X - car is 16 px wide
+    ld [hli], a
+    ld a, [EnemyCarRoadSpeed]
     ld [hl], a
 
     ld a, ENEMYCAR_COLLISION_1

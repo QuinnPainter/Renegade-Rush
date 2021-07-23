@@ -5,6 +5,7 @@ include "collision.inc"
 
 PLAYER_MIN_Y EQU $50 ; Cap minimum Y to $50 ($10 is top of the screen)
 PLAYER_MAX_Y EQU $80 ; Cap maximum Y to $80 ($89 is bottom of the screen)
+BASE_KNOCKBACK_FRAMES EQU 5
 
 SECTION "PlayerVariables", WRAM0
 PlayerX:: DS 2 ; Coordinates of the top-left of the player. 8.8 fixed point.
@@ -15,6 +16,9 @@ PlayerMaxRoadSpeed:: DS 2 ; Max and min speeds of the car, in terms of road scro
 PlayerMinRoadSpeed:: DS 2
 PlayerAcceleration:: DS 2 ; Player's road scroll acceleration - pixels per frame per frame. 8.8 fixed point.
 CurrentRoadScrollSpeed:: DS 2 ; Speed of road scroll, in pixels per frame. 8.8 fixed-point.
+RemainingKnockbackFrames: DS 1 ; Number of frames left in the knockback animation.
+CurrentKnockbackSpeedX: DS 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
+CurrentKnockbackSpeedY: DS 2
 
 SECTION "PlayerCode", ROM0
 
@@ -49,12 +53,28 @@ initPlayer::
     ld [PlayerY + 1], a
     ld a, $7F
     ld [PlayerXSpeed + 1], a
+    xor a
+    ld [RemainingKnockbackFrames], a
+    ld [CurrentKnockbackSpeedX], a
+    ld [CurrentKnockbackSpeedX + 1], a
+    ld [CurrentKnockbackSpeedY], a
+    ld [CurrentKnockbackSpeedY + 1], a
     jp EntryPoint.doneInitPlayer
 
 updatePlayer::
     ld c, 0 ; C holds the movement state: 0 = not turning, -1 = turning left, 1 = turning right
     ld a, [CurrentRoadScrollSpeed]
     ld d, a ; D is the movement state used in collision detection
+
+    ld a, [RemainingKnockbackFrames]
+    and a
+    jr z, .noKnockback
+    dec a
+    ld [RemainingKnockbackFrames], a
+    add_16 CurrentKnockbackSpeedX, PlayerX, PlayerX
+    add_16 CurrentKnockbackSpeedY, PlayerY, PlayerY
+    jp .controlsDisabled
+.noKnockback:
 
     ld a, [curButtons]
     ld b, a ; save curButtons into b
@@ -92,6 +112,7 @@ updatePlayer::
     ; Add PlayerXSpeed to Player X
     add_16 PlayerX, PlayerXSpeed, PlayerX
 .rightNotPressed:
+.controlsDisabled:
 
     ; Enforce minimum road speed
     ld a, [PlayerMinRoadSpeed]
@@ -177,6 +198,14 @@ updatePlayer::
     add 16 ; Right X - player is 16 px wide
     ld [hli], a
     ld [hl], d ; movement info
+
+    ld a, PLAYER_COLLISION
+    call objCollisionCheck
+    and a
+    jp z, .noCol ; collision happened - now apply knockback
+    rom_bank_switch BANK("PoliceCarCollision")
+    process_knockback BASE_KNOCKBACK_FRAMES, RemainingKnockbackFrames, PlayerX, PlayerY, PoliceCarCollision, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY
+.noCol:
 
     ; Move the 6 player car sprites to (PlayerX, PlayerY)
     ld a, [PlayerX]
