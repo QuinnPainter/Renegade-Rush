@@ -6,39 +6,6 @@ include "collision.inc"
 PLAYER_MIN_Y EQU $50 ; Cap minimum Y to $50 ($10 is top of the screen)
 PLAYER_MAX_Y EQU $80 ; Cap maximum Y to $80 ($89 is bottom of the screen)
 
-; Set the player tiles and attributes from PlayerTilemap and PlayerAttrmap
-; \1 = Offset into tilemap (number of tiles)
-; Sets - A to garbage
-MACRO set_player_tiles
-    ld hl, PlayerTilemap + \1 ; Set player tiles
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_TILEID], a
-
-    ld hl, PlayerAttrmap + \1 ; Set player sprite attributes
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_FLAGS], a
-ENDM
-
 SECTION "PlayerVariables", WRAM0
 PlayerX:: DS 2 ; Coordinates of the top-left of the player. 8.8 fixed point.
 PlayerY:: DS 2
@@ -168,13 +135,16 @@ updatePlayer::
     jr z, .ForwardSprite
     cp -1
     jr z, .LeftSprite
-    set_player_tiles 12 ; right sprite
+    ld c, 12 ; right sprite
+    call setPlayerTiles
     jr .DoneSetSprite
 .LeftSprite:
-    set_player_tiles 6
+    ld c, 6
+    call setPlayerTiles
     jr .DoneSetSprite
 .ForwardSprite:
-    set_player_tiles 0
+    ld c, 0
+    call setPlayerTiles
 .DoneSetSprite:
 
     ld a, [PlayerY]
@@ -227,3 +197,42 @@ updatePlayer::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_Y], a
 
     jp GameLoop.doneUpdatePlayer
+
+; Set the player tiles and attributes from PlayerTilemap and PlayerAttrmap
+; Input - C = Offset into tilemap (number of tiles)
+; Sets - A to garbage
+; Sets - B to 0
+setPlayerTiles:
+    ld b, 0
+    rom_bank_switch BANK("PlayerTilemap")
+    ld hl, PlayerTilemap ; Set player tiles
+    add hl, bc
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_TILEID], a
+
+    rom_bank_switch BANK("PlayerAttrmap")
+    ld hl, PlayerAttrmap ; Set player sprite attributes
+    add hl, bc
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_FLAGS], a
+    ret

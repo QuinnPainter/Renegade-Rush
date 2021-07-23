@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "macros.inc"
 
 MIN_ROAD_WIDTH EQU 6
 MAX_ROAD_OFFSET EQU (14 - MIN_ROAD_WIDTH)
@@ -83,8 +84,9 @@ ENDC
     push hl ; save HL (index * 8) for indexing into collision array
     add hl, de ; hl = index * 8 + index * 4 = index * 12
 
-    ld de, Tilemap
-    add hl, de ; hl = index * 12 + Tilemap
+    ld de, RoadTilemap
+    add hl, de ; hl = index * 12 + RoadTilemap
+    rom_bank_switch BANK("RoadTilemap")
 
     ld d, h ; Move HL into DE for Memcpy
     ld e, l
@@ -93,6 +95,7 @@ ENDC
     ld c, a
     rst memcpyFast
 
+    rom_bank_switch BANK("RoadCollisionROM")
     ld de, RoadCollisionROM
     pop hl ; hl = index * 8
     add hl, hl ; hl = index * 16

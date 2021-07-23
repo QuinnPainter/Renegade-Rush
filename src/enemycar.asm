@@ -3,45 +3,8 @@ include "spriteallocation.inc"
 include "macros.inc"
 include "collision.inc"
 
-BASE_KNOCKBACK_FRAMES EQU 30
-BASE_KNOCKBACK_SPEED EQU $00FF
-
-; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
-; C = Offset into tilemap (number of tiles)
-; Sets - A to garbage
-MACRO set_car_tiles
-    ld b, 0
-
-    ld hl, PoliceCarTilemap ; Set tiles
-    add hl, bc
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_TILEID], a
-
-    ld hl, PoliceCarAttrmap ; Set sprite attributes
-    add hl, bc
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_FLAGS], a
-ENDM
+BASE_KNOCKBACK_FRAMES EQU 10
+BASE_KNOCKBACK_SPEED EQU $0088
 
 SECTION "EnemyCarVariables", WRAM0
 EnemyCarX: DS 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
@@ -124,7 +87,7 @@ updateEnemyCar::
     add c
     ld c, a
 .animState1:
-    set_car_tiles
+    call setCarTiles
 
     RoadEdgeCollision EnemyCarX, EnemyCarY
 
@@ -174,4 +137,44 @@ updateEnemyCar::
     add 8
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_Y], a
+    ret
+
+; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
+; Input - C = Offset into tilemap (number of tiles)
+; Sets - A to garbage
+; Sets - B to 0
+setCarTiles:
+    ld b, 0
+
+    rom_bank_switch BANK("PoliceCarTilemap")
+    ld hl, PoliceCarTilemap ; Set tiles
+    add hl, bc
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_TILEID], a
+
+    rom_bank_switch BANK("PoliceCarAttrmap")
+    ld hl, PoliceCarAttrmap ; Set sprite attributes
+    add hl, bc
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 0)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 1)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 2)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 3)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 4)) + OAMA_FLAGS], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (ENEMYCAR_SPRITE_1 + 5)) + OAMA_FLAGS], a
     ret

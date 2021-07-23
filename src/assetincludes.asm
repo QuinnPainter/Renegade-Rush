@@ -1,47 +1,47 @@
 ; Road
-SECTION "Tiles", ROM0
-Tiles::
+SECTION "RoadTiles", ROMX
+RoadTiles::
 INCBIN "res/lines.2bpp"
-TilesEnd::
+RoadTilesEnd::
 
-SECTION "Tilemap", ROM0
-Tilemap::
+SECTION "RoadTilemap", ROMX
+RoadTilemap::
 INCBIN "res/lines.tilemap"
-TilemapEnd::
+RoadTilemapEnd::
 
-SECTION "RoadCollisionROM", ROM0
+SECTION "RoadCollisionROM", ROMX
 RoadCollisionROM::
 INCBIN "res/roadcollision.bin"
 RoadCollisionROMEnd::
 
 ; Player Car
-SECTION "PlayerTiles", ROM0
+SECTION "PlayerTiles", ROMX
 PlayerTiles::
 INCBIN "res/player.2bpp"
 PlayerTilesEnd::
 
-SECTION "PlayerTilemap", ROM0
+SECTION "PlayerTilemap", ROMX
 PlayerTilemap::
 INCBIN "res/player.tilemap"
 PlayerTilemapEnd::
 
-SECTION "PlayerAttrmap", ROM0
+SECTION "PlayerAttrmap", ROMX
 PlayerAttrmap::
 INCBIN "res/player.attrmap"
 PlayerAttrmapEnd::
 
 ; Police Car
-SECTION "PoliceCarTiles", ROM0
+SECTION "PoliceCarTiles", ROMX
 PoliceCarTiles::
 INCBIN "res/policecar.2bpp"
 PoliceCarTilesEnd::
 
-SECTION "PoliceCarTilemap", ROM0
+SECTION "PoliceCarTilemap", ROMX
 PoliceCarTilemap::
 INCBIN "res/policecar.tilemap"
 PoliceCarTilemapEnd::
 
-SECTION "PoliceCarAttrmap", ROM0
+SECTION "PoliceCarAttrmap", ROMX
 PoliceCarAttrmap::
 INCBIN "res/policecar.attrmap"
 PoliceCarAttrmapEnd::

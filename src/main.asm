@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "macros.inc"
 
 SECTION "MainGameCode", ROM0
 
@@ -26,14 +27,17 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	rst memsetFast
 
     ; Copy tileset into VRAM
+    rom_bank_switch BANK("RoadTiles")
     ld hl, RoadTilesVRAM
-    ld de, Tiles
-    ld bc, TilesEnd - Tiles
+    ld de, RoadTiles
+    ld bc, RoadTilesEnd - RoadTiles
     rst memcpy
+    rom_bank_switch BANK("PlayerTiles")
     ld hl, PlayerTilesVRAM
     ld de, PlayerTiles
     ld bc, PlayerTilesEnd - PlayerTiles
     rst memcpy
+    rom_bank_switch BANK("PoliceCarTiles")
     ld hl, PoliceCarTilesVRAM
     ld de, PoliceCarTiles
     ld bc, PoliceCarTilesEnd - PoliceCarTiles

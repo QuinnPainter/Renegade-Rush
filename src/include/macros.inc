@@ -1,3 +1,12 @@
+; Switch ROM banks
+; Input - A = Bank number
+; If >256 banks is needed later, rROMB1 specifies the upper bit of the bank number.
+; \1 = Bank number
+MACRO rom_bank_switch
+    ld a, \1
+    ld [rROMB0], a
+endm
+
 ; Add two 16 bit numbers in RAM
 ; \1 = Number 1
 ; \2 = Number 2
