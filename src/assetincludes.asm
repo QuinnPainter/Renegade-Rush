@@ -1,47 +1,25 @@
+; All-in one include macro
+; \1 = Name of section
+; \2 = Source file
+; \3 = Destination area (ROM0 or ROMX)
+MACRO compact_incbin
+SECTION "\1", \3
+\1::
+INCBIN \2
+\1End::
+ENDM
+
 ; Road
-SECTION "RoadTiles", ROMX
-RoadTiles::
-INCBIN "res/lines.2bpp"
-RoadTilesEnd::
-
-SECTION "RoadTilemap", ROMX
-RoadTilemap::
-INCBIN "res/lines.tilemap"
-RoadTilemapEnd::
-
-SECTION "RoadCollisionROM", ROMX
-RoadCollisionROM::
-INCBIN "res/roadcollision.bin"
-RoadCollisionROMEnd::
+    compact_incbin RoadTiles, "res/lines.2bpp", ROMX
+    compact_incbin RoadTilemap, "res/lines.tilemap", ROMX
+    compact_incbin RoadCollisionROM, "res/roadcollision.bin", ROMX
 
 ; Player Car
-SECTION "PlayerTiles", ROMX
-PlayerTiles::
-INCBIN "res/player.2bpp"
-PlayerTilesEnd::
-
-SECTION "PlayerTilemap", ROMX
-PlayerTilemap::
-INCBIN "res/player.tilemap"
-PlayerTilemapEnd::
-
-SECTION "PlayerAttrmap", ROMX
-PlayerAttrmap::
-INCBIN "res/player.attrmap"
-PlayerAttrmapEnd::
+    compact_incbin PlayerTiles, "res/player.2bpp", ROMX
+    compact_incbin PlayerTilemap, "res/player.tilemap", ROMX
+    compact_incbin PlayerAttrmap, "res/player.attrmap", ROMX
 
 ; Police Car
-SECTION "PoliceCarTiles", ROMX
-PoliceCarTiles::
-INCBIN "res/policecar.2bpp"
-PoliceCarTilesEnd::
-
-SECTION "PoliceCarTilemap", ROMX
-PoliceCarTilemap::
-INCBIN "res/policecar.tilemap"
-PoliceCarTilemapEnd::
-
-SECTION "PoliceCarAttrmap", ROMX
-PoliceCarAttrmap::
-INCBIN "res/policecar.attrmap"
-PoliceCarAttrmapEnd::
+    compact_incbin PoliceCarTiles, "res/policecar.2bpp", ROMX
+    compact_incbin PoliceCarTilemap, "res/policecar.tilemap", ROMX
+    compact_incbin PoliceCarAttrmap, "res/policecar.attrmap", ROMX
