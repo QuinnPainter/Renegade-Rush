@@ -42,3 +42,25 @@ MACRO sub_16
     sbc h
     ld [\3], a
 ENDM
+
+; Safe version of "inc hl" that doesn't have the OAM bug
+MACRO inc_hl
+    push bc
+    ld bc, 1
+    add hl, bc
+    pop bc
+ENDM
+
+; Performs multiply by -1
+; Input - HL
+; Sets - HL to result
+; Sets - A to garbage
+MACRO neg_16
+    ld a, h
+    cpl
+    ld h, a
+    ld a, l
+    cpl
+    ld l, a
+    inc_hl
+ENDM
