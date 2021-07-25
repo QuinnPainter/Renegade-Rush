@@ -42,6 +42,11 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld de, PoliceCarTiles
     ld bc, PoliceCarTilesEnd - PoliceCarTiles
     rst memcpy
+    rom_bank_switch BANK("StatusBar")
+    ld hl, StatusBarVRAM
+    ld de, StatusBar
+    ld bc, StatusBarEnd - StatusBar
+    rst memcpy
 
     ; TEMP : seed random
     ld hl, $9574;$38

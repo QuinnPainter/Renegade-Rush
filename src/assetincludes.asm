@@ -24,3 +24,6 @@ ENDM
     compact_incbin PoliceCarTilemap, "res/policecar.tilemap", ROMX
     compact_incbin PoliceCarAttrmap, "res/policecar.attrmap", ROMX
     compact_incbin PoliceCarCollision, "res/policecarcol.bin", ROMX
+
+; Status Bar
+    compact_incbin StatusBar, "res/statusbar.2bpp", ROMX

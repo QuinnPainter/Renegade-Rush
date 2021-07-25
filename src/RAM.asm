@@ -12,6 +12,9 @@ SECTION "VRAM 8800", VRAM[_VRAM8800]
 RoadTilesVRAM::
     DS 16 * 16 ; 16 tiles * 16 bytes per tile
 RoadTilesVRAMEnd::
+StatusBarVRAM::
+    DS 59 * 16 ; 59 tiles * 16 bytes per tile
+StatusBarVRAMEnd::
 
 SECTION "StackArea", WRAM0[$DF00]
     DS $FF ; Reserve 255 bytes for the stack at the end of WRAM.

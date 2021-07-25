@@ -19,7 +19,7 @@ endif
 
 ASSETSDIR = Assets
 
-all: road player policecar
+all: road player policecar $(RESDIR)/statusbar.2bpp
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
 
@@ -45,6 +45,9 @@ $(RESDIR)/policecarcol.bin: | $(RESDIR)
 
 $(RESDIR)/roadcollision.bin: $(RESDIR)/lines.tilemap | $(RESDIR)
 	$(ROADCOLGEN) $(RESDIR)/roadcollision.bin $(RESDIR)/lines.tilemap
+
+$(RESDIR)/statusbar.2bpp: $(ASSETSDIR)/statusbar.png | $(RESDIR)
+	$(GFX) -x 5 -o $(RESDIR)/statusbar.2bpp $(ASSETSDIR)/statusbar.png
 
 $(RESDIR):
 	$(MKDIR_P) $(RESDIR)
