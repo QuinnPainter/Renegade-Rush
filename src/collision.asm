@@ -22,7 +22,7 @@ SECTION "CollisionCode", ROM0
 
 ; Initialises collision
 ; Sets - A C H L to garbage
-collisionInit::
+initCollision::
     ld hl, ObjCollisionArray
     ld c, ObjCollisionArrayEnd - ObjCollisionArray
     xor a

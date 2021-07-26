@@ -59,7 +59,8 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     rst memcpyFast
 
     ; Initialise variables
-    call collisionInit
+    call initCollision
+    call initGameUI
     jp InitRoadGen
 .doneInitRoad::
     jp initPlayer
@@ -81,13 +82,17 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	ldh [rSCY], a
     ld a, 16
 	ldh [rSCX], a
+    ld a, 0 + 7 ; Init window position
+    ldh [rWX], a
+    ld a, 129
+    ldh [rWY], a
 
     ; Shut sound down
     xor a
     ldh [rNR52], a
 
     ; Enable screen and initialise screen settings
-    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 \
+    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINON | LCDCF_BG8800 \
         | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJON | LCDCF_BGON
     ldh [rLCDC], a
 
@@ -126,6 +131,7 @@ GameLoop:
     jp updatePlayer
 .doneUpdatePlayer::
     call updateEnemyCar
+    call updateGameUI
 
 
     halt
@@ -141,6 +147,9 @@ VBlank::
     ld a, [RoadLineReady]
     and a ; update zero flag
     call nz, CopyRoadBuffer
+
+    ; Copy status bar tilemap
+    call copyStatusBarBuffer
 
     ; Update Scroll Y
     ld a, [CurrentRoadScrollPos]

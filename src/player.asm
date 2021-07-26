@@ -20,6 +20,7 @@ CurrentRoadScrollSpeed:: DS 2 ; Speed of road scroll, in pixels per frame. 8.8 f
 RemainingKnockbackFrames: DS 1 ; Number of frames left in the knockback animation.
 CurrentKnockbackSpeedX: DS 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
 CurrentKnockbackSpeedY: DS 2
+MoneyAmount:: DS 2 ; Your current money value. 2 byte BCD (little endian)
 
 SECTION "PlayerCode", ROM0
 
@@ -60,6 +61,8 @@ initPlayer::
     ld [CurrentKnockbackSpeedX + 1], a
     ld [CurrentKnockbackSpeedY], a
     ld [CurrentKnockbackSpeedY + 1], a
+    ld [MoneyAmount], a
+    ld [MoneyAmount + 1], a
     jp EntryPoint.doneInitPlayer
 
 updatePlayer::
