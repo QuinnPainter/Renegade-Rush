@@ -20,7 +20,7 @@ initGameUI::
     ld a, STATUS_BAR_TILE_OFFSET + 10
     ld [STARTOF("StatusBarBuffer") + 14], a
     ld [STARTOF("StatusBarBuffer") + 18], a ; blank space at top right
-    ld a, STATUS_BAR_TILE_OFFSET + 46
+    ld a, STATUS_BAR_TILE_OFFSET + 58
     ld [STARTOF("StatusBarBuffer") + 19], a
     ld a, STATUS_BAR_TILE_OFFSET + 44 ; km / h
     ld [STARTOF("StatusBarBuffer") + 20 + 18], a
