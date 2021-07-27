@@ -54,12 +54,12 @@ FOR N, 1, -1, -1 ; run this for MoneyAmount + 1 and MoneyAmount
     inc c
 ENDR
     ; Draw curved part of charge bars
-    ld a, [MissileChargeValue]
+    ld a, [SpecialChargeValue]
     and %00000011
     sla a
     sla a
     ld d, a
-    ld a, [SpecialChargeValue]
+    ld a, [MissileChargeValue]
     and %00000011
     or a, d ; bottom 2 bits = on/off state of 2 curved bars for missile, 2 bits above = state for special
     sla a ; each entry is 4 bytes
@@ -84,6 +84,38 @@ ENDR
     add STATUS_BAR_TILE_OFFSET
     ld [bc], a
     inc c
+    ; Draw straight part of charge bars
+    ld d, %00000100
+.drawStraightBarsLp:
+    ld a, [MissileChargeValue]
+    and d
+    jr nz, .missileOn
+    ld a, [SpecialChargeValue]
+    and d
+    jr nz, .missileOffChargeOn
+.missileOffChargeOff:
+    ld a, STATUS_BAR_TILE_OFFSET + 41
+    ld [hli], a
+    jr .doneDrawStraightBlock
+.missileOffChargeOn:
+    ld a, STATUS_BAR_TILE_OFFSET + 40
+    ld [hli], a
+    jr .doneDrawStraightBlock
+.missileOn:
+    ld a, [SpecialChargeValue]
+    and d
+    jr nz, .missileOnChargeOn
+.missileOnChargeOff:
+    ld a, STATUS_BAR_TILE_OFFSET + 39
+    ld [hli], a
+    jr .doneDrawStraightBlock
+.missileOnChargeOn:
+    ld a, STATUS_BAR_TILE_OFFSET + 38
+    ld [hli], a
+.doneDrawStraightBlock:
+    sla d
+    bit 6, d
+    jr z, .drawStraightBarsLp
     ret
 
 copyStatusBarBuffer::

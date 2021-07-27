@@ -122,7 +122,7 @@ updatePlayer::
 .rightNotPressed:
 .controlsDisabled:
 
-    /*ld a, [newButtons] ; TEMP - for testing charge bars
+    ld a, [newButtons] ; TEMP - for testing charge bars
     and PADF_A
     jr z, .asd
     ld a, [MissileChargeValue]
@@ -136,7 +136,7 @@ updatePlayer::
     ld a, [SpecialChargeValue]
     inc a
     ld [SpecialChargeValue], a
-.ads:*/
+.ads:
 
     ; Enforce minimum road speed
     ld a, [PlayerMinRoadSpeed]
