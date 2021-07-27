@@ -21,6 +21,8 @@ RemainingKnockbackFrames: DS 1 ; Number of frames left in the knockback animatio
 CurrentKnockbackSpeedX: DS 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
 CurrentKnockbackSpeedY: DS 2
 MoneyAmount:: DS 2 ; Your current money value. 2 byte BCD (little endian)
+SpecialChargeValue:: DS 1 ; Current special ability charge. Each bit represents a bar, so the bottom 6 bits.
+MissileChargeValue:: DS 1 ; Current missile charge.
 
 SECTION "PlayerCode", ROM0
 
@@ -63,6 +65,8 @@ initPlayer::
     ld [CurrentKnockbackSpeedY + 1], a
     ld [MoneyAmount], a
     ld [MoneyAmount + 1], a
+    ld [SpecialChargeValue], a
+    ld [MissileChargeValue], a
     jp EntryPoint.doneInitPlayer
 
 updatePlayer::
@@ -117,6 +121,22 @@ updatePlayer::
     add_16 PlayerX, PlayerXSpeed, PlayerX
 .rightNotPressed:
 .controlsDisabled:
+
+    /*ld a, [newButtons] ; TEMP - for testing charge bars
+    and PADF_A
+    jr z, .asd
+    ld a, [MissileChargeValue]
+    inc a
+    ld [MissileChargeValue], a
+.asd:
+
+    ld a, [newButtons]
+    and PADF_B
+    jr z, .ads
+    ld a, [SpecialChargeValue]
+    inc a
+    ld [SpecialChargeValue], a
+.ads:*/
 
     ; Enforce minimum road speed
     ld a, [PlayerMinRoadSpeed]

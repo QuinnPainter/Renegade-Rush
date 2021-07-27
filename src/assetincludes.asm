@@ -9,6 +9,11 @@ INCBIN \2
 \1End::
 ENDM
 
+MACRO compact_incbin_align
+SECTION "\1", \3, ALIGN[\4]
+INCBIN \2
+ENDM
+
 ; Road
     compact_incbin RoadTiles, "res/lines.2bpp", ROMX
     compact_incbin RoadTilemap, "res/lines.tilemap", ROMX
@@ -27,3 +32,4 @@ ENDM
 
 ; Status Bar
     compact_incbin StatusBar, "res/statusbar.2bpp", ROMX
+    compact_incbin_align CurveBarTilemap, "res/curvebar.tilemap", ROM0, 6

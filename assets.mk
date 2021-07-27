@@ -4,6 +4,7 @@ ADDOFFSET = $(PYTHON) scripts/AddBinaryOffset.py
 SWAPATTR = $(PYTHON) scripts/SwapFlipBits.py
 ROADCOLGEN = $(PYTHON) scripts/GenRoadCollision.py
 CARCOLGEN = $(PYTHON) scripts/GenCarCollision.py
+CURVEBARGEN = $(PYTHON) scripts/GenCurvedBarTilemap.py
 
 RESDIR = res
 
@@ -19,7 +20,7 @@ endif
 
 ASSETSDIR = Assets
 
-all: road player policecar $(RESDIR)/statusbar.2bpp
+all: road player policecar $(RESDIR)/statusbar.2bpp $(RESDIR)/curvebar.tilemap
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
 
@@ -48,6 +49,9 @@ $(RESDIR)/roadcollision.bin: $(RESDIR)/lines.tilemap | $(RESDIR)
 
 $(RESDIR)/statusbar.2bpp: $(ASSETSDIR)/statusbar.png | $(RESDIR)
 	$(GFX) -x 5 -o $(RESDIR)/statusbar.2bpp $(ASSETSDIR)/statusbar.png
+
+$(RESDIR)/curvebar.tilemap: | $(RESDIR)
+	$(CURVEBARGEN) $(RESDIR)/curvebar.tilemap
 
 $(RESDIR):
 	$(MKDIR_P) $(RESDIR)

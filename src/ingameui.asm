@@ -34,6 +34,7 @@ updateGameUI::
     ; BC = bottom line pointer
     ld hl, STARTOF("StatusBarBuffer") + 1 ; + 1 to skip past dollar sign
     ld bc, STARTOF("StatusBarBuffer") + 1 + 20
+    ; Draw money
 FOR N, 1, -1, -1 ; run this for MoneyAmount + 1 and MoneyAmount
     ld a, [MoneyAmount + N]
     ld d, a
@@ -52,6 +53,37 @@ FOR N, 1, -1, -1 ; run this for MoneyAmount + 1 and MoneyAmount
     ld [bc], a ; digit 2 bottom
     inc c
 ENDR
+    ; Draw curved part of charge bars
+    ld a, [MissileChargeValue]
+    and %00000011
+    sla a
+    sla a
+    ld d, a
+    ld a, [SpecialChargeValue]
+    and %00000011
+    or a, d ; bottom 2 bits = on/off state of 2 curved bars for missile, 2 bits above = state for special
+    sla a ; each entry is 4 bytes
+    sla a
+    ld de, STARTOF("CurveBarTilemap") ; \
+    add e                             ; | ld de with CurveBarTilemap + offset
+    ld e, a                           ; /
+    ld a, [de]
+    add STATUS_BAR_TILE_OFFSET
+    ld [hli], a
+    inc e
+    ld a, [de]
+    add STATUS_BAR_TILE_OFFSET
+    ld [hli], a
+    inc e
+    ld a, [de]
+    add STATUS_BAR_TILE_OFFSET
+    ld [bc], a
+    inc e
+    inc c
+    ld a, [de]
+    add STATUS_BAR_TILE_OFFSET
+    ld [bc], a
+    inc c
     ret
 
 copyStatusBarBuffer::
