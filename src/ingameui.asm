@@ -2,14 +2,13 @@ INCLUDE "hardware.inc/hardware.inc"
 
 STATUS_BAR_TILE_OFFSET EQUS "(((StatusBarVRAM - $8800) / 16) + 128)"
 
-SECTION "StatusBarBuffer", WRAM0
+SECTION "StatusBarBuffer", WRAM0, ALIGN[6]
 DS 20 * 2 ; 20 tiles wide * 2 tiles tall
 
 SECTION "In-Game UI Code", ROM0
 
 initGameUI::
     ; Load in status bar tiles that never change
-    ; could optimise some of the "ld a" to adds?
     ld a, STATUS_BAR_TILE_OFFSET + 11 ; dollar sign
     ld [STARTOF("StatusBarBuffer")], a
     ld a, STATUS_BAR_TILE_OFFSET + 27
@@ -22,7 +21,7 @@ initGameUI::
     ld [STARTOF("StatusBarBuffer") + 18], a ; blank space at top right
     ld a, STATUS_BAR_TILE_OFFSET + 58
     ld [STARTOF("StatusBarBuffer") + 19], a
-    ld a, STATUS_BAR_TILE_OFFSET + 44 ; km / h
+    ld a, STATUS_BAR_TILE_OFFSET + 59 ; km / h
     ld [STARTOF("StatusBarBuffer") + 20 + 18], a
     inc a
     ld [STARTOF("StatusBarBuffer") + 20 + 19], a
@@ -92,30 +91,115 @@ ENDR
     jr nz, .missileOn
     ld a, [SpecialChargeValue]
     and d
-    jr nz, .missileOffChargeOn
-.missileOffChargeOff:
+    jr nz, .missileOffSpecialOn
+.missileOffSpecialOff:
     ld a, STATUS_BAR_TILE_OFFSET + 41
     ld [hli], a
     jr .doneDrawStraightBlock
-.missileOffChargeOn:
+.missileOffSpecialOn:
     ld a, STATUS_BAR_TILE_OFFSET + 40
     ld [hli], a
     jr .doneDrawStraightBlock
 .missileOn:
     ld a, [SpecialChargeValue]
     and d
-    jr nz, .missileOnChargeOn
-.missileOnChargeOff:
+    jr nz, .missileOnSpecialOn
+.missileOnSpecialOff:
     ld a, STATUS_BAR_TILE_OFFSET + 39
     ld [hli], a
     jr .doneDrawStraightBlock
-.missileOnChargeOn:
+.missileOnSpecialOn:
     ld a, STATUS_BAR_TILE_OFFSET + 38
     ld [hli], a
 .doneDrawStraightBlock:
     sla d
     bit 6, d
     jr z, .drawStraightBarsLp
+    ; Draw hearts
+    ld a, [LivesValue]
+    ld d, a
+REPT 4
+    dec d
+    bit 7, d ; if result is negative
+    jr z, .filledHeart\@
+    ld a, STATUS_BAR_TILE_OFFSET + 55 ; empty heart
+    jr .drawHeart\@
+.filledHeart\@:
+    ld a, STATUS_BAR_TILE_OFFSET + 54
+.drawHeart\@:
+    ld [bc], a
+    inc c
+ENDR
+    inc c ; skip past already filled block
+    ; Draw special / missile icons and lines
+    ld a, [MissileChargeValue]
+    and %00100000
+    jr nz, .missileOn2
+    ld a, [SpecialChargeValue]
+    and %00100000
+    jr nz, .missileOffSpecialOn2
+.missileOffSpecialOff2:
+    ld a, STATUS_BAR_TILE_OFFSET + 12 ; top line
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 42
+    ld [hli], a
+    inc a
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 46 ; bottom line
+    ld [bc], a
+    inc c
+    inc a
+    ld [bc], a
+    inc c
+    jr .doneDrawIcons
+.missileOffSpecialOn2:
+    ld a, STATUS_BAR_TILE_OFFSET + 28 ; top line
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 45
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 43
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 30 ; bottom line
+    ld [bc], a
+    inc c
+    ld a, STATUS_BAR_TILE_OFFSET + 47
+    ld [bc], a
+    inc c
+    jr .doneDrawIcons
+.missileOn2:
+    ld a, [SpecialChargeValue]
+    and %00100000
+    jr nz, .missileOnSpecialOn2
+.missileOnSpecialOff2:
+    ld a, STATUS_BAR_TILE_OFFSET + 13 ; top line
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 44
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 15
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 46 ; bottom line
+    ld [bc], a
+    inc c
+    ld a, STATUS_BAR_TILE_OFFSET + 31
+    ld [bc], a
+    inc c
+    jr .doneDrawIcons
+.missileOnSpecialOn2:
+    ld a, STATUS_BAR_TILE_OFFSET + 29 ; top line
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 14
+    ld [hli], a
+    inc a
+    ld [hli], a
+    ld a, STATUS_BAR_TILE_OFFSET + 30 ; bottom line
+    ld [bc], a
+    inc c
+    inc a
+    ld [bc], a
+    inc c
+.doneDrawIcons:
+    inc l ; skip past 2 already filled blocks
+    inc c
     ret
 
 copyStatusBarBuffer::

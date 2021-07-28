@@ -63,8 +63,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     call initGameUI
     jp InitRoadGen
 .doneInitRoad::
-    jp initPlayer
-.doneInitPlayer::
+    call initPlayer
     call initEnemyCar
 
     ; Generate enough road for the whole screen, plus 1 extra line
@@ -128,8 +127,7 @@ GameLoop:
 
     call readInput
 
-    jp updatePlayer
-.doneUpdatePlayer::
+    call updatePlayer
     call updateEnemyCar
     call updateGameUI
 

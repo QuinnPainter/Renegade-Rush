@@ -23,6 +23,7 @@ CurrentKnockbackSpeedY: DS 2
 MoneyAmount:: DS 2 ; Your current money value. 2 byte BCD (little endian)
 SpecialChargeValue:: DS 1 ; Current special ability charge. Each bit represents a bar, so the bottom 6 bits.
 MissileChargeValue:: DS 1 ; Current missile charge.
+LivesValue:: DS 1 ; The player's current lives. 0 to 4.
 
 SECTION "PlayerCode", ROM0
 
@@ -67,7 +68,9 @@ initPlayer::
     ld [MoneyAmount + 1], a
     ld [SpecialChargeValue], a
     ld [MissileChargeValue], a
-    jp EntryPoint.doneInitPlayer
+    ld a, 4
+    ld [LivesValue], a
+    ret
 
 updatePlayer::
     ld c, 0 ; C holds the movement state: 0 = not turning, -1 = turning left, 1 = turning right
@@ -125,6 +128,9 @@ updatePlayer::
     ld a, [newButtons] ; TEMP - for testing charge bars
     and PADF_A
     jr z, .asd
+    ;ld a, [LivesValue]
+    ;dec a
+    ;ld [LivesValue], a
     ld a, [MissileChargeValue]
     inc a
     ld [MissileChargeValue], a
@@ -277,7 +283,7 @@ updatePlayer::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_Y], a
 
-    jp GameLoop.doneUpdatePlayer
+    ret
 
 ; Set the player tiles and attributes from PlayerTilemap and PlayerAttrmap
 ; Input - C = Offset into tilemap (number of tiles)

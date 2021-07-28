@@ -48,7 +48,7 @@ $(RESDIR)/roadcollision.bin: $(RESDIR)/lines.tilemap | $(RESDIR)
 	$(ROADCOLGEN) $(RESDIR)/roadcollision.bin $(RESDIR)/lines.tilemap
 
 $(RESDIR)/statusbar.2bpp: $(ASSETSDIR)/statusbar.png | $(RESDIR)
-	$(GFX) -x 5 -o $(RESDIR)/statusbar.2bpp $(ASSETSDIR)/statusbar.png
+	$(GFX) -x 3 -o $(RESDIR)/statusbar.2bpp $(ASSETSDIR)/statusbar.png
 
 $(RESDIR)/curvebar.tilemap: | $(RESDIR)
 	$(CURVEBARGEN) $(RESDIR)/curvebar.tilemap
