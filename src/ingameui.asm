@@ -200,6 +200,56 @@ ENDR
 .doneDrawIcons:
     inc l ; skip past 2 already filled blocks
     inc c
+    ; Draw speed
+    ; To convert road scroll speed to KM/H, shift right twice then subtract 40ish
+    ; speeds above 0 but below a certain value will be negative - is this an issue?
+    push hl ; save HL and BC for when we need to write the text
+    push bc
+    ld a, [CurrentRoadScrollSpeed + 1] ; load low byte
+    srl a
+    srl a
+    ld d, a
+    ld a, [CurrentRoadScrollSpeed] ; load high byte
+    rrca ; rotate right is equivalent to shifting right onto new byte
+    rrca ; if value was %00000111 it's now %11000001
+    ld h, a
+    and $F0 ; isolate top bits
+    or d ; combine high and low bytes
+    ld l, a ; move into low byte area
+    ld a, h
+    and $0F ; isolate bottom bits
+    ld h, a ; move into high byte area
+    or l               ; \
+    jr z, .noKphOffset ; / special case so 0 speed shows as 0 kph
+    ld bc, -40
+    add hl, bc
+.noKphOffset: ; kph conversion is done, value is in HL, now convert to characters
+
+    call bcd16
+    pop bc ; restore HL and BC to the array indices
+    pop hl ; C isn't needed since the value is never >1000
+    ld a, d
+    and $0F ; isolate hundreds digit
+    add STATUS_BAR_TILE_OFFSET ; \
+    ld [hli], a                ; |
+    add 16                     ; | write hundreds digit
+    ld [bc], a                 ; |
+    inc c                      ; /
+    ld a, e
+    and $F0 ; isolate tens digit
+    swap a
+    add STATUS_BAR_TILE_OFFSET ; \
+    ld [hli], a                ; |
+    add 16                     ; | write tens digit
+    ld [bc], a                 ; |
+    inc c                      ; /
+    ld a, e
+    and $0F ; isolate ones digit
+    add STATUS_BAR_TILE_OFFSET ; \
+    ld [hli], a                ; |
+    add 16                     ; | write ones digit
+    ld [bc], a                 ; /
+
     ret
 
 copyStatusBarBuffer::
