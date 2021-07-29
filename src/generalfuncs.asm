@@ -86,5 +86,26 @@ bcd16::
     rl c
     dec b
     jr nz, .l2
-  
+
     ret
+
+; HALT until Vblank has happened.
+; Sets - A to garbage
+noVblank:
+    halt
+waitVblank::
+    ld a, [HasVblankHappened]
+    or a
+    jr z, noVblank
+    xor a
+    ld [HasVblankHappened], a
+    ret
+
+/*waitVblank:: ; is this a better approach?
+    xor a
+    ld [HasVblankHappened], a
+    halt
+    ld a, [HasVblankHappened]
+    and a
+    jr z, waitVblank
+    ret*/

@@ -92,6 +92,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld a, HIGH(VBlank)
     ld [VblankVectorRAM + 1], a
 
+    ; No, vblank has not happened yet
+    xor a
+    ld [HasVblankHappened], a
+
     ; Shut sound down
     xor a
     ldh [rNR52], a
@@ -101,8 +105,12 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
         | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJON | LCDCF_BGON
     ldh [rLCDC], a
 
-    ; Disable all interrupts except VBlank
-	ld a, IEF_VBLANK
+    ; Enable LY=LYC as LCD STAT interrupt source
+    ld a, STATF_LYC
+    ldh [rSTAT], a
+
+    ; Disable all interrupts except VBlank and LCD
+	ld a, IEF_VBLANK | IEF_STAT
 	ldh [rIE], a
     xor a
     ldh [rIF], a ; Discard all pending interrupts (there would normally be a VBlank pending)
@@ -138,14 +146,15 @@ GameLoop:
     call updateGameUI
 
 
-    halt
-    jp GameLoop
+    call waitVblank
+    jr GameLoop
 
 
 VBlank::
     push af
     push bc
     push de
+    push hl
 
     ; Copy new road line onto the background tilemap if one is ready
     ld a, [RoadLineReady]
@@ -159,9 +168,25 @@ VBlank::
     ld a, [CurrentRoadScrollPos]
     ldh [rSCY], a
 
+    ldh a, [rLCDC]
+    or LCDCF_OBJON ; Enable sprites (status bar / ui disables them)
+    ldh [rLCDC], a
+
     ; Copy sprite buffer into OAM
     call DMARoutineHRAM
 
+    ; Set up LCD interrupt for status bar
+    ld a, LOW(setupStatusBar)
+    ld [LCDIntVectorRAM], a
+    ld a, HIGH(setupStatusBar)
+    ld [LCDIntVectorRAM + 1], a
+    ld a, 129
+    ld [rLYC], a
+
+    ld a, 1
+    ld [HasVblankHappened], a
+
+    pop hl
     pop de
     pop bc
     pop af

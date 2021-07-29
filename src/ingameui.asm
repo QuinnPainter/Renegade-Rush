@@ -261,3 +261,14 @@ copyStatusBarBuffer::
     ld c, SIZEOF("StatusBarBuffer") / 2
     rst memcpyFast
     ret
+
+; Run every frame, in an LCD interrupt on the first line of the status bar.
+setupStatusBar::
+    push af
+
+    ldh a, [rLCDC]
+    and ~LCDCF_OBJON ; Disable sprites
+    ldh [rLCDC], a
+
+    pop af
+    reti

@@ -107,6 +107,7 @@ SECTION "Header", ROM0[$100]
 	; introduced in that version.)
 	DS $150 - @, 0
 
-SECTION "Interrupt Vectors RAM", WRAM0
+SECTION "Interrupt Stuff RAM", WRAM0
 VblankVectorRAM:: DS 2 ; Interrupt vector addresses.
 LCDIntVectorRAM:: DS 2 ; These are jumped to on their corresponding interrupt.
+HasVblankHappened:: DS 1 ; 1 if Vblank has happened this frame, 0 otherwise.

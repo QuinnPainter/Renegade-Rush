@@ -48,7 +48,7 @@ initPlayer::
     ld [PlayerMaxRoadSpeed + 1], a
     xor a
     ld [PlayerAcceleration], a
-    ld a, $05
+    ld a, $07
     ld [PlayerAcceleration + 1], a
     ld a, $55
     ld [PlayerYSpeed + 1], a
