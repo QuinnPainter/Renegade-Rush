@@ -86,6 +86,12 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld a, 129
     ldh [rWY], a
 
+    ; Init VBlank vector
+    ld a, LOW(VBlank)
+    ld [VblankVectorRAM], a
+    ld a, HIGH(VBlank)
+    ld [VblankVectorRAM + 1], a
+
     ; Shut sound down
     xor a
     ldh [rNR52], a

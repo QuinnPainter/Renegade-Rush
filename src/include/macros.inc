@@ -64,3 +64,9 @@ MACRO neg_16
     ld l, a
     inc_hl
 ENDM
+
+; Jumps to the address stored in HL
+MACRO jp_hl
+    push hl
+    ret
+ENDM

@@ -1,3 +1,5 @@
+INCLUDE "macros.inc"
+
 ; rst vectors
 ; Used for fast, small, frequently used functions, since "rst" is slightly faster than "call"
 ; Can just substitute "call" for "rst", like "rst memset"
@@ -72,9 +74,17 @@ memcpyFast::
 
 ; interrupt vectors
 SECTION "vblank",ROM0[$40]
-	jp VBlank
+	ld hl, VblankVectorRAM ; load value at VblankVectorRAM into HL
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+	jp_hl ; jump to [VblankVectorRAM]
 SECTION "lcdstat",ROM0[$48]
-	reti
+	ld hl, LCDIntVectorRAM ; load value at LCDIntVectorRAM into HL
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+	jp_hl ; jump to [LCDIntVectorRAM]
 SECTION "timer",ROM0[$50]
 	reti
 SECTION "serial",ROM0[$58]
@@ -96,3 +106,7 @@ SECTION "Header", ROM0[$100]
 	; was introduced in RGBDS 0.4.0, but the -MG etc flags were also
 	; introduced in that version.)
 	DS $150 - @, 0
+
+SECTION "Interrupt Vectors RAM", WRAM0
+VblankVectorRAM:: DS 2 ; Interrupt vector addresses.
+LCDIntVectorRAM:: DS 2 ; These are jumped to on their corresponding interrupt.
