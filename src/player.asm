@@ -3,8 +3,8 @@ include "spriteallocation.inc"
 include "macros.inc"
 include "collision.inc"
 
-PLAYER_MIN_Y EQU $50 ; Cap minimum Y to $50 ($10 is top of the screen)
-PLAYER_MAX_Y EQU $80 ; Cap maximum Y to $80 ($89 is bottom of the screen)
+PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
+PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
 BASE_KNOCKBACK_FRAMES EQU 5
 KNOCKBACK_SPEED_CHANGE EQU $00D0 ; How much each knockback changes the road speed by. 8.8 fixed point
 
