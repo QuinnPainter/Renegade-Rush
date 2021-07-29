@@ -48,13 +48,13 @@ DEF KnockbackSpeedY\@ EQUS "\7"            ; Address
     push bc ; save C (other obj Y) for later
     ; calculate knockback frames
     ld a, e ; move movement info to A
-    and $07 ; isolate the last 3 bits of speed value. (bug - speeds above 7 will be treated as 0. does this matter? 7 is crazy fast)
-    srl a ; shift right once. now A is in the range 0-3
-    ld c, a
-    ld b, BASE_KNOCKBACK_FRAMES\@
-    call shiftLeft ; shift the base knockback by the modified speed value. multiplies by 1, 2, 4 or 8
-    ld a, b
-    ld [RemainingKnockbackFrames\@], a ; save new knockback frames
+    and $0F ; isolate speed value
+    cp 4 ; if speed < this value, knockback is not doubled
+    ld a, BASE_KNOCKBACK_FRAMES
+    jr c, .noDoubleKnockFrames
+    add a
+.noDoubleKnockFrames:
+    ld [RemainingKnockbackFrames\@], a
     ; calculate knockback speed
     ld a, [ThisObjX\@]
     sub d ; subtract x pos of other object
