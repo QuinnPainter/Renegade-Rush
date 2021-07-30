@@ -255,11 +255,11 @@ ENDR
     ret
 
 copyStatusBarBuffer::
-    ld hl, _SCRN1 ; copy first line
+    ld hl, _SCRN1 + (32 * 30) ; copy first line
     ld de, STARTOF("StatusBarBuffer")
     ld c, SIZEOF("StatusBarBuffer") / 2
     rst memcpyFast
-    ld hl, _SCRN1 + 32 ; copy second line
+    ld hl, _SCRN1 + (32 * 31) ; copy second line
     ld c, SIZEOF("StatusBarBuffer") / 2
     rst memcpyFast
     ret
@@ -282,7 +282,7 @@ setupStatusBar::
     ldh [rLCDC], a
     xor a
     ldh [rSCX], a ; Set X scroll to 0
-    ld a, 129 - 2 ; why is it -2?
+    ld a, (8 * 30) - 129 ; 8 pix per tile * 30 tile lines to bottom of VRAM - status bar starts scanline 129
     ldh [rSCY], a ; Set Y scroll to show status bar
 
     jp LCDIntEnd
