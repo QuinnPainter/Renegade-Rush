@@ -264,11 +264,18 @@ copyStatusBarBuffer::
 
 ; Run every frame, in an LCD interrupt on the first line of the status bar.
 setupStatusBar::
-    push af
 
     ldh a, [rLCDC]
     and ~LCDCF_OBJON ; Disable sprites
+    ld b, a
+
+    ; Wait for safe VRAM access (next hblank)
+:   ld a, [rSTAT]
+    and a, STATF_BUSY
+    jr nz, :-
+
+    ; Set LCD registers
+    ld a, b
     ldh [rLCDC], a
 
-    pop af
-    reti
+    jp LCDIntEnd

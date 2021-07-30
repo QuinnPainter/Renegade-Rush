@@ -151,10 +151,8 @@ GameLoop:
 
 
 VBlank::
-    push af
     push bc
     push de
-    push hl
 
     ; Copy new road line onto the background tilemap if one is ready
     ld a, [RoadLineReady]
@@ -180,14 +178,12 @@ VBlank::
     ld [LCDIntVectorRAM], a
     ld a, HIGH(setupStatusBar)
     ld [LCDIntVectorRAM + 1], a
-    ld a, 129
+    ld a, 129 - 1 ; runs on line before
     ld [rLYC], a
 
     ld a, 1
     ld [HasVblankHappened], a
 
-    pop hl
     pop de
     pop bc
-    pop af
-    reti
+    jp VblankEnd

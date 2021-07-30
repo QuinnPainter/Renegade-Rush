@@ -74,17 +74,19 @@ memcpyFast::
 
 ; interrupt vectors
 SECTION "vblank",ROM0[$40]
-	ld hl, VblankVectorRAM ; load value at VblankVectorRAM into HL
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	jp_hl ; jump to [VblankVectorRAM]
+	jp VblankHandler
+	;ld hl, VblankVectorRAM ; load value at VblankVectorRAM into HL
+	;ld a, [hli]
+	;ld h, [hl]
+	;ld l, a
+	;jp_hl ; jump to [VblankVectorRAM]
 SECTION "lcdstat",ROM0[$48]
-	ld hl, LCDIntVectorRAM ; load value at LCDIntVectorRAM into HL
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	jp_hl ; jump to [LCDIntVectorRAM]
+	jp LCDIntHandler
+	;ld hl, LCDIntVectorRAM ; load value at LCDIntVectorRAM into HL
+	;ld a, [hli]
+	;ld h, [hl]
+	;ld l, a
+	;jp_hl ; jump to [LCDIntVectorRAM]
 SECTION "timer",ROM0[$50]
 	reti
 SECTION "serial",ROM0[$58]
@@ -111,3 +113,31 @@ SECTION "Interrupt Stuff RAM", WRAM0
 VblankVectorRAM:: DS 2 ; Interrupt vector addresses.
 LCDIntVectorRAM:: DS 2 ; These are jumped to on their corresponding interrupt.
 HasVblankHappened:: DS 1 ; 1 if Vblank has happened this frame, 0 otherwise.
+
+SECTION "Interrupt Handlers", ROM0
+
+VblankHandler:
+	push hl
+	push af
+	ld hl, VblankVectorRAM ; load value at VblankVectorRAM into HL
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+	jp_hl ; jump to [VblankVectorRAM]
+VblankEnd::
+	pop af
+	pop hl
+	reti
+
+LCDIntHandler:
+	push hl
+	push af
+	ld hl, LCDIntVectorRAM ; load value at LCDIntVectorRAM into HL
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+	jp_hl ; jump to [LCDIntVectorRAM]
+LCDIntEnd::
+	pop af
+	pop hl
+	reti

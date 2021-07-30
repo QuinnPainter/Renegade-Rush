@@ -1,4 +1,7 @@
-Section "General Functions", ROM0
+; All functions are in different sections so they can cram into small gaps
+; such as the gaps between interrupt vectors
+
+SECTION "Shift Left", ROM0
 
 ; Shift B left by a given amount
 ; Input - B = Value to shift
@@ -15,6 +18,8 @@ shiftLeft::
     jr nz, .lp
     ret
 
+SECTION "Shift Left 16", ROM0
+
 ; Shift HL left by a given amount
 ; Input - HL = Value to shift
 ; Input - C = How many times to shift
@@ -30,6 +35,8 @@ shiftLeft16::
     jr nz, .lp
     ret
 
+SECTION "Absolute", ROM0
+
 ; Gets the absolute value of a signed number
 ; Input - A = Number to get absolute value of
 ; Sets - A
@@ -40,6 +47,8 @@ absolute::
     cpl
     inc a
     ret
+
+SECTION "BCD16", ROM0
 
 ; https://github.com/pinobatch/little-things-gb/blob/master/bdos/src/math.z80
 ; Converts a 16-bit number from binary to decimal in about 200 cycles.
@@ -89,23 +98,15 @@ bcd16::
 
     ret
 
+SECTION "Vblank Wait", ROM0
+
 ; HALT until Vblank has happened.
 ; Sets - A to garbage
-noVblank:
-    halt
-waitVblank::
-    ld a, [HasVblankHappened]
-    or a
-    jr z, noVblank
-    xor a
-    ld [HasVblankHappened], a
-    ret
-
-/*waitVblank:: ; is this a better approach?
+waitVblank:: ; is this a better approach?
     xor a
     ld [HasVblankHappened], a
     halt
     ld a, [HasVblankHappened]
     and a
     jr z, waitVblank
-    ret*/
+    ret
