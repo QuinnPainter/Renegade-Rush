@@ -75,18 +75,8 @@ memcpyFast::
 ; interrupt vectors
 SECTION "vblank",ROM0[$40]
 	jp VblankHandler
-	;ld hl, VblankVectorRAM ; load value at VblankVectorRAM into HL
-	;ld a, [hli]
-	;ld h, [hl]
-	;ld l, a
-	;jp_hl ; jump to [VblankVectorRAM]
 SECTION "lcdstat",ROM0[$48]
 	jp LCDIntHandler
-	;ld hl, LCDIntVectorRAM ; load value at LCDIntVectorRAM into HL
-	;ld a, [hli]
-	;ld h, [hl]
-	;ld l, a
-	;jp_hl ; jump to [LCDIntVectorRAM]
 SECTION "timer",ROM0[$50]
 	reti
 SECTION "serial",ROM0[$58]

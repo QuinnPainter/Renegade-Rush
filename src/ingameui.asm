@@ -1,4 +1,5 @@
 INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "macros.inc"
 
 STATUS_BAR_TILE_OFFSET EQUS "(((StatusBarVRAM - $8800) / 16) + 128)"
 
@@ -31,6 +32,7 @@ updateGameUI::
     ; Draw status bar
     ; HL = top line pointer
     ; BC = bottom line pointer
+    rom_bank_switch BANK("CurveBarTilemap")
     ld hl, STARTOF("StatusBarBuffer") + 1 ; + 1 to skip past dollar sign
     ld bc, STARTOF("StatusBarBuffer") + 1 + 20
     ; Draw money
@@ -267,6 +269,7 @@ setupStatusBar::
 
     ldh a, [rLCDC]
     and ~LCDCF_OBJON ; Disable sprites
+    or LCDCF_BG9C00 ; Switch background tilemap
     ld b, a
 
     ; Wait for safe VRAM access (next hblank)
@@ -277,5 +280,9 @@ setupStatusBar::
     ; Set LCD registers
     ld a, b
     ldh [rLCDC], a
+    xor a
+    ldh [rSCX], a ; Set X scroll to 0
+    ld a, 129 - 2 ; why is it -2?
+    ldh [rSCY], a ; Set Y scroll to show status bar
 
     jp LCDIntEnd

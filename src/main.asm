@@ -1,6 +1,9 @@
 INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "macros.inc"
 
+SECTION "GameVars", WRAM0
+ShadowScrollX:: DS 1
+
 SECTION "MainGameCode", ROM0
 
 EntryPoint:: ; At this point, interrupts are already disabled from the header code
@@ -77,14 +80,9 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	ldh [rBGP], a
     ld [rOBP0], a ; Init sprite palettes
 	ld [rOBP1], a
-    xor a ; Init scroll registers
-	ldh [rSCY], a
-    ld a, 16
-	ldh [rSCX], a
-    ld a, 0 + 7 ; Init window position
-    ldh [rWX], a
-    ld a, 129
-    ldh [rWY], a
+
+    ld a, 16 ; Init X scroll
+	ld [ShadowScrollX], a
 
     ; Init VBlank vector
     ld a, LOW(VBlank)
@@ -101,7 +99,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ldh [rNR52], a
 
     ; Enable screen and initialise screen settings
-    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINON | LCDCF_BG8800 \
+    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 \
         | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJON | LCDCF_BGON
     ldh [rLCDC], a
 
@@ -162,12 +160,15 @@ VBlank::
     ; Copy status bar tilemap
     call copyStatusBarBuffer
 
-    ; Update Scroll Y
+    ; Update Scroll
     ld a, [CurrentRoadScrollPos]
     ldh [rSCY], a
+    ld a, [ShadowScrollX]
+    ldh [rSCX], a
 
     ldh a, [rLCDC]
     or LCDCF_OBJON ; Enable sprites (status bar / ui disables them)
+    and ~LCDCF_BG9C00 ; Switch background tilemap
     ldh [rLCDC], a
 
     ; Copy sprite buffer into OAM
