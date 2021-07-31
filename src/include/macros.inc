@@ -56,13 +56,12 @@ ENDM
 ; Sets - HL to result
 ; Sets - A to garbage
 MACRO neg_16
-    ld a, h
-    cpl
-    ld h, a
-    ld a, l
-    cpl
+    xor a
+    sub l
     ld l, a
-    inc_hl
+    sbc a
+    sub h
+    ld h, a
 ENDM
 
 ; Jumps to the address stored in HL
