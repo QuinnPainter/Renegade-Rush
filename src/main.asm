@@ -51,10 +51,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld de, StatusBar
     ld bc, StatusBarEnd - StatusBar
     rst memcpy
-    rom_bank_switch BANK("GameFont")
-    ld hl, GameFontVRAM
-    ld de, GameFont
-    ld bc, GameFontEnd - GameFont
+    rom_bank_switch BANK("MenuBarTiles")
+    ld hl, MenuBarTilesVRAM
+    ld de, MenuBarTiles
+    ld bc, MenuBarTilesEnd - MenuBarTiles
     rst memcpy
 
     ; Init menu bar tilemaps

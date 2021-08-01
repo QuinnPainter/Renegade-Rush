@@ -2,20 +2,10 @@ INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "macros.inc"
 
 STATUS_BAR_TILE_OFFSET EQUS "(((StatusBarVRAM - $8800) / 16) + 128)"
-FONT_TILE_OFFSET EQUS "(((GameFontVRAM - $8800) / 16) + 128)"
+MENUBAR_TILE_OFFSET EQUS "(((MenuBarTilesVRAM - $8800) / 16) + 128)"
 MENU_BAR_ANIM_SPEED EQU 3 ; How fast the menu bar opens / closes. Pixels per frame.
 MENU_BAR_MID_POS EQU 64 ; Scanline number of the middle of the menu bar
 MENU_BAR_HEIGHT EQU 24 ; Distance from middle of menu bar to the top and bottom
-
-TOP_LEFT_TILE EQU 61 ; Menu bar tile indices
-TOP_RIGHT_TILE EQU 60
-BOTTOM_LEFT_TILE EQU 63
-BOTTOM_RIGHT_TILE EQU 62
-TOP_TILE EQU 10
-BOTTOM_TILE EQU 66
-LEFT_TILE EQU 64
-RIGHT_TILE EQU 65
-MIDDLE_TILE EQU 67
 
 SECTION "StatusBarBuffer", WRAM0, ALIGN[6]
 DS 20 * 2 ; 20 tiles wide * 2 tiles tall
@@ -53,60 +43,14 @@ initGameUI::
 ; Generates the tilemaps for the Paused and Game Over menus, and puts them in the BG map
 ; Assumes VRAM is always active, so needs to be run while screen is disabled
 genMenuBarTilemaps::
-    ld hl, _SCRN1 + (32 * 24)
-    ld a, STATUS_BAR_TILE_OFFSET + TOP_LEFT_TILE
-    lb bc, STATUS_BAR_TILE_OFFSET + TOP_TILE, STATUS_BAR_TILE_OFFSET + TOP_RIGHT_TILE
-    call genMenuBarLine
-    ld hl, _SCRN1 + (32 * 25)
-    ld a, STATUS_BAR_TILE_OFFSET + LEFT_TILE
-    lb bc, STATUS_BAR_TILE_OFFSET + MIDDLE_TILE, STATUS_BAR_TILE_OFFSET + RIGHT_TILE
-FOR N, 0, 4
-    ld hl, _SCRN1 + (32 * (25 + N))
-    ld a, STATUS_BAR_TILE_OFFSET + LEFT_TILE
-    call genMenuBarLine
+    rom_bank_switch BANK("MenuBarTilemap")
+    ld de, STARTOF("MenuBarTilemap")
+    ld b, MENUBAR_TILE_OFFSET
+FOR N, 0, 12
+    ld hl, _SCRN1 + (32 * (18 + N))
+    ld c, 20
+    rst memcpyFastOffset
 ENDR
-    ld hl, _SCRN1 + (32 * 29)
-    ld a, STATUS_BAR_TILE_OFFSET + BOTTOM_LEFT_TILE
-    lb bc, STATUS_BAR_TILE_OFFSET + BOTTOM_TILE,STATUS_BAR_TILE_OFFSET + BOTTOM_RIGHT_TILE
-    call genMenuBarLine
-
-    ld hl, _SCRN1 + (32 * 18) ; copy so we have 2 (Paused and Game Over)
-    ld de, _SCRN1 + (32 * 24)
-    ld c, 32 * 6
-    rst memcpyFast
-
-    ; Copy strings for pause menu
-    rom_bank_switch BANK("Strings")
-    ld hl, $9E65
-    ld de, PausedString
-    ld c, FONT_TILE_OFFSET
-    call copyString
-
-    ld hl, $9EA7
-    ld de, ResumeString
-    call copyString
-
-    ld hl, $9EC8
-    ld de, MenuString
-    call copyString
-    ret
-
-; Generate one line of the menu bar tilemap
-; Should only be used in genMenuBarTilemaps
-; Input - HL = Address to copy to
-; Input - A = Left tile
-; Input - B = Middle tile
-; Input - C = Right tile
-; Sets - A D to garbage
-genMenuBarLine:
-    ld [hli], a         ; Left
-    ld a, b             ; \
-    ld d, 20 - 2        ; |
-:   ld [hli], a         ; | Middle
-    dec d               ; |
-    jr nz, :-           ; /
-    ld a, c             ; \ Right
-    ld [hli], a         ; /
     ret
 
 ; Updates the status bar state, and puts it into StatusBarBuffer

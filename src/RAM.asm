@@ -10,11 +10,11 @@ PoliceCarTilesVRAMEnd::
 
 SECTION "VRAM 8800", VRAM[_VRAM8800]
 StatusBarVRAM::
-    DS 68 * 16 ; 68 tiles * 16 bytes per tile
+    DS 61 * 16 ; 60 tiles * 16 bytes per tile
 StatusBarVRAMEnd::
-GameFontVRAM::
-    DS 27 * 16
-GameFontVRAMEnd::
+MenuBarTilesVRAM::
+    DS 50 * 16 ; no idea how many tiles needed, change this later
+MenuBarTilesVRAMEnd::
 
 SECTION "VRAM 9000", VRAM[_VRAM9000]
 RoadTilesVRAM::

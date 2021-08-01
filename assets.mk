@@ -20,13 +20,15 @@ endif
 
 ASSETSDIR = Assets
 
-all: road player policecar $(RESDIR)/statusbar.2bpp $(RESDIR)/curvebar.tilemap $(RESDIR)/gamefont.2bpp
+all: road player policecar gameui
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
 
 player: $(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap
 
 policecar: $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecar.attrmap $(RESDIR)/policecarcol.bin
+
+gameui: $(RESDIR)/statusbar.2bpp $(RESDIR)/curvebar.tilemap $(RESDIR)/menubar.2bpp $(RESDIR)/menubar.tilemap
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/lines.png
@@ -48,13 +50,13 @@ $(RESDIR)/roadcollision.bin: $(RESDIR)/lines.tilemap | $(RESDIR)
 	$(ROADCOLGEN) $(RESDIR)/roadcollision.bin $(RESDIR)/lines.tilemap
 
 $(RESDIR)/statusbar.2bpp: $(ASSETSDIR)/statusbar.png | $(RESDIR)
-	$(GFX) -x 12 -o $(RESDIR)/statusbar.2bpp $(ASSETSDIR)/statusbar.png
+	$(GFX) -x 3 -o $(RESDIR)/statusbar.2bpp $(ASSETSDIR)/statusbar.png
 
 $(RESDIR)/curvebar.tilemap: | $(RESDIR)
 	$(CURVEBARGEN) $(RESDIR)/curvebar.tilemap
 
-$(RESDIR)/gamefont.2bpp: $(ASSETSDIR)/ingamefont.png | $(RESDIR)
-	$(GFX) -x 4 -o $(RESDIR)/gamefont.2bpp $(ASSETSDIR)/ingamefont.png
+$(RESDIR)/menubar.2bpp $(RESDIR)/menubar.tilemap: $(ASSETSDIR)/menubar.png | $(RESDIR)
+	$(GFX) -u -o $(RESDIR)/menubar.2bpp -t $(RESDIR)/menubar.tilemap $(ASSETSDIR)/menubar.png
 
 $(RESDIR):
 	$(MKDIR_P) $(RESDIR)

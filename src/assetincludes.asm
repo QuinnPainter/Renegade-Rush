@@ -33,4 +33,5 @@ ENDM
 ; Game UI
     compact_incbin StatusBar, "res/statusbar.2bpp", ROMX
     compact_incbin_align CurveBarTilemap, "res/curvebar.tilemap", ROMX, 6
-    compact_incbin GameFont, "res/gamefont.2bpp", ROMX
+    compact_incbin MenuBarTiles, "res/menubar.2bpp", ROMX
+    compact_incbin MenuBarTilemap, "res/menubar.tilemap", ROMX

@@ -67,8 +67,24 @@ memcpyFast::
 	jr nz, memcpyFast
 	ret
 
+SECTION "rst28",ROM0[$28]
+; Copies a block of data with max size 256, and adds a number to each byte
+; Input - HL = Destination address
+; Input - DE = Start address
+; Input - B = Number to add
+; Input - C = Data length
+; Sets	- C to 0
+; Sets	- A H L D E to garbage
+memcpyFastOffset::
+	ld a, [de]
+	add b
+	ld [hli], a
+	inc de
+	dec c
+	jr nz, memcpyFastOffset
+	ret
+
 ; May as well remove unused rsts so that space can be used for other stuff
-;SECTION "rst28",ROM0[$28]
 ;SECTION "rst30",ROM0[$30]
 ;SECTION "rst38",ROM0[$38]
 
