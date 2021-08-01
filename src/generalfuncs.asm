@@ -110,3 +110,19 @@ waitVblank:: ; is this a better approach?
     and a
     jr z, waitVblank
     ret
+
+SECTION "Copy String", ROM0
+
+; Copies a string (ending in -1)
+; Input - HL = Destination address
+; Input - DE = Start address
+; Input - C = Amount to increase each char by (tile offset)
+; Sets	- A H L D E to garbage
+copyString::
+	ld a, [de]
+    cp -1
+    ret z
+    add c
+	ld [hli], a
+	inc de
+	jr copyString

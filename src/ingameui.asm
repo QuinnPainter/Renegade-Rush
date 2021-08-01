@@ -2,12 +2,34 @@ INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "macros.inc"
 
 STATUS_BAR_TILE_OFFSET EQUS "(((StatusBarVRAM - $8800) / 16) + 128)"
+FONT_TILE_OFFSET EQUS "(((GameFontVRAM - $8800) / 16) + 128)"
+MENU_BAR_ANIM_SPEED EQU 3 ; How fast the menu bar opens / closes. Pixels per frame.
+MENU_BAR_MID_POS EQU 64 ; Scanline number of the middle of the menu bar
+MENU_BAR_HEIGHT EQU 24 ; Distance from middle of menu bar to the top and bottom
+
+TOP_LEFT_TILE EQU 61 ; Menu bar tile indices
+TOP_RIGHT_TILE EQU 60
+BOTTOM_LEFT_TILE EQU 63
+BOTTOM_RIGHT_TILE EQU 62
+TOP_TILE EQU 10
+BOTTOM_TILE EQU 66
+LEFT_TILE EQU 64
+RIGHT_TILE EQU 65
+MIDDLE_TILE EQU 67
 
 SECTION "StatusBarBuffer", WRAM0, ALIGN[6]
 DS 20 * 2 ; 20 tiles wide * 2 tiles tall
 
+SECTION "MenuBarState", WRAM0
+menuBarTopLine: DS 1 ; Scanline of the top of the menu bar
+menuBarBottomLine: DS 1 ; Scanline of the bottom of the menu bar
+whichMenuOpen: DS 1 ; 0 = Pause Menu, nonzero = Game Over
+menuBarState: DS 1 ; 0 = growing, nonzero = shrinking
+
 SECTION "In-Game UI Code", ROM0
 
+; Initialise the starting state of game UI
+; Sets - A to garbage
 initGameUI::
     ; Load in status bar tiles that never change
     ld a, STATUS_BAR_TILE_OFFSET + 11 ; dollar sign
@@ -20,15 +42,67 @@ initGameUI::
     ld a, STATUS_BAR_TILE_OFFSET + 10
     ld [STARTOF("StatusBarBuffer") + 14], a
     ld [STARTOF("StatusBarBuffer") + 18], a ; blank space at top right
-    ld a, STATUS_BAR_TILE_OFFSET + 58
+    ld a, STATUS_BAR_TILE_OFFSET + 60
     ld [STARTOF("StatusBarBuffer") + 19], a
-    ld a, STATUS_BAR_TILE_OFFSET + 59 ; km / h
+    ld a, STATUS_BAR_TILE_OFFSET + 58 ; km / h
     ld [STARTOF("StatusBarBuffer") + 20 + 18], a
     inc a
     ld [STARTOF("StatusBarBuffer") + 20 + 19], a
     ret
 
-updateGameUI::
+; Generates the tilemaps for the Paused and Game Over menus, and puts them in the BG map
+; Assumes VRAM is always active, so needs to be run while screen is disabled
+genMenuBarTilemaps::
+    ld hl, _SCRN1 + (32 * 24)
+    ld a, STATUS_BAR_TILE_OFFSET + TOP_LEFT_TILE
+    lb bc, STATUS_BAR_TILE_OFFSET + TOP_TILE, STATUS_BAR_TILE_OFFSET + TOP_RIGHT_TILE
+    call genMenuBarLine
+    ld hl, _SCRN1 + (32 * 25)
+    ld a, STATUS_BAR_TILE_OFFSET + LEFT_TILE
+    lb bc, STATUS_BAR_TILE_OFFSET + MIDDLE_TILE, STATUS_BAR_TILE_OFFSET + RIGHT_TILE
+FOR N, 0, 4
+    ld hl, _SCRN1 + (32 * (25 + N))
+    ld a, STATUS_BAR_TILE_OFFSET + LEFT_TILE
+    call genMenuBarLine
+ENDR
+    ld hl, _SCRN1 + (32 * 29)
+    ld a, STATUS_BAR_TILE_OFFSET + BOTTOM_LEFT_TILE
+    lb bc, STATUS_BAR_TILE_OFFSET + BOTTOM_TILE,STATUS_BAR_TILE_OFFSET + BOTTOM_RIGHT_TILE
+    call genMenuBarLine
+
+    ld hl, _SCRN1 + (32 * 18) ; copy so we have 2 (Paused and Game Over)
+    ld de, _SCRN1 + (32 * 24)
+    ld c, 32 * 6
+    rst memcpyFast
+
+    rom_bank_switch BANK("Strings")
+    ld hl, $9E65
+    ld de, PausedString
+    ld c, FONT_TILE_OFFSET
+    call copyString
+    ret
+
+; Generate one line of the menu bar tilemap
+; Should only be used in genMenuBarTilemaps
+; Input - HL = Address to copy to
+; Input - A = Left tile
+; Input - B = Middle tile
+; Input - C = Right tile
+; Sets - A D to garbage
+genMenuBarLine:
+    ld [hli], a         ; Left
+    ld a, b             ; \
+    ld d, 20 - 2        ; |
+:   ld [hli], a         ; | Middle
+    dec d               ; |
+    jr nz, :-           ; /
+    ld a, c             ; \ Right
+    ld [hli], a         ; /
+    ret
+
+; Updates the status bar state, and puts it into StatusBarBuffer
+; Sets - A B C D E H L to garbage
+updateStatusBar::
     ; Draw status bar
     ; HL = top line pointer
     ; BC = bottom line pointer
@@ -254,6 +328,8 @@ ENDR
 
     ret
 
+; Copy the status bar buffer into VRAM
+; Sets - A C D E H L to garbage
 copyStatusBarBuffer::
     ld hl, _SCRN1 + (32 * 30) ; copy first line
     ld de, STARTOF("StatusBarBuffer")
@@ -265,8 +341,7 @@ copyStatusBarBuffer::
     ret
 
 ; Run every frame, in an LCD interrupt on the first line of the status bar.
-setupStatusBar::
-
+statusBarTopLine::
     ldh a, [rLCDC]
     and ~LCDCF_OBJON ; Disable sprites
     or LCDCF_BG9C00 ; Switch background tilemap
@@ -286,3 +361,139 @@ setupStatusBar::
     ldh [rSCY], a ; Set Y scroll to show status bar
 
     jp LCDIntEnd
+
+; Set up LCD interrupt for top of menu bar
+; Sets - A to garbage
+setupMenuBarInterrupt::
+    ld a, LOW(menuBarTopLineFunc)
+    ld [LCDIntVectorRAM], a
+    ld a, HIGH(menuBarTopLineFunc)
+    ld [LCDIntVectorRAM + 1], a
+    ld a, [menuBarTopLine]
+    dec a
+    ld [rLYC], a
+    ret
+
+; Runs on the top scanline of the menu bar.
+menuBarTopLineFunc:
+    ldh a, [rLCDC]
+    and ~LCDCF_OBJON ; Disable sprites
+    or LCDCF_BG9C00 ; Switch background tilemap
+    ld b, a
+    ld a, [whichMenuOpen]
+    and a
+    jr nz, .gameOverMenu
+    ld c, (8 * 18) - 40 ; 8 pix per tile * 24 tile lines to the position in VRAM - menu bar starts scanline 40
+    jr .donePickMenu
+.gameOverMenu:
+    ld c, (8 * 24) - 40 ; 8 pix per tile * 24 tile lines to the position in VRAM - menu bar starts scanline 40
+.donePickMenu:
+
+    ; Wait for safe VRAM access (next hblank)
+:   ld a, [rSTAT]
+    and a, STATF_BUSY
+    jr nz, :-
+
+    ; Set LCD registers
+    ld a, b
+    ldh [rLCDC], a
+    xor a
+    ldh [rSCX], a ; Set X scroll to 0
+    ld a, c
+    ldh [rSCY], a ; Set Y scroll to show status bar
+
+    ; Set up menu bar bottom line interrupt
+    ld a, LOW(menuBarBottomLineFunc)
+    ld [LCDIntVectorRAM], a
+    ld a, HIGH(menuBarBottomLineFunc)
+    ld [LCDIntVectorRAM + 1], a
+    ld a, [menuBarBottomLine]
+    dec a
+    ld [rLYC], a
+    jp LCDIntEnd
+
+; Runs on the bottom scanline of the menu bar.
+menuBarBottomLineFunc:
+    ldh a, [rLCDC]
+    or LCDCF_OBJON ; Enable sprites
+    and ~LCDCF_BG9C00 ; Switch background tilemap
+    ld b, a
+    ld a, [ShadowScrollX] ; Set X scroll back to road
+    ld c, a
+    ld a, [CurrentRoadScrollPos] ; Set Y scroll back to road
+    ld d, a
+
+    ; Wait for safe VRAM access (next hblank)
+:   ld a, [rSTAT]
+    and a, STATF_BUSY
+    jr nz, :-
+
+    ; Set LCD registers
+    ld a, b
+    ldh [rLCDC], a
+    ld a, c
+    ldh [rSCX], a
+    ld a, d
+    ldh [rSCY], a
+
+    ; Set up status bar interrupt
+    call setupStatusBarInterrupt
+    jp LCDIntEnd
+
+; Run when the menu bar opens.
+; Input - A = Which menu to open (0 = Pause, nonzero = Game Over)
+; Sets - A to garbage
+startMenuBarAnim::
+    ld [whichMenuOpen], a
+    ld a, MENU_BAR_MID_POS
+    ld [menuBarTopLine], a
+    inc a
+    ld [menuBarBottomLine], a
+    xor a
+    ld [menuBarState], a
+    ret
+
+; Run every frame when menu bar is open.
+updateMenuBar::
+    ld a, [menuBarState]
+    and a
+    ld a, [menuBarTopLine]
+    ld b, MENU_BAR_ANIM_SPEED
+    jr z, .barGrowing
+    add b ; Bar is shrinking
+    ld [menuBarTopLine], a
+    ld c, a
+    ld a, [menuBarBottomLine]
+    sub b
+    ld [menuBarBottomLine], a
+    cp c ; C Set if (menuBarBottomLine < menuBarTopLine)
+    jr nz, .doneAnimBar
+    xor a ; When menu bar is done closing, unpause the game
+    ld [IsGamePaused], a ; Only the pause menu shrinks, the game over menu doesn't, so this is fine.
+    jr .doneAnimBar
+.barGrowing:
+    sub b
+    cp MENU_BAR_MID_POS - MENU_BAR_HEIGHT
+    jr c, .doneGrowing
+    ld [menuBarTopLine], a
+    ld a, [menuBarBottomLine]
+    add b
+    ld [menuBarBottomLine], a
+    jr .doneAnimBar
+.doneGrowing:
+    ld a, MENU_BAR_MID_POS - MENU_BAR_HEIGHT
+    ld [menuBarTopLine], a
+    ld a, MENU_BAR_MID_POS + MENU_BAR_HEIGHT
+    ld [menuBarBottomLine], a
+.doneAnimBar:
+
+    ld a, [whichMenuOpen]   ; \
+    and a                   ; | Can't close menu when game over, so skip past unpause
+    jr nz, .pauseNotPressed ; /
+    ld a, [newButtons] ; Start shrinking menu bar if start button is pressed
+    and PADF_START
+    jr z, .pauseNotPressed
+    ld a, $FF
+    ld [menuBarState], a
+.pauseNotPressed:
+    ret

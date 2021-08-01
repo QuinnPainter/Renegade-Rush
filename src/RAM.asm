@@ -9,12 +9,17 @@ PoliceCarTilesVRAM::
 PoliceCarTilesVRAMEnd::
 
 SECTION "VRAM 8800", VRAM[_VRAM8800]
+StatusBarVRAM::
+    DS 68 * 16 ; 68 tiles * 16 bytes per tile
+StatusBarVRAMEnd::
+GameFontVRAM::
+    DS 27 * 16
+GameFontVRAMEnd::
+
+SECTION "VRAM 9000", VRAM[_VRAM9000]
 RoadTilesVRAM::
     DS 16 * 16 ; 16 tiles * 16 bytes per tile
 RoadTilesVRAMEnd::
-StatusBarVRAM::
-    DS 59 * 16 ; 59 tiles * 16 bytes per tile
-StatusBarVRAMEnd::
 
 SECTION "StackArea", WRAM0[$DF00]
     DS $FF ; Reserve 255 bytes for the stack at the end of WRAM.

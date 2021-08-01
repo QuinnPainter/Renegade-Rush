@@ -69,3 +69,9 @@ MACRO jp_hl
     push hl
     ret
 ENDM
+
+; Allows consolidating the loading of 2 bytes into a register pair into one 16 bit load
+; for example "lb bc, bvalue, cvalue"
+MACRO lb 
+    ld \1, (\2) << 8 | (\3)
+ENDM

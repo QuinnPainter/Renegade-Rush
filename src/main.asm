@@ -3,6 +3,7 @@ INCLUDE "macros.inc"
 
 SECTION "GameVars", WRAM0
 ShadowScrollX:: DS 1
+IsGamePaused:: DS 1 ; 0 = unpaused, nonzero = paused
 
 SECTION "MainGameCode", ROM0
 
@@ -50,6 +51,14 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld de, StatusBar
     ld bc, StatusBarEnd - StatusBar
     rst memcpy
+    rom_bank_switch BANK("GameFont")
+    ld hl, GameFontVRAM
+    ld de, GameFont
+    ld bc, GameFontEnd - GameFont
+    rst memcpy
+
+    ; Init menu bar tilemaps
+    call genMenuBarTilemaps
 
     ; TEMP : seed random
     ld hl, $9574;$38
@@ -69,6 +78,11 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     call initPlayer
     call initEnemyCar
 
+    xor a
+    ld [IsGamePaused], a
+    ld a, 16 ; Init X scroll
+	ld [ShadowScrollX], a
+
     ; Generate enough road for the whole screen, plus 1 extra line
     REPT 19 ; could make this into a regular loop instead of REPT, if needed
     call GenRoadRow
@@ -80,9 +94,6 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	ldh [rBGP], a
     ld [rOBP0], a ; Init sprite palettes
 	ld [rOBP1], a
-
-    ld a, 16 ; Init X scroll
-	ld [ShadowScrollX], a
 
     ; Init VBlank vector
     ld a, LOW(VBlank)
@@ -114,6 +125,24 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ldh [rIF], a ; Discard all pending interrupts (there would normally be a VBlank pending)
 	ei
 GameLoop:
+    call readInput
+
+    ld a, [IsGamePaused]
+    and a
+    jr z, .notPaused
+    call updateMenuBar
+    jr .doneGameLoop
+.notPaused:
+
+    ld a, [newButtons] ; Pause if start button is pressed
+    and PADF_START
+    jr z, .pauseNotPressed
+    ld a, $FF
+    ld [IsGamePaused], a
+    xor a ; open pause menu
+    call startMenuBarAnim
+.pauseNotPressed:
+
     ; Update road scroll, and generate new line of road if needed
     ld a, [CurrentRoadScrollSpeed + 1] ; Load subpixel portion of road speed
     ld b, a ; put that into B
@@ -137,13 +166,11 @@ GameLoop:
     call GenRoadRow
 .noNewLine:
 
-    call readInput
-
     call updatePlayer
     call updateEnemyCar
-    call updateGameUI
+    call updateStatusBar
 
-
+.doneGameLoop:
     call waitVblank
     jr GameLoop
 
@@ -174,13 +201,14 @@ VBlank::
     ; Copy sprite buffer into OAM
     call DMARoutineHRAM
 
-    ; Set up LCD interrupt for status bar
-    ld a, LOW(setupStatusBar)
-    ld [LCDIntVectorRAM], a
-    ld a, HIGH(setupStatusBar)
-    ld [LCDIntVectorRAM + 1], a
-    ld a, 129 - 1 ; runs on line before
-    ld [rLYC], a
+    ld a, [IsGamePaused]
+    and a
+    jr nz, .menuBarActive
+    call setupStatusBarInterrupt ; If menu bar isn't present, go straight to status bar
+    jr .doneLCDIntSetup
+.menuBarActive:
+    call setupMenuBarInterrupt ; If game is paused, setup menu bar interrupt instead of status bar
+.doneLCDIntSetup:
 
     ld a, 1
     ld [HasVblankHappened], a
@@ -188,3 +216,13 @@ VBlank::
     pop de
     pop bc
     jp VblankEnd
+
+; Setup LY interrupt for top of status bar
+setupStatusBarInterrupt::
+    ld a, LOW(statusBarTopLine)
+    ld [LCDIntVectorRAM], a
+    ld a, HIGH(statusBarTopLine)
+    ld [LCDIntVectorRAM + 1], a
+    ld a, 129 - 1 ; runs on line before
+    ld [rLYC], a
+    ret
