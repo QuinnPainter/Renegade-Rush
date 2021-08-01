@@ -30,3 +30,5 @@ CHARMAP "<e>", -1 ; Marks the end of the string
 
 SECTION "Strings", ROMX
 PausedString:: DB "- PAUSED -<e>"
+ResumeString:: DB "RESUME<e>"
+MenuString:: DB "MENU<e>"

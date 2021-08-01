@@ -75,10 +75,19 @@ ENDR
     ld c, 32 * 6
     rst memcpyFast
 
+    ; Copy strings for pause menu
     rom_bank_switch BANK("Strings")
     ld hl, $9E65
     ld de, PausedString
     ld c, FONT_TILE_OFFSET
+    call copyString
+
+    ld hl, $9EA7
+    ld de, ResumeString
+    call copyString
+
+    ld hl, $9EC8
+    ld de, MenuString
     call copyString
     ret
 
