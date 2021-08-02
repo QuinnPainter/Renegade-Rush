@@ -9,16 +9,13 @@ AfterSelIntVec:: DS 2 ; The interrupt vector that the LCD int is set to after th
 AfterSelIntLine:: DS 1 ; The LY line the LCD int is set to afterwards
 PrevPalette: DS 1 ; The palette used before the selection bar, that gets reset when the bar is over
 IntState: DS 1 ; Are we on the first or last line interrupt? 0 = first, nonzero = last
-SelBarTopLine: DS 1 ; Current position of the top of the selection bar
+SelBarTopLine:: DS 1 ; Current position of the top of the selection bar
 
 SECTION "Menu Selection Code", ROM0
 
 ; Set up the top line interrupt
 ; Sets - A to garbage
 selectionBarSetupTopInt::
-    ld a, 64
-    ld [SelBarTopLine], a
-
     ld a, LOW(selectionBarIntFunc)
     ld [LCDIntVectorRAM], a
     ld a, HIGH(selectionBarIntFunc)

@@ -419,6 +419,8 @@ startMenuBarAnim::
     xor a
     ld [menuBarState], a
     ld [menuBarDoneAnim], a
+    ld a, 64 ; Start selection bar on "Resume"
+    ld [SelBarTopLine], a
     ret
 
 ; Run every frame when menu bar is open.

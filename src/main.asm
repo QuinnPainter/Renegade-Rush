@@ -29,6 +29,13 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	ld c, SpriteBufferEnd - SpriteBuffer
 	ld d, 0
 	rst memsetFast
+    ; Copy the OAM DMA routine into HRAM
+    ld hl, DMARoutineHRAM
+    ld de, DMARoutine
+    ld c, 14
+    rst memcpyFast
+    ; Copy the empty sprite buffer into OAM
+    call DMARoutineHRAM
 
     ; Copy tileset into VRAM
     rom_bank_switch BANK("RoadTiles")
@@ -60,15 +67,14 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ; Init menu bar tilemaps
     call genMenuBarTilemaps
 
+    ; Init input
+    xor a
+    ld [curButtons], a
+    ld [newButtons], a
+
     ; TEMP : seed random
     ld hl, $9574;$38
     call seedRandom
-
-    ; Copies the OAM DMA routine into HRAM
-    ld hl, DMARoutineHRAM
-    ld de, DMARoutine
-    ld c, 14
-    rst memcpyFast
 
     ; Initialise variables
     call initCollision
