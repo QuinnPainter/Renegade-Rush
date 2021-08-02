@@ -9,9 +9,42 @@ AfterSelIntVec:: DS 2 ; The interrupt vector that the LCD int is set to after th
 AfterSelIntLine:: DS 1 ; The LY line the LCD int is set to afterwards
 PrevPalette: DS 1 ; The palette used before the selection bar, that gets reset when the bar is over
 IntState: DS 1 ; Are we on the first or last line interrupt? 0 = first, nonzero = last
-SelBarTopLine:: DS 1 ; Current position of the top of the selection bar
+SelBarTopLine:: DS 2 ; Current position of the top of the selection bar. 8.8 fixed point
+SelBarTargetPos:: DS 1 ; Position the bar is animating towards.
 
 SECTION "Menu Selection Code", ROM0
+
+; Updates the position of the selection bar.
+selectionBarUpdate::
+    ld a, [SelBarTopLine]
+    ld b, a
+    ld a, [SelBarTargetPos]
+    cp b
+    ret z ; positions are already the same
+    ld h, a                     ; \ Set HL to SelBarTargetPos
+    ld l, $7F ; instead of aiming for 0, aim for the middle subpixel. this fixes some weirdness where it stays 1 pixel away from target
+    ld a, [SelBarTopLine + 1]   ; \ Set BC to SelBarTopLine
+    ld c, a                     ; /
+    sub_16r hl, bc, hl ; HL = Offset between top line and target
+    ld a, h             ; \
+    rra                 ; |
+    rr l                ; |
+    rra                 ; |
+    rr l                ; |
+    bit 7, h            ; |
+    jr nz, .negative    ; | Shift HL right twice
+    and %00111111       ; |
+    jr .doneApplySign   ; |
+.negative:              ; |
+    or %11000000        ; |
+.doneApplySign:         ; |
+    ld h, a             ; /
+    add hl, bc ; Add new offset to top line
+    ld a, h
+    ld [SelBarTopLine], a
+    ld a, l
+    ld [SelBarTopLine + 1], a
+    ret
 
 ; Set up the top line interrupt
 ; Sets - A to garbage

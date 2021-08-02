@@ -99,7 +99,7 @@ DEF KnockbackSpeedY\@ EQUS "\7"            ; Address
     ld a, [hli]              ; | load 16 bit value in KnockbackSpeedX into HL
     ld l, [hl]               ; |
     ld h, a                  ; /
-    neg_16
+    neg_16 hl, hl
     ld a, h
     ld [KnockbackSpeedX\@], a
     ld a, l
@@ -112,7 +112,7 @@ DEF KnockbackSpeedY\@ EQUS "\7"            ; Address
     ld a, [hli]              ; | load 16 bit value in KnockbackSpeedY into HL
     ld l, [hl]               ; |
     ld h, a                  ; /
-    neg_16
+    neg_16 hl, hl
     ld a, h
     ld [KnockbackSpeedY\@], a
     ld a, l

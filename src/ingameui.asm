@@ -421,6 +421,9 @@ startMenuBarAnim::
     ld [menuBarDoneAnim], a
     ld a, 64 ; Start selection bar on "Resume"
     ld [SelBarTopLine], a
+    ld [SelBarTargetPos], a
+    xor a
+    ld [SelBarTopLine + 1], a
     ret
 
 ; Run every frame when menu bar is open.
@@ -474,4 +477,26 @@ updateMenuBar::
     xor a
     ld [menuBarDoneAnim], a
 .pauseNotPressed:
+
+    ld a, [menuBarDoneAnim]
+    and a
+    jr z, .skipCheckMenuButtons
+
+    call selectionBarUpdate
+
+    ld a, [newButtons]
+    and PADF_UP
+    jr z, .upNotPressed
+    ld a, [SelBarTargetPos]
+    sub 8
+    ld [SelBarTargetPos], a
+.upNotPressed:
+    ld a, [newButtons]
+    and PADF_DOWN
+    jr z, .downNotPressed
+    ld a, [SelBarTargetPos]
+    add 8
+    ld [SelBarTargetPos], a
+.downNotPressed:
+.skipCheckMenuButtons:
     ret
