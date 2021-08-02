@@ -15,6 +15,7 @@ menuBarTopLine: DS 1 ; Scanline of the top of the menu bar
 menuBarBottomLine: DS 1 ; Scanline of the bottom of the menu bar
 whichMenuOpen: DS 1 ; 0 = Pause Menu, nonzero = Game Over
 menuBarState: DS 1 ; 0 = growing, nonzero = shrinking
+menuBarDoneAnim: DS 1 ; 0 = still animating, menu functionality is disabled, nonzero = menu is ready
 
 SECTION "In-Game UI Code", ROM0
 
@@ -38,6 +39,13 @@ initGameUI::
     ld [STARTOF("StatusBarBuffer") + 20 + 18], a
     inc a
     ld [STARTOF("StatusBarBuffer") + 20 + 19], a
+    ; Setup interrupt options that tell the selection bar to go the bottom of the menu bar
+    ld a, LOW(menuBarBottomLineFunc)
+    ld [AfterSelIntVec], a
+    ld a, HIGH(menuBarBottomLineFunc)
+    ld [AfterSelIntVec + 1], a
+    ld a, MENU_BAR_MID_POS + MENU_BAR_HEIGHT
+    ld [AfterSelIntLine], a
     ret
 
 ; Generates the tilemaps for the Paused and Game Over menus, and puts them in the BG map
@@ -355,6 +363,12 @@ menuBarTopLineFunc:
     ld a, c
     ldh [rSCY], a ; Set Y scroll to show status bar
 
+    ld a, [menuBarDoneAnim]
+    and a
+    jr z, .noSelBar
+    call selectionBarSetupTopInt
+    jp LCDIntEnd
+.noSelBar:
     ; Set up menu bar bottom line interrupt
     ld a, LOW(menuBarBottomLineFunc)
     ld [LCDIntVectorRAM], a
@@ -404,6 +418,7 @@ startMenuBarAnim::
     ld [menuBarBottomLine], a
     xor a
     ld [menuBarState], a
+    ld [menuBarDoneAnim], a
     ret
 
 ; Run every frame when menu bar is open.
@@ -442,6 +457,8 @@ updateMenuBar::
     ld [menuBarTopLine], a
     ld a, MENU_BAR_MID_POS + MENU_BAR_HEIGHT
     ld [menuBarBottomLine], a
+    ld a, $FF
+    ld [menuBarDoneAnim], a
 .doneAnimBar:
 
     ld a, [whichMenuOpen]   ; \
@@ -452,5 +469,7 @@ updateMenuBar::
     jr z, .pauseNotPressed
     ld a, $FF
     ld [menuBarState], a
+    xor a
+    ld [menuBarDoneAnim], a
 .pauseNotPressed:
     ret

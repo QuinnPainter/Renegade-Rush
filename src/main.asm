@@ -176,9 +176,6 @@ GameLoop:
 
 
 VBlank::
-    push bc
-    push de
-
     ; Copy new road line onto the background tilemap if one is ready
     ld a, [RoadLineReady]
     and a ; update zero flag
@@ -213,8 +210,6 @@ VBlank::
     ld a, 1
     ld [HasVblankHappened], a
 
-    pop de
-    pop bc
     jp VblankEnd
 
 ; Setup LY interrupt for top of status bar

@@ -125,12 +125,16 @@ SECTION "Interrupt Handlers", ROM0
 VblankHandler:
 	push hl
 	push af
+	push bc
+	push de
 	ld hl, VblankVectorRAM ; load value at VblankVectorRAM into HL
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
 	jp_hl ; jump to [VblankVectorRAM]
 VblankEnd::
+	pop de
+	pop bc
 	pop af
 	pop hl
 	reti
@@ -138,12 +142,16 @@ VblankEnd::
 LCDIntHandler:
 	push hl
 	push af
+	push bc
+	push de
 	ld hl, LCDIntVectorRAM ; load value at LCDIntVectorRAM into HL
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
 	jp_hl ; jump to [LCDIntVectorRAM]
 LCDIntEnd::
+	pop de
+	pop bc
 	pop af
 	pop hl
 	reti
