@@ -26,19 +26,10 @@ selectionBarUpdate::
     ld a, [SelBarTopLine + 1]   ; \ Set BC to SelBarTopLine
     ld c, a                     ; /
     sub_16r hl, bc, hl ; HL = Offset between top line and target
-    ld a, h             ; \
-    rra                 ; |
-    rr l                ; |
-    rra                 ; |
-    rr l                ; |
-    bit 7, h            ; |
-    jr nz, .negative    ; | Shift HL right twice
-    and %00111111       ; |
-    jr .doneApplySign   ; |
-.negative:              ; |
-    or %11000000        ; |
-.doneApplySign:         ; |
-    ld h, a             ; /
+    sra h   ; \
+    rr l    ; | Shift HL right twice
+    sra h   ; |
+    rr l    ; /
     add hl, bc ; Add new offset to top line
     ld a, h
     ld [SelBarTopLine], a
