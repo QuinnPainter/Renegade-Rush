@@ -420,9 +420,13 @@ updateMenuBar::
     sub b
     ld [menuBarBottomLine], a
     cp c ; C Set if (menuBarBottomLine < menuBarTopLine)
-    jr nz, .doneAnimBar
+    jr nc, .doneAnimBar
     xor a ; When menu bar is done closing, unpause the game
     ld [IsGamePaused], a ; Only the pause menu shrinks, the game over menu doesn't, so this is fine.
+    ld a, MENU_BAR_MID_POS    ; \
+    ld [menuBarTopLine], a    ; | Reset the bar positions to 1 line high
+    inc a                     ; | This prevents the bar from "glitching" for one frame after closing
+    ld [menuBarBottomLine], a ; /
     jr .doneAnimBar
 .barGrowing:
     sub b
