@@ -6,6 +6,8 @@ MENUBAR_TILE_OFFSET EQUS "(((MenuBarTilesVRAM - $8800) / 16) + 128)"
 MENU_BAR_ANIM_SPEED EQU 3 ; How fast the menu bar opens / closes. Pixels per frame.
 MENU_BAR_MID_POS EQU 64 ; Scanline number of the middle of the menu bar
 MENU_BAR_HEIGHT EQU 24 ; Distance from middle of menu bar to the top and bottom
+MENU_OPTION_1_POS EQU 64 ; Positions of the menu options
+MENU_OPTION_2_POS EQU MENU_OPTION_1_POS + 8
 
 SECTION "StatusBarBuffer", WRAM0, ALIGN[6]
 DS 20 * 2 ; 20 tiles wide * 2 tiles tall
@@ -16,6 +18,7 @@ menuBarBottomLine: DS 1 ; Scanline of the bottom of the menu bar
 whichMenuOpen: DS 1 ; 0 = Pause Menu, nonzero = Game Over
 menuBarState: DS 1 ; 0 = growing, nonzero = shrinking
 menuBarDoneAnim: DS 1 ; 0 = still animating, menu functionality is disabled, nonzero = menu is ready
+menuOptionSelected: DS 1 ; 0 = option 1, 1 = option 2
 
 SECTION "In-Game UI Code", ROM0
 
@@ -419,11 +422,11 @@ startMenuBarAnim::
     xor a
     ld [menuBarState], a
     ld [menuBarDoneAnim], a
+    ld [menuOptionSelected], a
+    ld [SelBarTopLine + 1], a
     ld a, 64 ; Start selection bar on "Resume"
     ld [SelBarTopLine], a
     ld [SelBarTargetPos], a
-    xor a
-    ld [SelBarTopLine + 1], a
     ret
 
 ; Run every frame when menu bar is open.
@@ -487,15 +490,17 @@ updateMenuBar::
     ld a, [newButtons]
     and PADF_UP
     jr z, .upNotPressed
-    ld a, [SelBarTargetPos]
-    sub 8
+    xor a
+    ld [menuOptionSelected], a
+    ld a, MENU_OPTION_1_POS
     ld [SelBarTargetPos], a
 .upNotPressed:
     ld a, [newButtons]
     and PADF_DOWN
     jr z, .downNotPressed
-    ld a, [SelBarTargetPos]
-    add 8
+    ld a, 1
+    ld [menuOptionSelected], a
+    ld a, MENU_OPTION_2_POS
     ld [SelBarTargetPos], a
 .downNotPressed:
 .skipCheckMenuButtons:
