@@ -21,8 +21,8 @@ SECTION "EnemyCarCode", ROM0
 
 initEnemyCar::
     call genRandom
-    and %10111111 ; gen number between -65 and 63
-    add (160 / 2) ; add that to the X of the middle of the screen, to get a possible range of 15 to 143
+    and %01111111 ; gen number between 0 and 127
+    add (160 / 2) - 64 ; add that to the X of the middle of the screen - 64, to get a possible range of 16 to 143
     ld [EnemyCarX], a
     xor a
     ld [EnemyCarX + 1], a
