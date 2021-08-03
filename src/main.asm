@@ -82,7 +82,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     jp InitRoadGen
 .doneInitRoad::
     call initPlayer
-    call initEnemyCar
+    call initEnemyCars
 
     xor a
     ld [IsGamePaused], a
@@ -173,7 +173,7 @@ GameLoop:
 .noNewLine:
 
     call updatePlayer
-    call updateEnemyCar
+    call updateEnemyCars
     call updateStatusBar
 
 .doneGameLoop:

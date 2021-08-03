@@ -51,9 +51,9 @@ DEF KnockbackSpeedY\@ EQUS "\7"            ; Address
     and $0F ; isolate speed value
     cp 4 ; if speed < this value, knockback is not doubled
     ld a, BASE_KNOCKBACK_FRAMES
-    jr c, .noDoubleKnockFrames
+    jr c, .noDoubleKnockFrames\@
     add a
-.noDoubleKnockFrames:
+.noDoubleKnockFrames\@:
     ld [RemainingKnockbackFrames\@], a
     ; calculate knockback speed
     ld a, [ThisObjX\@]
