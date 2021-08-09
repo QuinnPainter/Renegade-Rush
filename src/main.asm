@@ -89,11 +89,15 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld a, 16 ; Init X scroll
 	ld [ShadowScrollX], a
 
-    ; Generate enough road for the whole screen, plus 1 extra line
-    REPT 19 ; could make this into a regular loop instead of REPT, if needed
+    ;ld a, 19 ; Generate enough road for the whole screen, plus 1 extra line
+    ld a, 24 ; Generate enough road for the whole screen, plus several extra lines
+.pregenRoadLp:
+    push af
     call GenRoadRow
     call CopyRoadBuffer
-    ENDR
+    pop af
+    dec a
+    jr nz, .pregenRoadLp
 
     ; Init display registers
 	ld a, %11100100 ; Init background palette

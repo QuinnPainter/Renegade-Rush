@@ -213,7 +213,7 @@ updatePlayer::
     ld [PlayerY], a
 .belowMaxY:
 
-    ;road_edge_collision PlayerX, PlayerY
+    road_edge_collision PlayerX, PlayerY
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + PLAYER_COLLISION

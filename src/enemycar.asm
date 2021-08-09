@@ -135,7 +135,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 .animState1\@:
     set_car_tiles CAR_SPRITE\@
 
-    ;road_edge_collision \1 + EnemyCarX, \1 + EnemyCarY
+    road_edge_collision \1 + EnemyCarX, \1 + EnemyCarY
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + CAR_OBJ_COLLISION\@
