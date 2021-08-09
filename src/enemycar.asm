@@ -3,7 +3,7 @@ include "spriteallocation.inc"
 include "macros.inc"
 include "collision.inc"
 
-BASE_KNOCKBACK_FRAMES EQU 10
+BASE_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit, in 255s of a pixel per frame per frame
 
 RSRESET
 DEF EnemyCarX RB 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
@@ -13,7 +13,6 @@ DEF EnemyCarRoadSpeed RB 2 ; Speed of the car, in terms of road scroll speed. 8.
 DEF EnemyCarAcceleration RB 2 ; Car's road scroll acceleration - pixels per frame per frame. 8.8 fixed point.
 DEF EnemyCarAnimationTimer RB 1 ; Incremented every frame. Used to update animations.
 DEF EnemyCarAnimationState RB 1 ; Current state of the animation. 0 = state 1, FF = state 2
-DEF RemainingKnockbackFrames RB 1 ; Number of frames left in the knockback animation.
 DEF CurrentKnockbackSpeedX RB 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
 DEF CurrentKnockbackSpeedY RB 2
 DEF sizeof_EnemyCarVars RB 0
@@ -45,7 +44,6 @@ DEF CAR_STATE_BASE_ADDR\@ EQUS "\1"
     xor a
     ld [CAR_STATE_BASE_ADDR\@ + EnemyCarAnimationTimer], a
     ld [CAR_STATE_BASE_ADDR\@ + EnemyCarAnimationState], a
-    ld [CAR_STATE_BASE_ADDR\@ + RemainingKnockbackFrames], a
     ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedX], a
     ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedX + 1], a
     ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedY], a
@@ -101,23 +99,29 @@ MACRO update_enemy_car
 DEF CAR_SPRITE\@ EQUS "\2"
 DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ; Update animation state
-    ld a, [\1 + EnemyCarAnimationTimer]
-    inc a
-    ld [\1 + EnemyCarAnimationTimer], a
+    ld hl, \1 + EnemyCarAnimationTimer
+    inc [hl]
+    ld a, [hl]
     and %00001111 ; every 16 frames
     jr nz, .noUpdateAnimation\@
-    ld a, [\1 + EnemyCarAnimationState]
+    ld hl, \1 + EnemyCarAnimationState
+    ld a, [hl]
     cpl
-    ld [\1 + EnemyCarAnimationState], a
+    ld [hl], a
 .noUpdateAnimation\@:
 
-    ld a, [\1 + RemainingKnockbackFrames]
-    and a
+    ; Apply knockback
+    ld hl, \1 + CurrentKnockbackSpeedX
+    xor a ; Check if all knockback values are 0
+    or [hl] ; X byte 1
+    inc hl
+    or [hl] ; X byte 2
+    inc hl
+    or [hl] ; Y byte 1
+    inc hl
+    or [hl] ; Y byte 2
     jr z, .noKnockback\@
-    dec a
-    ld [\1 + RemainingKnockbackFrames], a
-    add_16 \1 + CurrentKnockbackSpeedX, \1 + EnemyCarX, \1 + EnemyCarX
-    add_16 \1 + CurrentKnockbackSpeedY, \1 + EnemyCarY, \1 + EnemyCarY
+    update_knockback \1 + EnemyCarX, \1 + EnemyCarY, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, BASE_KNOCKBACK_SLOWDOWN
 .noKnockback\@:
 
     ; Take car speed from road speed to get the Y offset
@@ -157,8 +161,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     and a
     jp z, .noCol\@ ; collision happened - now apply knockback
     rom_bank_switch BANK("PoliceCarCollision")
-    process_knockback BASE_KNOCKBACK_FRAMES, \1 + RemainingKnockbackFrames, \1 + EnemyCarX, \
-        \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY
+    process_knockback \1 + EnemyCarX, \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY
 .noCol\@:
 
     ; Move the 6 car sprites to (EnemyCarX, EnemyCarY)

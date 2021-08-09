@@ -102,7 +102,7 @@ SECTION "Vblank Wait", ROM0
 
 ; HALT until Vblank has happened.
 ; Sets - A to garbage
-waitVblank:: ; is this a better approach?
+waitVblank::
     xor a
     ld [HasVblankHappened], a
     halt

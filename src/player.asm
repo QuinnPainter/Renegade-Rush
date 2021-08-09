@@ -5,8 +5,8 @@ include "collision.inc"
 
 PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
 PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
-BASE_KNOCKBACK_FRAMES EQU 5
-KNOCKBACK_SPEED_CHANGE EQU $00D0 ; How much each knockback changes the road speed by. 8.8 fixed point
+KNOCKBACK_SPEED_CHANGE EQU $0090 ; How much each knockback changes the road speed by. 8.8 fixed point
+BASE_KNOCKBACK_SLOWDOWN EQU 40
 
 SECTION "PlayerVariables", WRAM0
 PlayerX:: DS 2 ; Coordinates of the top-left of the player. 8.8 fixed point.
@@ -17,7 +17,6 @@ PlayerMaxRoadSpeed:: DS 2 ; Max and min speeds of the car, in terms of road scro
 PlayerMinRoadSpeed:: DS 2
 PlayerAcceleration:: DS 2 ; Player's road scroll acceleration - pixels per frame per frame. 8.8 fixed point.
 CurrentRoadScrollSpeed:: DS 2 ; Speed of road scroll, in pixels per frame. 8.8 fixed-point.
-RemainingKnockbackFrames: DS 1 ; Number of frames left in the knockback animation.
 CurrentKnockbackSpeedX: DS 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
 CurrentKnockbackSpeedY: DS 2
 MoneyAmount:: DS 2 ; Your current money value. 2 byte BCD (little endian)
@@ -59,7 +58,6 @@ initPlayer::
     ld a, $7F
     ld [PlayerXSpeed + 1], a
     xor a
-    ld [RemainingKnockbackFrames], a
     ld [CurrentKnockbackSpeedX], a
     ld [CurrentKnockbackSpeedX + 1], a
     ld [CurrentKnockbackSpeedY], a
@@ -73,25 +71,27 @@ initPlayer::
     ret
 
 updatePlayer::
-    ld c, 0 ; C holds the movement state: 0 = not turning, -1 = turning left, 1 = turning right
-    ld a, [CurrentRoadScrollSpeed]
-    ld d, a ; D is the movement state used in collision detection
-
-    ld a, [RemainingKnockbackFrames]
-    and a
+    ; Apply knockback
+    ld hl, CurrentKnockbackSpeedX
+    xor a ; Check if all knockback values are 0
+    or [hl] ; X byte 1
+    inc hl
+    or [hl] ; X byte 2
+    inc hl
+    or [hl] ; Y byte 1
+    inc hl
+    or [hl] ; Y byte 2
     jr z, .noKnockback
-    dec a
-    ld [RemainingKnockbackFrames], a
-    add_16 CurrentKnockbackSpeedX, PlayerX, PlayerX
-    add_16 CurrentKnockbackSpeedY, PlayerY, PlayerY
+    update_knockback PlayerX, PlayerY, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY, BASE_KNOCKBACK_SLOWDOWN
+    ld c, 0 ; movement state = straight
     jp .controlsDisabled
 .noKnockback:
+    ld c, 0 ; C holds the movement state: 0 = not turning, -1 = turning left, 1 = turning right
 
     ld a, [curButtons]
     ld b, a ; save curButtons into b
     and PADF_UP
     jr z, .upNotPressed
-    set 5, d ; set moving down bit
     ; Subtract PlayerYSpeed from Player Y
     sub_16 PlayerY, PlayerYSpeed, PlayerY
     add_16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
@@ -100,7 +100,6 @@ updatePlayer::
     ld a, b
     and PADF_DOWN
     jr z, .downNotPressed
-    set 4, d ; set moving up bit
     ; Add PlayerYSpeed to Player Y
     add_16 PlayerY, PlayerYSpeed, PlayerY
     sub_16 CurrentRoadScrollSpeed, PlayerAcceleration, CurrentRoadScrollSpeed
@@ -109,7 +108,6 @@ updatePlayer::
     ld a, b
     and PADF_LEFT
     jr z, .leftNotPressed
-    set 7, d ; set moving left bit
     dec c ; movement state = turning left
     ; Subtract PlayerXSpeed from Player X
     sub_16 PlayerX, PlayerXSpeed, PlayerX
@@ -118,7 +116,6 @@ updatePlayer::
     ld a, b
     and PADF_RIGHT
     jr z, .rightNotPressed
-    set 6, d ; set moving right bit
     inc c ; movement state = turning right
     ; Add PlayerXSpeed to Player X
     add_16 PlayerX, PlayerXSpeed, PlayerX
@@ -227,14 +224,15 @@ updatePlayer::
     ld [hli], a
     add 16 ; Right X - player is 16 px wide
     ld [hli], a
-    ld [hl], d ; movement info
+    ld a, [CurrentRoadScrollSpeed]
+    ld [hl], a ; movement info
 
     ld a, PLAYER_COLLISION
     call objCollisionCheck
     and a
     jp z, .noCol ; collision happened - now apply knockback
     rom_bank_switch BANK("PoliceCarCollision")
-    process_knockback BASE_KNOCKBACK_FRAMES, RemainingKnockbackFrames, PlayerX, PlayerY, PoliceCarCollision, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY
+    process_knockback PlayerX, PlayerY, PoliceCarCollision, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY
     ld a, [CurrentKnockbackSpeedY] ; change car speed based on KnockbackY
     bit 7, a
     jr z, .knockYPositive

@@ -38,23 +38,11 @@ ENDM
 ; Has to be called directly after objCollisionCheck as the register outputs are used.
 ; Make sure the bank has been switched to the one containing CollisionArray beforehand.
 MACRO process_knockback
-DEF BASE_KNOCKBACK_FRAMES\@ EQUS "\1"      ; 8.8 fixed point constant
-DEF RemainingKnockbackFrames\@ EQUS "\2"   ; Address
-DEF ThisObjX\@ EQUS "\3"                   ; Address
-DEF ThisObjY\@ EQUS "\4"                   ; Address
-DEF CollisionArray\@ EQUS "\5"             ; Address
-DEF KnockbackSpeedX\@ EQUS "\6"            ; Address
-DEF KnockbackSpeedY\@ EQUS "\7"            ; Address
-    push bc ; save C (other obj Y) for later
-    ; calculate knockback frames
-    ld a, e ; move movement info to A
-    and $0F ; isolate speed value
-    cp 4 ; if speed < this value, knockback is not doubled
-    ld a, BASE_KNOCKBACK_FRAMES
-    jr c, .noDoubleKnockFrames\@
-    add a
-.noDoubleKnockFrames\@:
-    ld [RemainingKnockbackFrames\@], a
+DEF ThisObjX\@ EQUS "\1"                   ; Address
+DEF ThisObjY\@ EQUS "\2"                   ; Address
+DEF CollisionArray\@ EQUS "\3"             ; Address
+DEF KnockbackSpeedX\@ EQUS "\4"            ; Address
+DEF KnockbackSpeedY\@ EQUS "\5"            ; Address
     ; calculate knockback speed
     ld a, [ThisObjX\@]
     sub d ; subtract x pos of other object
@@ -63,7 +51,6 @@ DEF KnockbackSpeedY\@ EQUS "\7"            ; Address
     jr z, .xPositive\@
     set 0, d
 .xPositive\@:
-    pop bc ; restore C (other obj Y)
     ld b, a ; move X offset to B
     ld a, [ThisObjY\@]
     sub c
@@ -92,6 +79,42 @@ DEF KnockbackSpeedY\@ EQUS "\7"            ; Address
     ld [KnockbackSpeedY\@], a
     ld a, [hli]
     ld [KnockbackSpeedY\@ + 1], a
+    ; increase knockback if speed is sufficient
+    ld a, e ; move movement info to A
+    and $0F ; isolate speed value
+    cp 4 ; if speed < this value, knockback is not increased
+    jr c, .noDoubleKnockSpeed\@
+    ld hl, KnockbackSpeedX\@ ; X knockback increase
+    ld a, [hli]
+    ld l, [hl]
+    ld h, a
+
+    ld b, h ; BC = 0.5 x HL
+    ld c, l
+    srl b
+    rr c
+    add hl, bc ; HL = HL * 1.5
+
+    ld a, h
+    ld [KnockbackSpeedX\@], a
+    ld a, l
+    ld [KnockbackSpeedX\@ + 1], a
+    ld hl, KnockbackSpeedY\@ ; ; Y knockback increase
+    ld a, [hli]
+    ld l, [hl]
+    ld h, a
+
+    ld b, h ; BC = 0.5 x HL
+    ld c, l
+    srl b
+    rr c
+    add hl, bc ; HL = HL * 1.5
+
+    ld a, h
+    ld [KnockbackSpeedY\@], a
+    ld a, l
+    ld [KnockbackSpeedY\@ + 1], a
+.noDoubleKnockSpeed\@:
     ; invert X speed if going left
     bit 0, d
     jr z, .noInvertX\@
@@ -118,11 +141,64 @@ DEF KnockbackSpeedY\@ EQUS "\7"            ; Address
     ld a, l
     ld [KnockbackSpeedY\@ + 1], a
 .noInvertY\@:
-PURGE BASE_KNOCKBACK_FRAMES\@
-PURGE RemainingKnockbackFrames\@
 PURGE ThisObjX\@
 PURGE ThisObjY\@
 PURGE CollisionArray\@
 PURGE KnockbackSpeedX\@
 PURGE KnockbackSpeedY\@
+ENDM
+
+MACRO update_knockback
+DEF ThisObjX\@ EQUS "\1"                    ; Address
+DEF ThisObjY\@ EQUS "\2"                    ; Address
+DEF KnockbackSpeedX\@ EQUS "\3"             ; Address
+DEF KnockbackSpeedY\@ EQUS "\4"             ; Address
+DEF KnockbackSlowdownSpeed\@ EQUS "\5"      ; 8.8 fixed point constant
+    add_16 KnockbackSpeedX\@, ThisObjX\@, ThisObjX\@
+    add_16 KnockbackSpeedY\@, ThisObjY\@, ThisObjY\@
+
+    ld hl, KnockbackSpeedX\@
+    ld a, [hli]
+    ld l, [hl]
+    ld h, a
+    ld d, a ; save top byte for later
+    ld bc, -KnockbackSlowdownSpeed\@
+    bit 7, h
+    jr z, :+
+    ld bc, KnockbackSlowdownSpeed\@
+:   add hl, bc
+    ld a, d ; determine if sign of HL changed, if it did, set it to 0
+    xor h
+    bit 7, a ; Z not set = sign changed
+    jr z, :+
+    ld hl, 0
+:   ld a, h
+    ld [KnockbackSpeedX\@], a
+    ld a, l
+    ld [KnockbackSpeedX\@ + 1], a
+
+    ld hl, KnockbackSpeedY\@
+    ld a, [hli]
+    ld l, [hl]
+    ld h, a
+    ld d, a ; save top byte for later
+    ld bc, -KnockbackSlowdownSpeed\@
+    bit 7, h
+    jr z, :+
+    ld bc, KnockbackSlowdownSpeed\@
+:   add hl, bc
+    ld a, d ; determine if sign of HL changed, if it did, set it to 0
+    xor h
+    bit 7, a ; Z not set = sign changed
+    jr z, :+
+    ld hl, 0
+:   ld a, h
+    ld [KnockbackSpeedY\@], a
+    ld a, l
+    ld [KnockbackSpeedY\@ + 1], a
+PURGE ThisObjX\@
+PURGE ThisObjY\@
+PURGE KnockbackSpeedX\@
+PURGE KnockbackSpeedY\@
+PURGE KnockbackSlowdownSpeed\@
 ENDM
