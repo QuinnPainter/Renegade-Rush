@@ -6,7 +6,7 @@ include "collision.inc"
 PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
 PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
 KNOCKBACK_SPEED_CHANGE EQU $0090 ; How much each knockback changes the road speed by. 8.8 fixed point
-BASE_KNOCKBACK_SLOWDOWN EQU 40
+BASE_KNOCKBACK_SLOWDOWN EQU 30
 
 SECTION "PlayerVariables", WRAM0
 PlayerX:: DS 2 ; Coordinates of the top-left of the player. 8.8 fixed point.
@@ -235,19 +235,20 @@ updatePlayer::
     process_knockback PlayerX, PlayerY, PoliceCarCollision, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY
     ld a, [CurrentKnockbackSpeedY] ; change car speed based on KnockbackY
     bit 7, a
-    jr z, .knockYPositive
+    jr nz, .doneApplyKnockback
+    ;jr z, .knockYPositive
     ; knock was negative = car is moving upwards = speed up
-    ld hl, CurrentRoadScrollSpeed ; \
-    ld a, [hli]                   ; | load 16 bit value in CurrentRoadScrollSpeed into HL
-    ld l, [hl]                    ; |
-    ld h, a                       ; /
-    ld bc, KNOCKBACK_SPEED_CHANGE
-    add hl, bc
-    ld a, h
-    ld [CurrentRoadScrollSpeed], a
-    ld a, l
-    ld [CurrentRoadScrollSpeed + 1], a
-    jr .doneApplyKnockback
+    ;ld hl, CurrentRoadScrollSpeed ; \
+    ;ld a, [hli]                   ; | load 16 bit value in CurrentRoadScrollSpeed into HL
+    ;ld l, [hl]                    ; |
+    ;ld h, a                       ; /
+    ;ld bc, KNOCKBACK_SPEED_CHANGE
+    ;add hl, bc
+    ;ld a, h
+    ;ld [CurrentRoadScrollSpeed], a
+    ;ld a, l
+    ;ld [CurrentRoadScrollSpeed + 1], a
+    ;jr .doneApplyKnockback
 .knockYPositive: ; knock was positive = car is moving down = slow down
     ld hl, CurrentRoadScrollSpeed ; \
     ld a, [hli]                   ; | load 16 bit value in CurrentRoadScrollSpeed into HL
