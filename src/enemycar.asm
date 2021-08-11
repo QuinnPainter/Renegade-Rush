@@ -4,6 +4,9 @@ include "macros.inc"
 include "collision.inc"
 
 BASE_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit, in 255s of a pixel per frame per frame
+CAR_SPAWN_CHANCE EQU 63 ; Chance of the car spawning each frame, out of 65535
+; So, if you calculate 1 / (CAR_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
+; so 1040 frames, or 17 seconds
 
 RSRESET
 DEF EnemyCarX RB 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
@@ -15,20 +18,11 @@ DEF EnemyCarAnimationTimer RB 1 ; Incremented every frame. Used to update animat
 DEF EnemyCarAnimationState RB 1 ; Current state of the animation. 0 = state 1, FF = state 2
 DEF CurrentKnockbackSpeedX RB 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
 DEF CurrentKnockbackSpeedY RB 2
+DEF EnemyCarActive RB 1 ; 0 = Inactive, 1 = Active, 2 = Exploding
 DEF sizeof_EnemyCarVars RB 0
 
 MACRO init_enemy_car
 DEF CAR_STATE_BASE_ADDR\@ EQUS "\1"
-    call genRandom
-    and %01111111 ; gen number between 0 and 127
-    add (160 / 2) - 64 ; add that to the X of the middle of the screen - 64, to get a possible range of 16 to 143
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarX], a
-    xor a
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarX + 1], a
-    ld a, $70
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarY], a
-    xor a
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarY + 1], a
     ld a, $2
     ld [CAR_STATE_BASE_ADDR\@ + EnemyCarXSpeed], a
     xor a
@@ -48,6 +42,7 @@ DEF CAR_STATE_BASE_ADDR\@ EQUS "\1"
     ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedX + 1], a
     ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedY], a
     ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedY + 1], a
+    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarActive], a
 PURGE CAR_STATE_BASE_ADDR\@
 ENDM
 
@@ -98,6 +93,31 @@ ENDM
 MACRO update_enemy_car
 DEF CAR_SPRITE\@ EQUS "\2"
 DEF CAR_OBJ_COLLISION\@ EQUS "\3"
+    ld a, [\1 + EnemyCarActive]
+    and a
+    jr z, .carInactive\@
+    dec a
+    jr z, .carActive\@
+.carInactive\@:
+    call genRandom
+    ld bc, CAR_SPAWN_CHANCE
+    sub_16r bc, hl, bc
+    jp c, .doneUpdateCar\@
+
+    ld a, 1
+    ld [\1 + EnemyCarActive], a
+    call genRandom ; random check passed, now initialise the car's position
+    and %01111111 ; gen number between 0 and 127
+    add (160 / 2) - 64 ; add that to the X of the middle of the screen - 64, to get a possible range of 16 to 143
+    ld [\1 + EnemyCarX], a
+    xor a
+    ld [\1 + EnemyCarX + 1], a
+    ld [\1 + EnemyCarY + 1], a
+    ld a, $70
+    ld [\1 + EnemyCarY], a
+    ; car is now active, so just fall into the "active" section
+
+.carActive\@:
     ; Update animation state
     ld hl, \1 + EnemyCarAnimationTimer
     inc [hl]
@@ -182,6 +202,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     add 8
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 4)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 5)) + OAMA_Y], a
+.doneUpdateCar\@:
 PURGE CAR_SPRITE\@
 PURGE CAR_OBJ_COLLISION\@
 ENDM

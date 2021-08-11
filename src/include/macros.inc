@@ -69,6 +69,8 @@ ENDM
 ; Input - \2 = Number to subtract
 ; Sets - \3 = Result
 ; Sets - A to garbage
+; Sets - Z if high bytes are equal (high byte result is 0)
+; Sets - C if underflow occurs (\1 < \2)
 MACRO sub_16r
     ld a, LOW(\1)
     sub LOW(\2)
