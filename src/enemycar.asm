@@ -4,46 +4,41 @@ include "macros.inc"
 include "collision.inc"
 
 BASE_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit, in 255s of a pixel per frame per frame
-CAR_SPAWN_CHANCE EQU 63 ; Chance of the car spawning each frame, out of 65535
+CAR_SPAWN_CHANCE EQU 127 ; Chance of the car spawning each frame, out of 65535
 ; So, if you calculate 1 / (CAR_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
-; so 1040 frames, or 17 seconds
+; so 520 frames, or 8 seconds
+EXPLOSION_NUM_FRAMES EQU 5 ; Number of animation frames in the explosion animation.
+EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of animation.
 
 RSRESET
 DEF EnemyCarX RB 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
 DEF EnemyCarY RB 2
+DEF ExplosionAnimFrame RB 0 ; Current frame of the explosion animation (shares RAM with EnemyCarXSpeed)
 DEF EnemyCarXSpeed RB 2 ; Speed of the car moving left and right on the screen in pixels per frame. 8.8 fixed point.
 DEF EnemyCarRoadSpeed RB 2 ; Speed of the car, in terms of road scroll speed. 8.8 fixed point.
 DEF EnemyCarAcceleration RB 2 ; Car's road scroll acceleration - pixels per frame per frame. 8.8 fixed point.
+DEF ExplosionAnimTimer RB 0 ; Frame counter for the explosion animation (shares RAM with EnemyCarAnimationTimer)
 DEF EnemyCarAnimationTimer RB 1 ; Incremented every frame. Used to update animations.
 DEF EnemyCarAnimationState RB 1 ; Current state of the animation. 0 = state 1, FF = state 2
 DEF CurrentKnockbackSpeedX RB 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
 DEF CurrentKnockbackSpeedY RB 2
 DEF EnemyCarActive RB 1 ; 0 = Inactive, 1 = Active, 2 = Exploding
+DEF KnockbackThisFrame RB 1 ; Was there any car knockback applied this frame? (0 or 1) Used to determine if car should explode when hitting a wall
 DEF sizeof_EnemyCarVars RB 0
 
+; Init variables that only need to be initialised once, at the game start.
+; Input - \1 = Car State Offset
 MACRO init_enemy_car
-DEF CAR_STATE_BASE_ADDR\@ EQUS "\1"
     ld a, $2
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarXSpeed], a
+    ld [\1 + EnemyCarXSpeed], a
     xor a
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarXSpeed + 1], a
-    ld a, $2
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarRoadSpeed], a
-    ld a, $CC
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarRoadSpeed + 1], a
+    ld [\1 + EnemyCarXSpeed + 1], a
     xor a
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarAcceleration], a
+    ld [\1 + EnemyCarAcceleration], a
     ld a, $05
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarAcceleration + 1], a
+    ld [\1 + EnemyCarAcceleration + 1], a
     xor a
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarAnimationTimer], a
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarAnimationState], a
-    ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedX], a
-    ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedX + 1], a
-    ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedY], a
-    ld [CAR_STATE_BASE_ADDR\@ + CurrentKnockbackSpeedY + 1], a
-    ld [CAR_STATE_BASE_ADDR\@ + EnemyCarActive], a
-PURGE CAR_STATE_BASE_ADDR\@
+    ld [\1 + EnemyCarActive], a
 ENDM
 
 ; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
@@ -95,9 +90,85 @@ DEF CAR_SPRITE\@ EQUS "\2"
 DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld a, [\1 + EnemyCarActive]
     and a
-    jr z, .carInactive\@
+    jp z, .carInactive\@
     dec a
-    jr z, .carActive\@
+    jp z, .carActive\@
+.carExploding\@:
+    ; Move sprite down as if speed is 0
+    add_16 CurrentRoadScrollSpeed, \1 + EnemyCarY, \1 + EnemyCarY
+    ld a, [\1 + EnemyCarY]  ; \
+    cp 150                  ; | If explosion goes off screen, end it immediately to prevent wraparound
+    jr nc, .explosionOver\@ ; /
+    ; Update explosion animation state
+    ld hl, \1 + ExplosionAnimTimer
+    inc [hl]
+    ld a, [hl]
+    cp EXPLOSION_ANIM_SPEED
+    jr nz, .noExplosionTimerOverflow\@
+    xor a      ; \ reset ExplosionAnimTimer to 0
+    ld [hl], a ; /
+    ld hl, \1 + ExplosionAnimFrame
+    inc [hl]
+    ld a, [hl]
+    cp EXPLOSION_NUM_FRAMES
+    jr nz, .noExplosionTimerOverflow\@
+    ; Explosion is over, set car to inactive and disable sprites
+.explosionOver\@:
+    xor a
+    ld [\1 + EnemyCarActive], a
+    ld a, 150
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 3)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 4)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 5)) + OAMA_Y], a
+    jp .doneUpdateCar\@
+.noExplosionTimerOverflow\@:
+    ; Set explosion sprite tiles
+    ld a, [\1 + ExplosionAnimFrame]
+    rlca ; Shift ExplosionAnimFrame left by 2 = multiply by 4 to get the index into the tile array
+    rlca
+    ld c, a
+    ld b, 0
+    rom_bank_switch BANK("Explosion1Tilemap")
+    ld hl, Explosion1Tilemap ; Set tiles
+    add hl, bc
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 2)) + OAMA_TILEID], a
+    ld a, [hli]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 3)) + OAMA_TILEID], a
+
+    ; Set attributes (no flip)
+    xor a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 2)) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 3)) + OAMA_FLAGS], a
+
+    ; Move the 4 explosion sprites to (EnemyCarX, EnemyCarY)
+    ld a, [\1 + EnemyCarX]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 2)) + OAMA_X], a
+    add 8
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_X], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 3)) + OAMA_X], a
+    ld a, [\1 + EnemyCarY]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_Y], a
+    add 8
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 3)) + OAMA_Y], a
+    ld a, 150 ; move the 2 unused car sprites offscreen
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 4)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 5)) + OAMA_Y], a
+
+    jp .doneUpdateCar\@
+
 .carInactive\@:
     call genRandom
     ld bc, CAR_SPAWN_CHANCE
@@ -113,8 +184,21 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     xor a
     ld [\1 + EnemyCarX + 1], a
     ld [\1 + EnemyCarY + 1], a
-    ld a, $70
+    ld a, 150 ; spawn off the bottom of the screen
     ld [\1 + EnemyCarY], a
+
+    ; car just spawned, so initialise some variables
+    ld a, $2
+    ld [\1 + EnemyCarRoadSpeed], a
+    ld a, $CC
+    ld [\1 + EnemyCarRoadSpeed + 1], a
+    xor a
+    ld [\1 + EnemyCarAnimationTimer], a
+    ld [\1 + EnemyCarAnimationState], a
+    ld [\1 + CurrentKnockbackSpeedX], a
+    ld [\1 + CurrentKnockbackSpeedX + 1], a
+    ld [\1 + CurrentKnockbackSpeedY], a
+    ld [\1 + CurrentKnockbackSpeedY + 1], a
     ; car is now active, so just fall into the "active" section
 
 .carActive\@:
@@ -130,6 +214,8 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld [hl], a
 .noUpdateAnimation\@:
 
+    xor a
+    ld [\1 + KnockbackThisFrame], a
     ; Apply knockback
     ld hl, \1 + CurrentKnockbackSpeedX
     xor a ; Check if all knockback values are 0
@@ -141,6 +227,8 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     inc hl
     or [hl] ; Y byte 2
     jr z, .noKnockback\@
+    ld a, 1
+    ld [\1 + KnockbackThisFrame], a
     update_knockback \1 + EnemyCarX, \1 + EnemyCarY, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, BASE_KNOCKBACK_SLOWDOWN
 .noKnockback\@:
 
@@ -160,6 +248,18 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     set_car_tiles CAR_SPRITE\@
 
     road_edge_collision \1 + EnemyCarX, \1 + EnemyCarY
+    ld a, [\1 + KnockbackThisFrame]
+    and b ; if car is in knockback state AND car hit a wall, car should explode
+    jr z, .noStartExplode\@
+    ld a, 2
+    ld [\1 + EnemyCarActive], a ; set car state to "Exploding"
+    xor a
+    ld [\1 + ExplosionAnimFrame], a
+    ld [\1 + ExplosionAnimTimer], a
+    xor a ; Disable collision array entry
+    ld [ObjCollisionArray + CAR_OBJ_COLLISION\@], a
+    jp .doneUpdateCar\@
+.noStartExplode\@:
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + CAR_OBJ_COLLISION\@

@@ -8,7 +8,8 @@ DEF ENEMYCAR_COLLISION_3 RB 6
 ; Process collision between an object and the road edges
 ; /1 = Car X Memory Address
 ; /2 = Car Y Memory Address
-; Sets - A B H L to garbage
+; Sets - A H L to garbage
+; Sets - B = 0 if no collision, 1 if collision
 MACRO road_edge_collision
     ld a, [\2]
     ld b, a
@@ -16,12 +17,14 @@ MACRO road_edge_collision
     add b ; a = CarY + CurrentRoadScrollPos
     sub 16 ; a = (CarY + CurrentRoadScrollPos) - 16 (sprites are offset by 16)
     ld l, a
+    ld b, 0 ; setup B for return value
     ld h, HIGH(RoadCollisionTableLeftX) ; HL = address into RoadCollisionTableLeftX
     ld a, [\1]
     cp [hl] ; C: Set if no borrow (a < [hl])
     jr nc, .noLeftCollide\@
     ld a, [hl]
     ld [\1], a
+    jr .leftCollideDone\@
 .noLeftCollide\@:
     ld h, HIGH(RoadCollisionTableRightX)
     ld a, [\1]
@@ -31,6 +34,8 @@ MACRO road_edge_collision
     ld a, [hl]
     sub 16
     ld [\1], a
+.leftCollideDone\@:
+    ld b, 1 ; we collided, so set B to 1
 .noRightCollide\@:
 ENDM
 

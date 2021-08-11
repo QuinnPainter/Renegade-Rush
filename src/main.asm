@@ -53,6 +53,11 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld de, PoliceCarTiles
     ld bc, PoliceCarTilesEnd - PoliceCarTiles
     rst memcpy
+    rom_bank_switch BANK("Explosion1Tiles")
+    ld hl, Explosion1TilesVRAM
+    ld de, Explosion1Tiles
+    ld bc, Explosion1TilesEnd - Explosion1Tiles
+    rst memcpy
     rom_bank_switch BANK("StatusBar")
     ld hl, StatusBarVRAM
     ld de, StatusBar

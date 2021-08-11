@@ -30,6 +30,10 @@ ENDM
     compact_incbin PoliceCarAttrmap, "res/policecar.attrmap", ROMX
     compact_incbin PoliceCarCollision, "res/policecarcol.bin", ROMX
 
+; Explosions
+    compact_incbin Explosion1Tiles, "res/explosion1.2bpp", ROMX
+    compact_incbin Explosion1Tilemap, "res/explosion1.tilemap", ROMX
+
 ; Game UI
     compact_incbin StatusBar, "res/statusbar.2bpp", ROMX
     compact_incbin_align CurveBarTilemap, "res/curvebar.tilemap", ROMX, 6
