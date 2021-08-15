@@ -1,8 +1,8 @@
 INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "macros.inc"
 
-MIN_ROAD_WIDTH EQU 6
-MAX_ROAD_OFFSET EQU (14 - MIN_ROAD_WIDTH)
+DEF MIN_ROAD_WIDTH EQU 6
+DEF MAX_ROAD_OFFSET EQU (14 - MIN_ROAD_WIDTH)
 
 ; Generates one side of the road.
 ; \1 = 0 for left side, 1 for right side

@@ -54,3 +54,7 @@ clean:
 	$(RM_RF) $(BINDIR)
 	$(RM_RF) $(OBJDIR)
 	$(MAKE) -f assets.mk clean
+
+rebuild:
+	$(MAKE) clean
+	$(MAKE) all

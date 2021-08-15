@@ -1,13 +1,13 @@
 INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "macros.inc"
 
-STATUS_BAR_TILE_OFFSET EQUS "(((StatusBarVRAM - $8800) / 16) + 128)"
-MENUBAR_TILE_OFFSET EQUS "(((MenuBarTilesVRAM - $8800) / 16) + 128)"
-MENU_BAR_ANIM_SPEED EQU 3 ; How fast the menu bar opens / closes. Pixels per frame.
-MENU_BAR_MID_POS EQU 64 ; Scanline number of the middle of the menu bar
-MENU_BAR_HEIGHT EQU 24 ; Distance from middle of menu bar to the top and bottom
-MENU_OPTION_1_POS EQU 64 ; Positions of the menu options
-MENU_OPTION_2_POS EQU MENU_OPTION_1_POS + 8
+DEF STATUS_BAR_TILE_OFFSET EQUS "(((StatusBarVRAM - $8800) / 16) + 128)"
+DEF MENUBAR_TILE_OFFSET EQUS "(((MenuBarTilesVRAM - $8800) / 16) + 128)"
+DEF MENU_BAR_ANIM_SPEED EQU 3 ; How fast the menu bar opens / closes. Pixels per frame.
+DEF MENU_BAR_MID_POS EQU 64 ; Scanline number of the middle of the menu bar
+DEF MENU_BAR_HEIGHT EQU 24 ; Distance from middle of menu bar to the top and bottom
+DEF MENU_OPTION_1_POS EQU 64 ; Positions of the menu options
+DEF MENU_OPTION_2_POS EQU MENU_OPTION_1_POS + 8
 
 SECTION "StatusBarBuffer", WRAM0, ALIGN[6]
 DS 20 * 2 ; 20 tiles wide * 2 tiles tall

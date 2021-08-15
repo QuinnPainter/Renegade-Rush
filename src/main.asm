@@ -127,7 +127,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 
     ; Enable screen and initialise screen settings
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 \
-        | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJON | LCDCF_BGON
+        | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON
     ldh [rLCDC], a
 
     ; Enable LY=LYC as LCD STAT interrupt source

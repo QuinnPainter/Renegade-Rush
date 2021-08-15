@@ -1,8 +1,8 @@
 INCLUDE "hardware.inc/hardware.inc"
 INCLUDE "macros.inc"
 
-SELECTION_PALETTE EQU %00100111 ; Swap index 3 and 0 (darkest and lightest), middle 2 shades stay same
-SELECTION_HEIGHT EQU 8 ; Vertical size of the selection bar, in pixels
+DEF SELECTION_PALETTE EQU %00100111 ; Swap index 3 and 0 (darkest and lightest), middle 2 shades stay same
+DEF SELECTION_HEIGHT EQU 8 ; Vertical size of the selection bar, in pixels
 
 SECTION "Menu Selection Vars", WRAM0
 AfterSelIntVec:: DS 2 ; The interrupt vector that the LCD int is set to after the last line of the menu selection bar

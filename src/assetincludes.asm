@@ -21,18 +21,17 @@ ENDM
 
 ; Player Car
     compact_incbin PlayerTiles, "res/player.2bpp", ROMX
-    compact_incbin PlayerTilemap, "res/player.tilemap", ROMX
-    compact_incbin PlayerAttrmap, "res/player.attrmap", ROMX
+    compact_incbin PlayerTilemap, "staticres/player.tilemap", ROMX
+    compact_incbin PlayerAttrmap, "staticres/player.attrmap", ROMX
 
 ; Police Car
     compact_incbin PoliceCarTiles, "res/policecar.2bpp", ROMX
     compact_incbin PoliceCarTilemap, "res/policecar.tilemap", ROMX
-    compact_incbin PoliceCarAttrmap, "res/policecar.attrmap", ROMX
+    compact_incbin PoliceCarAttrmap, "staticres/policecar.attrmap", ROMX
     compact_incbin PoliceCarCollision, "res/policecarcol.bin", ROMX
 
 ; Explosions
     compact_incbin Explosion1Tiles, "res/explosion1.2bpp", ROMX
-    compact_incbin Explosion1Tilemap, "res/explosion1.tilemap", ROMX
 
 ; Game UI
     compact_incbin StatusBar, "res/statusbar.2bpp", ROMX

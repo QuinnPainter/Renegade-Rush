@@ -2,9 +2,9 @@ INCLUDE "hardware.inc/hardware.inc"
 
 SECTION "VRAM 8000", VRAM[_VRAM8000]
 PlayerTilesVRAM::
-    DS 10 * 16 ; 10 tiles * 16 bytes per tile
-PoliceCarTilesVRAM::
     DS 12 * 16 ; 12 tiles * 16 bytes per tile
+PoliceCarTilesVRAM::
+    DS 18 * 16 ; 18 tiles * 16 bytes per tile
 Explosion1TilesVRAM::
     DS 20 * 16
 

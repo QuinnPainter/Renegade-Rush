@@ -3,10 +3,10 @@ include "spriteallocation.inc"
 include "macros.inc"
 include "collision.inc"
 
-PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
-PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
-KNOCKBACK_SPEED_CHANGE EQU $0090 ; How much each knockback changes the road speed by. 8.8 fixed point
-BASE_KNOCKBACK_SLOWDOWN EQU 30
+DEF PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
+DEF PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
+DEF KNOCKBACK_SPEED_CHANGE EQU $0090 ; How much each knockback changes the road speed by. 8.8 fixed point
+DEF BASE_KNOCKBACK_SLOWDOWN EQU 30
 
 SECTION "PlayerVariables", WRAM0
 PlayerX:: DS 2 ; Coordinates of the top-left of the player. 8.8 fixed point.
@@ -184,11 +184,11 @@ updatePlayer::
     jr z, .ForwardSprite
     cp -1
     jr z, .LeftSprite
-    ld c, 12 ; right sprite
+    ld c, 8 ; right sprite
     call setPlayerTiles
     jr .DoneSetSprite
 .LeftSprite:
-    ld c, 6
+    ld c, 4
     call setPlayerTiles
     jr .DoneSetSprite
 .ForwardSprite:
@@ -267,20 +267,15 @@ updatePlayer::
     ld a, [PlayerX]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_X], a
     add 8
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_X], a
     ld a, [PlayerY]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_Y], a
-    add 8
+    add 16
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_Y], a
-    add 8
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_Y], a
 
     ret
 
@@ -301,10 +296,6 @@ setPlayerTiles:
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_TILEID], a
     ld a, [hli]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_TILEID], a
 
     rom_bank_switch BANK("PlayerAttrmap")
     ld hl, PlayerAttrmap ; Set player sprite attributes
@@ -317,8 +308,4 @@ setPlayerTiles:
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_FLAGS], a
     ld a, [hli]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 4)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 5)) + OAMA_FLAGS], a
     ret

@@ -3,12 +3,14 @@ include "spriteallocation.inc"
 include "macros.inc"
 include "collision.inc"
 
-BASE_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit, in 255s of a pixel per frame per frame
-CAR_SPAWN_CHANCE EQU 127 ; Chance of the car spawning each frame, out of 65535
+DEF EXPLOSION_TILE_OFFSET EQUS "((Explosion1TilesVRAM - $8000) / 16)"
+
+DEF BASE_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit, in 255s of a pixel per frame per frame
+DEF CAR_SPAWN_CHANCE EQU 127 ; Chance of the car spawning each frame, out of 65535
 ; So, if you calculate 1 / (CAR_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
 ; so 520 frames, or 8 seconds
-EXPLOSION_NUM_FRAMES EQU 5 ; Number of animation frames in the explosion animation.
-EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of animation.
+DEF EXPLOSION_NUM_FRAMES EQU 5 ; Number of animation frames in the explosion animation.
+DEF EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of animation.
 
 RSRESET
 DEF EnemyCarX RB 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
@@ -60,10 +62,6 @@ MACRO set_car_tiles
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 2)) + OAMA_TILEID], a
     ld a, [hli]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 3)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 4)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 5)) + OAMA_TILEID], a
 
     rom_bank_switch BANK("PoliceCarAttrmap")
     ld hl, PoliceCarAttrmap ; Set sprite attributes
@@ -76,10 +74,6 @@ MACRO set_car_tiles
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 2)) + OAMA_FLAGS], a
     ld a, [hli]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 3)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 4)) + OAMA_FLAGS], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 5)) + OAMA_FLAGS], a
 ENDM
 
 ; \1 = Car State Offset
@@ -116,56 +110,37 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 .explosionOver\@:
     xor a
     ld [\1 + EnemyCarActive], a
-    ld a, 150
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 2)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 3)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 4)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 5)) + OAMA_Y], a
     jp .doneUpdateCar\@
 .noExplosionTimerOverflow\@:
     ; Set explosion sprite tiles
     ld a, [\1 + ExplosionAnimFrame]
-    rlca ; Shift ExplosionAnimFrame left by 2 = multiply by 4 to get the index into the tile array
+    rlca ; Shift ExplosionAnimFrame left twice = multiply by 4 to get the starting tile index
     rlca
-    ld c, a
-    ld b, 0
-    rom_bank_switch BANK("Explosion1Tilemap")
-    ld hl, Explosion1Tilemap ; Set tiles
-    add hl, bc
-    ld a, [hli]
+    add EXPLOSION_TILE_OFFSET
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_TILEID], a
-    ld a, [hli]
+    add a, 2
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 2)) + OAMA_TILEID], a
-    ld a, [hli]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 3)) + OAMA_TILEID], a
 
     ; Set attributes (no flip)
     xor a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_FLAGS], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_FLAGS], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 2)) + OAMA_FLAGS], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 3)) + OAMA_FLAGS], a
 
     ; Move the 4 explosion sprites to (EnemyCarX, EnemyCarY)
     ld a, [\1 + EnemyCarX]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 2)) + OAMA_X], a
     add 8
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 3)) + OAMA_X], a
     ld a, [\1 + EnemyCarY]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_Y], a
-    add 8
+    xor a ; move the 2 unused car sprites offscreen
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 2)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 3)) + OAMA_Y], a
-    ld a, 150 ; move the 2 unused car sprites offscreen
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 4)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 5)) + OAMA_Y], a
 
     jp .doneUpdateCar\@
 
@@ -241,7 +216,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld a, [\1 + EnemyCarAnimationState]
     and a
     jr z, .animState1\@
-    ld a, 18
+    ld a, 12
     add c
     ld c, a
 .animState1\@:
@@ -288,20 +263,15 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld a, [\1 + EnemyCarX]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 2)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 4)) + OAMA_X], a
     add 8
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 3)) + OAMA_X], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 5)) + OAMA_X], a
     ld a, [\1 + EnemyCarY]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_Y], a
-    add 8
+    add 16
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 2)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 3)) + OAMA_Y], a
-    add 8
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 4)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 5)) + OAMA_Y], a
 .doneUpdateCar\@:
 PURGE CAR_SPRITE\@
 PURGE CAR_OBJ_COLLISION\@

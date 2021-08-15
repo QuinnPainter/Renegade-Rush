@@ -1,12 +1,14 @@
 GFX = rgbgfx
 PYTHON = python
 ADDOFFSET = $(PYTHON) scripts/AddBinaryOffset.py
-SWAPATTR = $(PYTHON) scripts/SwapFlipBits.py
+#SWAPATTR = $(PYTHON) scripts/SwapFlipBits.py
 ROADCOLGEN = $(PYTHON) scripts/GenRoadCollision.py
 CARCOLGEN = $(PYTHON) scripts/GenCarCollision.py
 CURVEBARGEN = $(PYTHON) scripts/GenCurvedBarTilemap.py
 
 RESDIR = res
+MAPSDIR = staticres
+ASSETSDIR = Assets
 
 ifneq ($(OS),Windows_NT)
 	# POSIX OSes
@@ -17,8 +19,6 @@ else
 	RM_RF := -del /q
 	MKDIR_P := -mkdir
 endif
-
-ASSETSDIR = Assets
 
 all: road player policecar gameui explosion
 
@@ -34,20 +34,17 @@ explosion: $(RESDIR)/explosion1.2bpp $(RESDIR)/explosion1.tilemap
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/lines.png
-#	$(ADDOFFSET) $(RESDIR)/lines.tilemap 0
+#	$(ADDOFFSET) $(RESDIR)/lines.tilemap $(RESDIR)/lines.tilemap 0
 
 $(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap: $(ASSETSDIR)/player.png | $(RESDIR)
-	$(GFX) -u -m -o $(RESDIR)/player.2bpp -t $(RESDIR)/player.tilemap -a $(RESDIR)/player.attrmap $(ASSETSDIR)/player.png
-	$(SWAPATTR) $(RESDIR)/player.attrmap
+	$(GFX) -h -o $(RESDIR)/player.2bpp $(ASSETSDIR)/player.png
 
 $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecar.attrmap: $(ASSETSDIR)/policecar.png | $(RESDIR)
-	$(GFX) -u -m -o $(RESDIR)/policecar.2bpp -t $(RESDIR)/policecar.tilemap -a $(RESDIR)/policecar.attrmap $(ASSETSDIR)/policecar.png
-	$(SWAPATTR) $(RESDIR)/policecar.attrmap
-	$(ADDOFFSET) $(RESDIR)/policecar.tilemap 10
+	$(GFX) -h -o $(RESDIR)/policecar.2bpp $(ASSETSDIR)/policecar.png
+	$(ADDOFFSET) $(MAPSDIR)/policecar.tilemap $(RESDIR)/policecar.tilemap 12
 
 $(RESDIR)/explosion1.2bpp $(RESDIR)/explosion1.tilemap: $(ASSETSDIR)/explosion1.png | $(RESDIR)
-	$(GFX) -u -o $(RESDIR)/explosion1.2bpp -t $(RESDIR)/explosion1.tilemap $(ASSETSDIR)/explosion1.png
-	$(ADDOFFSET) $(RESDIR)/explosion1.tilemap 22
+	$(GFX) -h -o $(RESDIR)/explosion1.2bpp $(ASSETSDIR)/explosion1.png
 
 $(RESDIR)/policecarcol.bin: | $(RESDIR)
 	$(CARCOLGEN) $(RESDIR)/policecarcol.bin 2.3
