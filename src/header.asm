@@ -60,12 +60,12 @@ SECTION "rst20",ROM0[$20]
 ; Sets	- C to 0
 ; Sets	- A H L D E to garbage
 memcpyFast::
-	ld a, [de]
-	ld [hli], a
-	inc de
-	dec c
-	jr nz, memcpyFast
-	ret
+	ld a, [de] ; c2 b1
+	ld [hli], a ; c2 b1
+	inc de ; c2 b1
+	dec c ; c1 b1
+	jr nz, memcpyFast ; c3/2 b2
+	ret ; total = 10 cycles per byte
 
 SECTION "rst28",ROM0[$28]
 ; Copies a block of data with max size 256, and adds a number to each byte
@@ -104,7 +104,7 @@ SECTION "Header", ROM0[$100]
 
 	; This is the ROM's entry point
 	; There's 4 bytes of code to do... something
-	di
+	di ; Boot ROM already disabled interrupts, so this is kinda pointless
 	jp EntryPoint
 
 	; Make sure to allocate some space for the header, so no important
@@ -131,7 +131,7 @@ VblankHandler:
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	jp_hl ; jump to [VblankVectorRAM]
+	jp hl ; jump to [VblankVectorRAM]
 VblankEnd::
 	pop de
 	pop bc
@@ -148,7 +148,7 @@ LCDIntHandler:
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	jp_hl ; jump to [LCDIntVectorRAM]
+	jp hl ; jump to [LCDIntVectorRAM]
 LCDIntEnd::
 	pop de
 	pop bc

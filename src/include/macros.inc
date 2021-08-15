@@ -80,12 +80,6 @@ MACRO sub_16r
     ld HIGH(\3), a
 ENDM
 
-; Jumps to the address stored in HL
-MACRO jp_hl
-    push hl
-    ret
-ENDM
-
 ; Allows consolidating the loading of 2 bytes into a register pair into one 16 bit load
 ; for example "lb bc, bvalue, cvalue"
 MACRO lb 
