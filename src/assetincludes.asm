@@ -6,7 +6,6 @@ MACRO compact_incbin
 SECTION "\1", \3
 \1::
 INCBIN \2
-\1End::
 ENDM
 
 MACRO compact_incbin_align

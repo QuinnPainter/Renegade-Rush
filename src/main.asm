@@ -25,8 +25,8 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	ld d, 0
 	rst memset
     ; Initialize sprite buffer to 0
-	ld hl, SpriteBuffer
-	ld c, SpriteBufferEnd - SpriteBuffer
+	ld hl, STARTOF("SpriteBuffer")
+	ld c, SIZEOF("SpriteBuffer")
 	ld d, 0
 	rst memsetFast
     ; Copy the OAM DMA routine into HRAM
@@ -40,33 +40,33 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ; Copy tileset into VRAM
     rom_bank_switch BANK("RoadTiles")
     ld hl, RoadTilesVRAM
-    ld de, RoadTiles
-    ld bc, RoadTilesEnd - RoadTiles
+    ld de, STARTOF("RoadTiles")
+    ld bc, SIZEOF("RoadTiles")
     rst memcpy
     rom_bank_switch BANK("PlayerTiles")
     ld hl, PlayerTilesVRAM
-    ld de, PlayerTiles
-    ld bc, PlayerTilesEnd - PlayerTiles
+    ld de, STARTOF("PlayerTiles")
+    ld bc, SIZEOF("PlayerTiles")
     rst memcpy
     rom_bank_switch BANK("PoliceCarTiles")
     ld hl, PoliceCarTilesVRAM
-    ld de, PoliceCarTiles
-    ld bc, PoliceCarTilesEnd - PoliceCarTiles
+    ld de, STARTOF("PoliceCarTiles")
+    ld bc, SIZEOF("PoliceCarTiles")
     rst memcpy
     rom_bank_switch BANK("Explosion1Tiles")
     ld hl, Explosion1TilesVRAM
-    ld de, Explosion1Tiles
-    ld bc, Explosion1TilesEnd - Explosion1Tiles
+    ld de, STARTOF("Explosion1Tiles")
+    ld bc, SIZEOF("Explosion1Tiles")
     rst memcpy
     rom_bank_switch BANK("StatusBar")
     ld hl, StatusBarVRAM
-    ld de, StatusBar
-    ld bc, StatusBarEnd - StatusBar
+    ld de, STARTOF("StatusBar")
+    ld bc, SIZEOF("StatusBar")
     rst memcpy
     rom_bank_switch BANK("MenuBarTiles")
     ld hl, MenuBarTilesVRAM
-    ld de, MenuBarTiles
-    ld bc, MenuBarTilesEnd - MenuBarTiles
+    ld de, STARTOF("MenuBarTiles")
+    ld bc, SIZEOF("MenuBarTiles")
     rst memcpy
 
     ; Init menu bar tilemaps

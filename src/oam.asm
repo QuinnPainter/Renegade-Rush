@@ -1,9 +1,8 @@
 include "hardware.inc/hardware.inc"
 
-SECTION "Sprite Buffer", WRAM0, ALIGN[8]
+SECTION "SpriteBuffer", WRAM0, ALIGN[8]
 SpriteBuffer::
     DS 40 * 4 ; 40 sprites * 4 bytes each
-SpriteBufferEnd::
 
 SECTION "DMARoutineROM", ROM0
 ; The routine that gets copied into HRAM and executed during the DMA transfer

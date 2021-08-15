@@ -84,7 +84,7 @@ ENDC
     push hl ; save HL (index * 8) for indexing into collision array
     add hl, de ; hl = index * 8 + index * 4 = index * 12
 
-    ld de, RoadTilemap
+    ld de, STARTOF("RoadTilemap")
     add hl, de ; hl = index * 12 + RoadTilemap
     rom_bank_switch BANK("RoadTilemap")
 
@@ -96,7 +96,7 @@ ENDC
     rst memcpyFast
 
     rom_bank_switch BANK("RoadCollisionROM")
-    ld de, RoadCollisionROM
+    ld de, STARTOF("RoadCollisionROM")
     pop hl ; hl = index * 8
     add hl, hl ; hl = index * 16
     add hl, de ; hl = addr in RoadCollisionROM
