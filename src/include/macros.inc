@@ -80,6 +80,19 @@ MACRO sub_16r
     ld HIGH(\3), a
 ENDM
 
+; Compares two 16 bit register pairs
+; Input - \1 = Number subtracted from
+; Input - \2 = Number to subtract
+; Sets - A to garbage
+; Sets - Z if high bytes are equal (high byte result is 0)
+; Sets - C if underflow occurs (\1 < \2)
+MACRO cp_16r
+    ld a, LOW(\1)
+    sub LOW(\2)
+    ld a, HIGH(\1)
+    sbc HIGH(\2)
+ENDM
+
 ; Allows consolidating the loading of 2 bytes into a register pair into one 16 bit load
 ; for example "lb bc, bvalue, cvalue"
 MACRO lb 

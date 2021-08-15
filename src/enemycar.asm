@@ -5,6 +5,7 @@ include "collision.inc"
 
 DEF EXPLOSION_TILE_OFFSET EQUS "((Explosion1TilesVRAM - $8000) / 16)"
 
+DEF DESTROYED_MONEY_GIVEN EQU $0020 ; Money given to the player when the enemy is destroyed. 16 bit BCD
 DEF BASE_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit, in 255s of a pixel per frame per frame
 DEF CAR_SPAWN_CHANCE EQU 127 ; Chance of the car spawning each frame, out of 65535
 ; So, if you calculate 1 / (CAR_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
@@ -147,7 +148,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 .carInactive\@:
     call genRandom
     ld bc, CAR_SPAWN_CHANCE
-    sub_16r bc, hl, bc
+    cp_16r bc, hl
     jp c, .doneUpdateCar\@
 
     ld a, 1
@@ -231,8 +232,9 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     xor a
     ld [\1 + ExplosionAnimFrame], a
     ld [\1 + ExplosionAnimTimer], a
-    xor a ; Disable collision array entry
-    ld [ObjCollisionArray + CAR_OBJ_COLLISION\@], a
+    ld [ObjCollisionArray + CAR_OBJ_COLLISION\@], a ; Disable collision array entry
+    ld bc, DESTROYED_MONEY_GIVEN
+    call addMoney
     jp .doneUpdateCar\@
 .noStartExplode\@:
 

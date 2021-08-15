@@ -128,17 +128,21 @@ updatePlayer::
     ;ld a, [LivesValue]
     ;dec a
     ;ld [LivesValue], a
-    ld a, [MissileChargeValue]
-    inc a
-    ld [MissileChargeValue], a
+    ld hl, MissileChargeValue
+    ld a, [hl]
+    scf
+    rla
+    ld [hl], a
 .asd:
 
     ld a, [newButtons]
     and PADF_B
     jr z, .ads
-    ld a, [SpecialChargeValue]
-    inc a
-    ld [SpecialChargeValue], a
+    ld hl, SpecialChargeValue
+    ld a, [hl]
+    scf
+    rla
+    ld [hl], a
 .ads:
 
     ; Enforce minimum road speed
@@ -308,4 +312,27 @@ setPlayerTiles:
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_FLAGS], a
     ld a, [hli]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_FLAGS], a
+    ret
+
+; Give the player some money
+; Could turn this into a generic "4 digit BCD add", if needed?
+; Input - BC = 4 digit BCD amount of money to add
+; Sets - A H L to garbage
+addMoney::
+    ; Lower 2 digits
+    ld hl, MoneyAmount
+    ld a, [hl]
+    add c
+    daa
+    ld [hli], a
+    ; Upper 2 digits
+    ld a, [hl]
+    adc b
+    daa
+    ld [hl], a
+    ret nc
+    ; Money has overflowed past 9999, so just cap it at 9999
+    ld a, $99
+    ld [hld], a
+    ld [hl], a
     ret

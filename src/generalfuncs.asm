@@ -105,10 +105,10 @@ SECTION "Vblank Wait", ROM0
 waitVblank::
     xor a
     ld [HasVblankHappened], a
-    halt
+:   halt
     ld a, [HasVblankHappened]
     and a
-    jr z, waitVblank
+    jr z, :-
     ret
 
 SECTION "Copy String", ROM0
