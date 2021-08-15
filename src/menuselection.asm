@@ -38,12 +38,13 @@ selectionBarUpdate::
     ret
 
 ; Set up the top line interrupt
-; Sets - A to garbage
+; Sets - A H L to garbage
 selectionBarSetupTopInt::
+    ld hl, LCDIntVectorRAM
     ld a, LOW(selectionBarIntFunc)
-    ld [LCDIntVectorRAM], a
+    ld [hli], a
     ld a, HIGH(selectionBarIntFunc)
-    ld [LCDIntVectorRAM + 1], a
+    ld [hl], a
     ld a, [SelBarTopLine]
     dec a
     ld [rLYC], a
@@ -87,10 +88,11 @@ selectionBarIntFunc:
 .afterLastLine:
     xor a
     ld [IntState], a
+    ld hl, LCDIntVectorRAM
     ld a, [AfterSelIntVec] ; Setup interrupt for thing after selection bar
-    ld [LCDIntVectorRAM], a
+    ld [hli], a
     ld a, [AfterSelIntVec + 1]
-    ld [LCDIntVectorRAM + 1], a
+    ld [hl], a
     ld a, [AfterSelIntLine]
     dec a
     ld [rLYC], a

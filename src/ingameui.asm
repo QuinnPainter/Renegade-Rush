@@ -43,10 +43,11 @@ initGameUI::
     inc a
     ld [STARTOF("StatusBarBuffer") + 20 + 19], a
     ; Setup interrupt options that tell the selection bar to go the bottom of the menu bar
+    ld hl, AfterSelIntVec
     ld a, LOW(menuBarBottomLineFunc)
-    ld [AfterSelIntVec], a
+    ld [hli], a
     ld a, HIGH(menuBarBottomLineFunc)
-    ld [AfterSelIntVec + 1], a
+    ld [hl], a
     ld a, MENU_BAR_MID_POS + MENU_BAR_HEIGHT
     ld [AfterSelIntLine], a
     ret
@@ -329,10 +330,11 @@ statusBarTopLine::
 ; Set up LCD interrupt for top of menu bar
 ; Sets - A to garbage
 setupMenuBarInterrupt::
+    ld hl, LCDIntVectorRAM
     ld a, LOW(menuBarTopLineFunc)
-    ld [LCDIntVectorRAM], a
+    ld [hli], a
     ld a, HIGH(menuBarTopLineFunc)
-    ld [LCDIntVectorRAM + 1], a
+    ld [hl], a
     ld a, [menuBarTopLine]
     dec a
     ld [rLYC], a
@@ -373,10 +375,11 @@ menuBarTopLineFunc:
     jp LCDIntEnd
 .noSelBar:
     ; Set up menu bar bottom line interrupt
+    ld hl, LCDIntVectorRAM
     ld a, LOW(menuBarBottomLineFunc)
-    ld [LCDIntVectorRAM], a
+    ld [hli], a
     ld a, HIGH(menuBarBottomLineFunc)
-    ld [LCDIntVectorRAM + 1], a
+    ld [hl], a
     ld a, [menuBarBottomLine]
     dec a
     ld [rLYC], a

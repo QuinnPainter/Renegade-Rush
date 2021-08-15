@@ -111,10 +111,11 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	ld [rOBP1], a
 
     ; Init VBlank vector
+    ld hl, VblankVectorRAM
     ld a, LOW(VBlank)
-    ld [VblankVectorRAM], a
+    ld [hli], a
     ld a, HIGH(VBlank)
-    ld [VblankVectorRAM + 1], a
+    ld [hl], a
 
     ; No, vblank has not happened yet
     xor a
@@ -229,10 +230,11 @@ VBlank::
 
 ; Setup LY interrupt for top of status bar
 setupStatusBarInterrupt::
+    ld hl, LCDIntVectorRAM
     ld a, LOW(statusBarTopLine)
-    ld [LCDIntVectorRAM], a
+    ld [hli], a
     ld a, HIGH(statusBarTopLine)
-    ld [LCDIntVectorRAM + 1], a
+    ld [hl], a
     ld a, 129 - 1 ; runs on line before
     ld [rLYC], a
     ret
