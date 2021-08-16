@@ -6,6 +6,11 @@ include "collision.inc"
 DEF EXPLOSION_TILE_OFFSET EQUS "((Explosion1TilesVRAM - $8000) / 16)"
 
 DEF DESTROYED_MONEY_GIVEN EQU $0020 ; Money given to the player when the enemy is destroyed. 16 bit BCD
+
+; Car tries to have a speed within:
+; CurrentRoadScrollSpeed - PLAYER_SPEED_WINDOW and CurrentRoadScrollSpeed + PLAYER_SPEED_WINDOW. 8 bit integer.
+DEF PLAYER_SPEED_WINDOW EQU 1
+
 DEF BASE_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit, in 255s of a pixel per frame per frame
 DEF CAR_SPAWN_CHANCE EQU 127 ; Chance of the car spawning each frame, out of 65535
 ; So, if you calculate 1 / (CAR_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
@@ -16,12 +21,14 @@ DEF EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of ani
 RSRESET
 DEF EnemyCarX RB 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
 DEF EnemyCarY RB 2
-DEF ExplosionAnimFrame RB 0 ; Current frame of the explosion animation (shares RAM with EnemyCarXSpeed)
 DEF EnemyCarXSpeed RB 2 ; Speed of the car moving left and right on the screen in pixels per frame. 8.8 fixed point.
 DEF EnemyCarRoadSpeed RB 2 ; Speed of the car, in terms of road scroll speed. 8.8 fixed point.
+DEF EnemyCarMaxRoadSpeed RB 2 ; Max and min speeds of the car, in terms of road scroll speed. 8.8 fixed point.
+DEF EnemyCarMinRoadSpeed RB 2
 DEF EnemyCarAcceleration RB 2 ; Car's road scroll acceleration - pixels per frame per frame. 8.8 fixed point.
 DEF ExplosionAnimTimer RB 0 ; Frame counter for the explosion animation (shares RAM with EnemyCarAnimationTimer)
 DEF EnemyCarAnimationTimer RB 1 ; Incremented every frame. Used to update animations.
+DEF ExplosionAnimFrame RB 0 ; Current frame of the explosion animation (shares RAM with EnemyCarAnimationState)
 DEF EnemyCarAnimationState RB 1 ; Current state of the animation. 0 = state 1, FF = state 2
 DEF CurrentKnockbackSpeedX RB 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
 DEF CurrentKnockbackSpeedY RB 2
@@ -42,6 +49,14 @@ MACRO init_enemy_car
     ld [\1 + EnemyCarAcceleration + 1], a
     xor a
     ld [\1 + EnemyCarActive], a
+    ld a, $1
+    ld [\1 + EnemyCarMinRoadSpeed], a
+    xor a
+    ld [\1 + EnemyCarMinRoadSpeed + 1], a
+    ld a, $6
+    ld [\1 + EnemyCarMaxRoadSpeed], a
+    xor a
+    ld [\1 + EnemyCarMaxRoadSpeed + 1], a
 ENDM
 
 ; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
@@ -206,7 +221,79 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld a, 1
     ld [\1 + KnockbackThisFrame], a
     update_knockback \1 + EnemyCarX, \1 + EnemyCarY, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, BASE_KNOCKBACK_SLOWDOWN
+    jp .skipAI\@ ; if in knockback state, car shouldn't move around
 .noKnockback\@:
+
+    ; ----- Enemy Car AI -----
+    ; E register = Movement Intention
+    ld e, 0
+    ; Bit 0 = Want to slow down
+    ; Bit 1 = Want to speed up
+    ; Bit 2 = Want to turn left
+    ; Bit 3 = Want to turn right
+    ld hl, CurrentRoadScrollSpeed
+    ld a, [hli]
+    ld c, [hl]
+    add PLAYER_SPEED_WINDOW
+    ld b, a ; BC = CurrentRoadScrollSpeed + PLAYER_SPEED_WINDOW
+    ld hl, \1 + EnemyCarRoadSpeed
+    ld a, [hli]
+    ld l, [hl]
+    ld h, a ; HL = EnemyCarRoadSpeed
+    cp_16r bc, hl ; C set if BC < HL
+    jr nc, :+
+    set 0, e ; Car speed is significantly higher than player's speed - so slow down
+:   ld a, b
+    sub PLAYER_SPEED_WINDOW * 2 ; it was CurrentRoadScrollSpeed + PLAYER_SPEED_WINDOW before, now it's RoadScroll - P_S_W
+    ld b, a
+    cp_16r hl, bc ; C set if HL < BC
+    jr nc, :+
+    set 1, e ; Car speed is significantly lower than player's speed - so speed up
+:
+    ; Process movement intentions
+    bit 0, e ; Want to slow down
+    jr z, :+
+    sub_16 \1 + EnemyCarRoadSpeed, \1 + EnemyCarAcceleration, \1 + EnemyCarRoadSpeed
+:   bit 1, e ; Want to speed up
+    jr z, :+
+    add_16 \1 + EnemyCarRoadSpeed, \1 + EnemyCarAcceleration, \1 + EnemyCarRoadSpeed
+:
+
+    ; Enforce minimum road speed
+    ld hl, \1 + EnemyCarMinRoadSpeed
+    ld a, [\1 + EnemyCarRoadSpeed]
+    cp [hl] ; C: Set if (EnemyCarRoadSpeed < EnemyCarMinRoadSpeed)
+    inc hl
+    jr nc, .speedAboveMin\@
+    jr nz, .speedBelowMin\@
+    ld a, [\1 + EnemyCarRoadSpeed + 1]
+    cp [hl]
+    jr nc, .speedAboveMin\@
+.speedBelowMin\@:
+    ld a, [hld]
+    ld [\1 + EnemyCarRoadSpeed + 1], a
+    ld a, [hl]
+    ld [\1 + EnemyCarRoadSpeed], a
+.speedAboveMin\@:
+
+    ; Enforce maximum road speed
+    ld hl, \1 + EnemyCarMaxRoadSpeed
+    ld a, [\1 + EnemyCarRoadSpeed]
+    cp [hl] ; C: Set if (EnemyCarRoadSpeed < EnemyCarMaxRoadSpeed)
+    inc hl
+    jr c, .speedBelowMax\@
+    jr nz, .speedAboveMax\@
+    ld a, [\1 + EnemyCarRoadSpeed + 1]
+    cp [hl]
+    jr c, .speedBelowMax\@
+.speedAboveMax\@:
+    ld a, [hld]
+    ld [\1 + EnemyCarRoadSpeed + 1], a
+    ld a, [hl]
+    ld [\1 + EnemyCarRoadSpeed], a
+.speedBelowMax\@:
+
+.skipAI\@
 
     ; Take car speed from road speed to get the Y offset
     sub_16 CurrentRoadScrollSpeed, \1 + EnemyCarRoadSpeed, Scratchpad
