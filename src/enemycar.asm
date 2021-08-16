@@ -253,6 +253,9 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld a, [\1 + EnemyCarRoadSpeed]
     ld [hl], a
 
+    ld a, [\1 + EnemyCarY] ; \ no entity collision when car is offscreen
+    cp 144 + 16 - 15       ; | height of screen + sprite Y offset - status bar height
+    jp nc, .noCol\@        ; /
     ld a, CAR_OBJ_COLLISION\@
     call objCollisionCheck
     and a
