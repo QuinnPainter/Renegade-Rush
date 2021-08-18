@@ -1,4 +1,4 @@
-INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 
 DEF SELECTION_PALETTE EQU %00100111 ; Swap index 3 and 0 (darkest and lightest), middle 2 shades stay same

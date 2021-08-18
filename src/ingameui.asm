@@ -1,4 +1,4 @@
-INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 
 DEF STATUS_BAR_TILE_OFFSET EQUS "(((StatusBarVRAM - $8800) / 16) + 128)"

@@ -1,4 +1,4 @@
-include "hardware.inc/hardware.inc"
+include "hardware.inc"
 include "spriteallocation.inc"
 include "macros.inc"
 include "collision.inc"

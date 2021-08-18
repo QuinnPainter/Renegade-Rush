@@ -1,4 +1,4 @@
-INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "hardware.inc"
 
 SECTION "Input Vars", WRAM0
 curButtons:: DB ; Buttons currently held down

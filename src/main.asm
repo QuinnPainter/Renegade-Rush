@@ -1,4 +1,4 @@
-INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 
 SECTION "GameVars", WRAM0

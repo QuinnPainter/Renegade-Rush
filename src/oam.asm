@@ -1,4 +1,4 @@
-include "hardware.inc/hardware.inc"
+include "hardware.inc"
 
 SECTION "SpriteBuffer", WRAM0, ALIGN[8]
 SpriteBuffer::

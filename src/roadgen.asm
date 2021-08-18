@@ -1,4 +1,4 @@
-INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 
 DEF MIN_ROAD_WIDTH EQU 6

@@ -1,4 +1,4 @@
-INCLUDE "hardware.inc/hardware.inc"
+INCLUDE "hardware.inc"
 
 SECTION "VRAM 8000", VRAM[_VRAM8000]
 PlayerTilesVRAM::
