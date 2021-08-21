@@ -121,9 +121,8 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     xor a
     ld [HasVblankHappened], a
 
-    ; Shut sound down
-    xor a
-    ldh [rNR52], a
+    ; Start up audio
+    call initAudio
 
     ; Enable screen and initialise screen settings
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 \
@@ -185,6 +184,7 @@ GameLoop:
     call updatePlayer
     call updateEnemyCars
     call updateStatusBar
+    call updateAudio
 
 .doneGameLoop:
     call waitVblank
