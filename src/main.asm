@@ -146,7 +146,7 @@ GameLoop:
     and a
     jr z, .notPaused
     call updateMenuBar
-    jr .doneGameLoop
+    jr .paused
 .notPaused:
 
     ld a, [newButtons] ; Pause if start button is pressed
@@ -158,40 +158,45 @@ GameLoop:
     call startMenuBarAnim
 .pauseNotPressed:
 
-    ; Update road scroll, and generate new line of road if needed
-    ld a, [CurrentRoadScrollSpeed + 1] ; Load subpixel portion of road speed
-    ld b, a ; put that into B
-    ld a, [CurrentRoadScrollPos + 1] ; Load current subpixel into A
-    sub b ; Apply subpixel speed to current subpixel position
-    ld [CurrentRoadScrollPos + 1], a ; Save back current subpixel pos
-    ld a, [CurrentRoadScrollSpeed] ; Load pixel portion of road speed
-    adc 0 ; If subpixels overflowed, apply a full pixel to road speed
-    ld b, a ; ; A and B now contains the number of pixels to scroll this frame
-    ld a, [CurrentRoadScrollPos] ; \
-	sub b                        ; | Update the road scroll pixel
-	ld [CurrentRoadScrollPos], a ; /
-    ; Update RoadScrollCtr, and generate new road line if needed
-    ld a, [RoadScrollCtr]
-    add b ; B is still the number of lines scrolled this frame
-    ld [RoadScrollCtr], a
-    cp 8 - 1 ; 8 pixels per line, minus 1 so carry can be used as <
-    jr nc, .noNewLine ; if RoadScrollCtr <= 7 (i.e. < 8), no new line is needed
-    sub 8
-    ld [RoadScrollCtr], a
-    call GenRoadRow
-.noNewLine:
-
+    call updateRoad
     call updatePlayer
     call updateEnemyCars
     call updateStatusBar
-    call updateAudio
 
+.paused:
+    call updateAudio
 .doneGameLoop:
     call waitVblank
     jr GameLoop
 
+; Update road scroll, and generate new line of road if needed
+updateRoad:
+    ld a, [CurrentRoadScrollSpeed + 1] ; Load subpixel portion of road speed
+    ld b, a ; put that into B
+    ld hl, CurrentRoadScrollPos + 1
+    ld a, [hl] ; Load current subpixel into A
+    sub b ; Apply subpixel speed to current subpixel position
+    ld [hl], a ; Save back current subpixel pos
+    ld a, [CurrentRoadScrollSpeed] ; Load pixel portion of road speed
+    adc 0 ; If subpixels overflowed, apply a full pixel to road speed
+    ld b, a ; ; A and B now contains the number of pixels to scroll this frame
+    ld hl, CurrentRoadScrollPos
+    ld a, [hl]          ; \
+	sub b               ; | Update the road scroll pixel
+	ld [hl], a          ; /
+    ; Update RoadScrollCtr, and generate new road line if needed
+    ld hl, RoadScrollCtr
+    ld a, [hl]
+    add b ; B is still the number of lines scrolled this frame
+    ld [hl], a
+    cp 8 - 1 ; 8 pixels per line, minus 1 so carry can be used as <
+    ret nc ; if RoadScrollCtr <= 7 (i.e. < 8), no new line is needed
+    sub 8
+    ld [hl], a ; hl = RoadScrollCtr
+    call GenRoadRow
+    ret
 
-VBlank::
+VBlank:
     ; Copy new road line onto the background tilemap if one is ready
     ld a, [RoadLineReady]
     and a ; update zero flag
