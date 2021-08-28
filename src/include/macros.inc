@@ -98,3 +98,12 @@ ENDM
 MACRO lb 
     ld \1, (\2) << 8 | (\3)
 ENDM
+
+; Plays a sound effect
+; Input - \1 = Address of sound effect
+; Sets - A B H L to garbage
+MACRO PlaySoundEffect
+    rom_bank_switch BANK("Sound FX")
+    ld hl, \1
+    call PlayNewFX
+ENDM

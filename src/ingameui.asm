@@ -484,12 +484,15 @@ updateMenuBar::
     ld [menuBarDoneAnim], a
 .pauseNotPressed:
 
-    ld a, [menuBarDoneAnim]
-    and a
-    jr z, .skipCheckMenuButtons
+    ld a, [menuBarDoneAnim]     ; \
+    and a                       ; | Skip processing menu input if menu is still opening
+    jr z, .skipCheckMenuButtons ; /
 
     call selectionBarUpdate
 
+    ; Check for up/down buttons moving the selection
+    ld a, [menuOptionSelected] ; B = old MenuOptionSelected
+    ld b, a                    ;
     ld a, [newButtons]
     and PADF_UP
     jr z, .upNotPressed
@@ -506,5 +509,9 @@ updateMenuBar::
     ld a, MENU_OPTION_2_POS
     ld [SelBarTargetPos], a
 .downNotPressed:
+    ld a, [menuOptionSelected] ; Play menu "bip" sound if new MenuOption is different to old one
+    xor b
+    jr z, .skipCheckMenuButtons
+    PlaySoundEffect FX_MenuBip
 .skipCheckMenuButtons:
     ret

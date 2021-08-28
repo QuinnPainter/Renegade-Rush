@@ -3,7 +3,7 @@
 
 ; Format of sound array entries:
 ; Byte 1 = Command
-; FF = Stop Sound (MUST HAVE NONZERO COMMAND PARAMETER ATTRIBUTE, or will continue playing junk)
+; FF = Stop Sound
 ; FE = Change Priority
 ; Everything else = Set Register
 
@@ -85,10 +85,10 @@ UpdateFXEngine::
     ld a, [hli] ; A = Command Parameter
     ld [bc], a  ; Set register
     jr .doneProcessCommand
-.stopSound: ; For Stop Sound, HL is not incremented, so the Command Parameter is treated as Frame Wait
+.stopSound:
     xor a
     ld [FXPlaying], a
-    jr .doneProcessCommand
+    ret ; don't bother doing any more processing, sound is over
 .changePriority:
     ld a, [hli] ; A = Command Parameter
     ld [FXPriority], a
