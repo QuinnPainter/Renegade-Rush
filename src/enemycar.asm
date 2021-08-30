@@ -322,7 +322,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld [ObjCollisionArray + CAR_OBJ_COLLISION\@], a ; Disable collision array entry
     ld bc, DESTROYED_MONEY_GIVEN
     call addMoney
-    PlaySoundEffect FX_CarExplode ; play explode sound effect
+    play_sound_effect FX_CarExplode ; play explode sound effect
     jp .doneUpdateCar\@
 .noStartExplode\@:
 
@@ -348,7 +348,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     call objCollisionCheck
     and a
     jp z, .noCol\@ ; collision happened - now apply knockback
-    PlaySoundEffect FX_ShortCrash ; play crash sound effect
+    play_sound_effect FX_ShortCrash ; play crash sound effect
     rom_bank_switch BANK("PoliceCarCollision")
     process_knockback \1 + EnemyCarX, \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY
 .noCol\@:
