@@ -210,7 +210,10 @@ updatePlayer::
     ld [PlayerY], a
 .belowMaxY:
 
-    road_edge_collision PlayerX, PlayerY
+    ld a, [PlayerY]         ; \
+    ld b, a                 ; | setup inputs for roadEdgeCollision
+    ld de, PlayerX          ; /
+    call roadEdgeCollision
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + PLAYER_COLLISION

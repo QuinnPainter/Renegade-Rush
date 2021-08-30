@@ -102,3 +102,34 @@ objCollisionCheck::
     jr nz, .checkColLoop            ; /
     xor a ; A = 0 - no collision
     ret
+
+; Process collision between an object and the road edges
+; Input - B = Object Y Position
+; Input - DE = Object X Position Memory Address
+; Sets - A H L to garbage
+; Sets - B = 0 if no collision, 1 if collision
+roadEdgeCollision::
+    ld a, [CurrentRoadScrollPos]
+    add b ; a = CarY + CurrentRoadScrollPos
+    sub 16 ; a = (CarY + CurrentRoadScrollPos) - 16 (sprites are offset by 16)
+    ld l, a
+    ld b, 0 ; setup B for return value
+    ld h, HIGH(RoadCollisionTableLeftX) ; HL = address into RoadCollisionTableLeftX
+    ld a, [de]
+    cp [hl] ; C: Set if no borrow (a < [hl])
+    jr nc, .noLeftCollide
+    ld a, [hl]
+    ld [de], a
+    inc b ; we collided, so set B to 1
+    ret ; already collided on left, no need to check right
+.noLeftCollide:
+    ld h, HIGH(RoadCollisionTableRightX)
+    ld a, [de]
+    add 16 ; assume car is 16 pix wide - change later?
+    cp [hl]
+    ret c
+    ld a, [hl]
+    sub 16
+    ld [de], a
+    inc b ; we collided, so set B to 1
+    ret

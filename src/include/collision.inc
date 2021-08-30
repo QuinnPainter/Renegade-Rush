@@ -5,40 +5,6 @@ DEF ENEMYCAR_COLLISION_1 RB 6
 DEF ENEMYCAR_COLLISION_2 RB 6
 DEF ENEMYCAR_COLLISION_3 RB 6
 
-; Process collision between an object and the road edges
-; /1 = Car X Memory Address
-; /2 = Car Y Memory Address
-; Sets - A H L to garbage
-; Sets - B = 0 if no collision, 1 if collision
-MACRO road_edge_collision
-    ld a, [\2]
-    ld b, a
-    ld a, [CurrentRoadScrollPos]
-    add b ; a = CarY + CurrentRoadScrollPos
-    sub 16 ; a = (CarY + CurrentRoadScrollPos) - 16 (sprites are offset by 16)
-    ld l, a
-    ld b, 0 ; setup B for return value
-    ld h, HIGH(RoadCollisionTableLeftX) ; HL = address into RoadCollisionTableLeftX
-    ld a, [\1]
-    cp [hl] ; C: Set if no borrow (a < [hl])
-    jr nc, .noLeftCollide\@
-    ld a, [hl]
-    ld [\1], a
-    jr .leftCollideDone\@
-.noLeftCollide\@:
-    ld h, HIGH(RoadCollisionTableRightX)
-    ld a, [\1]
-    add 16 ; assume car is 16 pix wide - change later?
-    cp [hl]
-    jr c, .noRightCollide\@
-    ld a, [hl]
-    sub 16
-    ld [\1], a
-.leftCollideDone\@:
-    ld b, 1 ; we collided, so set B to 1
-.noRightCollide\@:
-ENDM
-
 ; Calculate the knockback speeds after a collision has occured
 ; Has to be called directly after objCollisionCheck as the register outputs are used.
 ; Make sure the bank has been switched to the one containing CollisionArray beforehand.
@@ -104,7 +70,7 @@ DEF KnockbackSpeedY\@ EQUS "\5"            ; Address
     ld [KnockbackSpeedX\@], a
     ld a, l
     ld [KnockbackSpeedX\@ + 1], a
-    ld hl, KnockbackSpeedY\@ ; ; Y knockback increase
+    ld hl, KnockbackSpeedY\@    ; Y knockback increase
     ld a, [hli]
     ld l, [hl]
     ld h, a

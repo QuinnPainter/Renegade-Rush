@@ -310,7 +310,10 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 .animState1\@:
     set_car_tiles CAR_SPRITE\@
 
-    road_edge_collision \1 + EnemyCarX, \1 + EnemyCarY
+    ld a, [\1 + EnemyCarY]  ; \
+    ld b, a                 ; | setup inputs for roadEdgeCollision
+    ld de, \1 + EnemyCarX   ; /
+    call roadEdgeCollision
     ld a, [\1 + KnockbackThisFrame]
     and b ; if car is in knockback state AND car hit a wall, car should explode
     jr z, .noStartExplode\@
