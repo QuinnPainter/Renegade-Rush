@@ -156,6 +156,7 @@ GameLoop:
     ld [IsGamePaused], a
     xor a ; open pause menu
     call startMenuBarAnim
+    PlaySoundEffect FX_Pause
 .pauseNotPressed:
 
     call updateRoad
