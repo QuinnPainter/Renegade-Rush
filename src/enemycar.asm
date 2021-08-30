@@ -103,7 +103,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     jp z, .carInactive\@
     dec a
     jp z, .carActive\@
-.carExploding\@:
+    ; Car is exploding (EnemyCarActive == 2)
     ; Move sprite down as if speed is 0
     add_16 CurrentRoadScrollSpeed, \1 + EnemyCarY, \1 + EnemyCarY
     ld a, [\1 + EnemyCarY]  ; \
@@ -137,14 +137,14 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     rlca ; Shift ExplosionAnimFrame left twice = multiply by 4 to get the starting tile index
     rlca
     add EXPLOSION_TILE_OFFSET
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_TILEID], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_TILEID], a
     add a, 2
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_TILEID], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_TILEID], a
 
     ; Set attributes (no flip)
     xor a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_FLAGS], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 1)) + OAMA_FLAGS], a
 
     ; Move the 4 explosion sprites to (EnemyCarX, EnemyCarY)
     ld a, [\1 + EnemyCarX]

@@ -3,6 +3,11 @@ include "spriteallocation.inc"
 include "macros.inc"
 include "collision.inc"
 
+DEF EXPLOSION_TILE_OFFSET EQUS "((Explosion1TilesVRAM - $8000) / 16)"
+
+DEF EXPLOSION_NUM_FRAMES EQU 5 ; Number of animation frames in the explosion animation.
+DEF EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of animation.
+
 DEF PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
 DEF PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
 DEF KNOCKBACK_SPEED_CHANGE EQU $0090 ; How much each knockback changes the road speed by. 8.8 fixed point
@@ -19,10 +24,14 @@ PlayerAcceleration:: DS 2 ; Player's road scroll acceleration - pixels per frame
 CurrentRoadScrollSpeed:: DS 2 ; Speed of road scroll, in pixels per frame. 8.8 fixed-point.
 CurrentKnockbackSpeedX: DS 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
 CurrentKnockbackSpeedY: DS 2
+KnockbackThisFrame: DS 1 ; Was there any car knockback applied this frame? (0 or 1) Used to determine if car should explode when hitting a wall
 MoneyAmount:: DS 2 ; Your current money value. 2 byte BCD (little endian)
 SpecialChargeValue:: DS 1 ; Current special ability charge. Each bit represents a bar, so the bottom 6 bits.
 MissileChargeValue:: DS 1 ; Current missile charge.
 LivesValue:: DS 1 ; The player's current lives. 0 to 4.
+PlayerState: DS 1 ; 0 = Waiting to respawn, 1 = Active, 2 = Exploding
+ExplosionAnimFrame: DS 1 ; Current frame of the explosion animation
+ExplosionAnimTimer: DS 1 ; Frame counter for the explosion animation
 
 SECTION "PlayerCode", ROM0
 
@@ -68,9 +77,74 @@ initPlayer::
     ld [MissileChargeValue], a
     ld a, 4
     ld [LivesValue], a
+    ld a, 1
+    ld [PlayerState], a
     ret
 
 updatePlayer::
+    ; Check state
+    ld a, [PlayerState]
+    and a
+    jp z, .carInactive
+    dec a
+    jp z, .carActive
+    ; Car is exploding (PlayerState == 2)
+    ; Update explosion animation state
+    ld hl, ExplosionAnimTimer
+    inc [hl]
+    ld a, [hl]
+    cp EXPLOSION_ANIM_SPEED
+    jr nz, .noExplosionTimerOverflow
+    xor a      ; \ reset ExplosionAnimTimer to 0
+    ld [hl], a ; /
+    ld hl, ExplosionAnimFrame
+    inc [hl]
+    ld a, [hl]
+    cp EXPLOSION_NUM_FRAMES
+    jr nz, .noExplosionTimerOverflow
+    ; Explosion is over, set car to inactive and disable sprites
+    xor a
+    ld [PlayerState], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_Y], a
+    ret
+.noExplosionTimerOverflow:
+    ; Set explosion sprite tiles
+    ld a, [ExplosionAnimFrame]
+    rlca ; Shift ExplosionAnimFrame left twice = multiply by 4 to get the starting tile index
+    rlca
+    add EXPLOSION_TILE_OFFSET
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_TILEID], a
+    add a, 2
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_TILEID], a
+
+    ; Set attributes (no flip)
+    xor a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_FLAGS], a
+
+    ; Move the 4 explosion sprites to (PlayerX, PlayerY)
+    ld a, [PlayerX]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_X], a
+    add 8
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_X], a
+    ld a, [PlayerY]
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_Y], a
+    xor a ; move the 2 unused car sprites offscreen
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_Y], a
+
+    ret
+
+.carInactive:
+    ret
+
+.carActive:
+    xor a
+    ld [KnockbackThisFrame], a
     ; Apply knockback
     ld hl, CurrentKnockbackSpeedX
     xor a ; Check if all knockback values are 0
@@ -82,6 +156,8 @@ updatePlayer::
     inc hl
     or [hl] ; Y byte 2
     jr z, .noKnockback
+    ld a, 1
+    ld [KnockbackThisFrame], a
     update_knockback PlayerX, PlayerY, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY, BASE_KNOCKBACK_SLOWDOWN
     ld c, 0 ; movement state = straight
     jp .controlsDisabled
@@ -214,6 +290,20 @@ updatePlayer::
     ld b, a                 ; | setup inputs for roadEdgeCollision
     ld de, PlayerX          ; /
     call roadEdgeCollision
+    ld a, [KnockbackThisFrame]
+    and b ; if car is in knockback state AND car hit a wall, car should explode
+    jr z, .noStartExplode
+    ld a, 2
+    ld [PlayerState], a ; set car state to "Exploding"
+    xor a
+    ld [ExplosionAnimFrame], a
+    ld [ExplosionAnimTimer], a
+    ld [ObjCollisionArray + PLAYER_COLLISION], a ; Disable collision array entry
+    ld [CurrentRoadScrollSpeed], a      ; Set speed to 0
+    ld [CurrentRoadScrollSpeed + 1], a  ;
+    play_sound_effect FX_CarExplode ; play explode sound effect
+    ret
+.noStartExplode:
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + PLAYER_COLLISION
