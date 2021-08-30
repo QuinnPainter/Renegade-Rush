@@ -482,6 +482,7 @@ updateMenuBar::
     ld [menuBarState], a
     xor a
     ld [menuBarDoneAnim], a
+    play_sound_effect FX_Unpause
 .pauseNotPressed:
 
     ld a, [menuBarDoneAnim]     ; \
@@ -512,6 +513,6 @@ updateMenuBar::
     ld a, [menuOptionSelected] ; Play menu "bip" sound if new MenuOption is different to old one
     xor b
     jr z, .skipCheckMenuButtons
-    PlaySoundEffect FX_MenuBip
+    play_sound_effect FX_MenuBip
 .skipCheckMenuButtons:
     ret
