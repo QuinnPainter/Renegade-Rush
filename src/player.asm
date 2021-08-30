@@ -8,6 +8,8 @@ DEF EXPLOSION_TILE_OFFSET EQUS "((Explosion1TilesVRAM - $8000) / 16)"
 DEF EXPLOSION_NUM_FRAMES EQU 5 ; Number of animation frames in the explosion animation.
 DEF EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of animation.
 
+DEF RESPAWN_TIME EQU 120 ; Number of frames before the player respawns.
+
 DEF PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
 DEF PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
 DEF KNOCKBACK_SPEED_CHANGE EQU $0090 ; How much each knockback changes the road speed by. 8.8 fixed point
@@ -32,6 +34,7 @@ LivesValue:: DS 1 ; The player's current lives. 0 to 4.
 PlayerState: DS 1 ; 0 = Waiting to respawn, 1 = Active, 2 = Exploding
 ExplosionAnimFrame: DS 1 ; Current frame of the explosion animation
 ExplosionAnimTimer: DS 1 ; Frame counter for the explosion animation
+PlayerStateTimer: DS 1 ; Used to count the time before respawning, and the number of invincibility frames.
 
 SECTION "PlayerCode", ROM0
 
@@ -140,7 +143,16 @@ updatePlayer::
     ret
 
 .carInactive:
-    ret
+    ld hl, PlayerStateTimer
+    dec [hl]
+    ret nz ; player is still waiting to respawn
+    ; player should respawn now
+    ld a, 1                 ; set player state to Active
+    ld [PlayerState], a     ; 
+    ld a, $50               ; \
+    ld [PlayerX], a         ; | put player in appropriate position
+    ld a, $70               ; | (middle near bottom of screen)
+    ld [PlayerY], a         ; /
 
 .carActive:
     xor a
@@ -301,6 +313,8 @@ updatePlayer::
     ld [ObjCollisionArray + PLAYER_COLLISION], a ; Disable collision array entry
     ld [CurrentRoadScrollSpeed], a      ; Set speed to 0
     ld [CurrentRoadScrollSpeed + 1], a  ;
+    ld a, RESPAWN_TIME                  ; Setup respawn timer
+    ld [PlayerStateTimer], a            ;
     play_sound_effect FX_CarExplode ; play explode sound effect
     ret
 .noStartExplode:
