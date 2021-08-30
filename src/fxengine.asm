@@ -1,3 +1,5 @@
+INCLUDE "hardware.inc"
+
 ; Sound array header:
 ; Byte 1 = Starting Sound Priority
 
@@ -5,6 +7,10 @@
 ; Byte 1 = Command
 ; FF = Stop Sound
 ; FE = Change Priority
+; FD = Change CH1 Pan
+; FC = Change CH2 Pan
+; FB = Change CH3 Pan
+; FA = Change CH4 Pan
 ; Everything else = Set Register
 
 ; Byte 2 = Command Parameter
@@ -75,10 +81,19 @@ UpdateFXEngine::
     ld h, [hl]           ; | into HL
     ld l, a              ; /
     ld a, [hli]          ; A = Command byte
-    cp $FF
+    ld b, a
+    inc b ; cp $FF
     jr z, .stopSound
-    cp $FE
+    inc b ; cp $FE
     jr z, .changePriority
+    inc b ; cp $FD
+    jr z, .ch1Pan
+    inc b ; cp $FC
+    jr z, .ch2Pan
+    inc b ; cp $FB
+    jr z, .ch3Pan
+    inc b ; cp $FA
+    jr z, .ch4Pan
     ; Set Register command
     ld c, a     ; BC = Pointer to sound register
     ld b, $FF   ;
@@ -92,6 +107,34 @@ UpdateFXEngine::
 .changePriority:
     ld a, [hli] ; A = Command Parameter
     ld [FXPriority], a
+    jr .doneProcessCommand
+.ch1Pan:
+    ldh a, [rNR51]
+    and %11101110
+    or [hl]
+    inc hl
+    ldh [rNR51], a
+    jr .doneProcessCommand
+.ch2Pan:
+    ldh a, [rNR51]
+    and %11011101
+    or [hl]
+    inc hl
+    ldh [rNR51], a
+    jr .doneProcessCommand
+.ch3Pan:
+    ldh a, [rNR51]
+    and %10111011
+    or [hl]
+    inc hl
+    ldh [rNR51], a
+    jr .doneProcessCommand
+.ch4Pan:
+    ldh a, [rNR51]
+    and %01110111
+    or [hl]
+    inc hl
+    ldh [rNR51], a
 .doneProcessCommand:
     ld a, [hli] ; A = Frames to wait
     and a

@@ -3,10 +3,16 @@ INCLUDE "sound.inc"
 
 DEF SOUND_END EQU $FF
 DEF CHANGE_PRIORITY EQU $FE
+DEF PAN_CH1 EQU $FD
+DEF PAN_CH2 EQU $FC
+DEF PAN_CH3 EQU $FB
+DEF PAN_CH4 EQU $FA
 
 DEF AUDHIGH_NO_RESTART EQU 0 ; missing from hardware.inc (counterpart to AUDHIGH_RESTART)
 DEF NOISE_WIDTH_15 EQU %00000000
 DEF NOISE_WIDTH_7 EQU %00001000
+
+; --- Channel 2 ---
 
 ; \1 = Duty (use the AUDLEN_DUTY definitions from hardware.inc)
 ; \2 = Sound Length (0-63)
@@ -31,6 +37,8 @@ MACRO CH2_FREQ
     DB LOW(rNR23), LOW(\1), 0
     DB LOW(rNR24), HIGH(\1) | \2 | \3, \4
 ENDM
+
+; --- Channel 4 ---
 
 ; \1 = Sound Length (0-63)
 ; \2 = Frame Wait (0-255)
