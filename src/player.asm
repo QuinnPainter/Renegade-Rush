@@ -9,6 +9,7 @@ DEF EXPLOSION_NUM_FRAMES EQU 5 ; Number of animation frames in the explosion ani
 DEF EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of animation.
 
 DEF RESPAWN_TIME EQU 120 ; Number of frames before the player respawns.
+DEF RESPAWN_INVINCIBILITY_FRAMES EQU 90 ; Number of invincibility frames given after respawning.
 
 DEF PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
 DEF PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
@@ -78,6 +79,7 @@ initPlayer::
     ld [MoneyAmount + 1], a
     ld [SpecialChargeValue], a
     ld [MissileChargeValue], a
+    ld [PlayerStateTimer], a
     ld a, 4
     ld [LivesValue], a
     ld a, 1
@@ -147,6 +149,8 @@ updatePlayer::
     dec [hl]
     ret nz ; player is still waiting to respawn
     ; player should respawn now
+    ld a, RESPAWN_INVINCIBILITY_FRAMES ; give player invincibility frames after respawning
+    ld [hl], a                         ;
     ld a, 1                 ; set player state to Active
     ld [PlayerState], a     ; 
     ld a, $50               ; \
@@ -155,6 +159,14 @@ updatePlayer::
     ld [PlayerY], a         ; /
 
 .carActive:
+    ; Decrement invincibility timer if necessary
+    ld a, [PlayerStateTimer]
+    and a
+    jr z, .noInvincibility
+    dec a
+    ld [PlayerStateTimer], a
+.noInvincibility:
+
     xor a
     ld [KnockbackThisFrame], a
     ; Apply knockback
@@ -305,6 +317,9 @@ updatePlayer::
     ld a, [KnockbackThisFrame]
     and b ; if car is in knockback state AND car hit a wall, car should explode
     jr z, .noStartExplode
+    ld a, [PlayerStateTimer]    ; \
+    and a                       ; | UNLESS player is currently invincible
+    jr nz, .noStartExplode      ; /
     ld a, 2
     ld [PlayerState], a ; set car state to "Exploding"
     xor a
@@ -370,19 +385,26 @@ updatePlayer::
 .doneApplyKnockback:
 .noCol:
 
-    ; Move the 6 player car sprites to (PlayerX, PlayerY)
+    ; Flash the car every other frame if currently invincible
+    ld a, [PlayerStateTimer]
+    and 1 ; determine if time number is even or odd
+    ld a, [PlayerY]
+    jr z, .notInvisible ; if even, draw car as normal
+    ld a, 200 ; if odd, put player Y off the screen so car is invisible
+.notInvisible:
+
+    ; Move the 6 player car sprites to (PlayerX, A)
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_Y], a
+    add 16
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_Y], a
     ld a, [PlayerX]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_X], a
     add 8
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_X], a
-    ld a, [PlayerY]
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_Y], a
-    add 16
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_Y], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_Y], a
 
     ret
 
