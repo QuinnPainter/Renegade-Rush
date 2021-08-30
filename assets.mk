@@ -24,26 +24,26 @@ all: road player policecar gameui explosion
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
 
-player: $(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap
+player: $(RESDIR)/player.2bpp
 
-policecar: $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecar.attrmap $(RESDIR)/policecarcol.bin
+policecar: $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecarcol.bin
 
 gameui: $(RESDIR)/statusbar.2bpp $(RESDIR)/curvebar.tilemap $(RESDIR)/menubar.2bpp $(RESDIR)/menubar.tilemap
 
-explosion: $(RESDIR)/explosion1.2bpp $(RESDIR)/explosion1.tilemap
+explosion: $(RESDIR)/explosion1.2bpp
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/lines.png
 #	$(ADDOFFSET) $(RESDIR)/lines.tilemap $(RESDIR)/lines.tilemap 0
 
-$(RESDIR)/player.2bpp $(RESDIR)/player.tilemap $(RESDIR)/player.attrmap: $(ASSETSDIR)/player.png | $(RESDIR)
+$(RESDIR)/player.2bpp: $(ASSETSDIR)/player.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/player.2bpp $(ASSETSDIR)/player.png
 
-$(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecar.attrmap: $(ASSETSDIR)/policecar.png | $(RESDIR)
+$(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap: $(ASSETSDIR)/policecar.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/policecar.2bpp $(ASSETSDIR)/policecar.png
 	$(ADDOFFSET) $(MAPSDIR)/policecar.tilemap $(RESDIR)/policecar.tilemap 12
 
-$(RESDIR)/explosion1.2bpp $(RESDIR)/explosion1.tilemap: $(ASSETSDIR)/explosion1.png | $(RESDIR)
+$(RESDIR)/explosion1.2bpp: $(ASSETSDIR)/explosion1.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/explosion1.2bpp $(ASSETSDIR)/explosion1.png
 
 $(RESDIR)/policecarcol.bin: | $(RESDIR)
