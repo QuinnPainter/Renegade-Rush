@@ -10,6 +10,7 @@ DEF EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of ani
 
 DEF RESPAWN_TIME EQU 120 ; Number of frames before the player respawns.
 DEF RESPAWN_INVINCIBILITY_FRAMES EQU 90 ; Number of invincibility frames given after respawning.
+DEF GAME_OVER_TIME EQU 150 ; Number of frames after losing last life that the game over screen is opened.
 
 DEF PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
 DEF PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
@@ -32,10 +33,10 @@ MoneyAmount:: DS 2 ; Your current money value. 2 byte BCD (little endian)
 SpecialChargeValue:: DS 1 ; Current special ability charge. Each bit represents a bar, so the bottom 6 bits.
 MissileChargeValue:: DS 1 ; Current missile charge.
 LivesValue:: DS 1 ; The player's current lives. 0 to 4.
-PlayerState: DS 1 ; 0 = Waiting to respawn, 1 = Active, 2 = Exploding
+PlayerState: DS 1 ; 0 = Waiting to respawn, 1 = Active, 2 = Exploding, 3 = Waiting to game over
 ExplosionAnimFrame: DS 1 ; Current frame of the explosion animation
 ExplosionAnimTimer: DS 1 ; Frame counter for the explosion animation
-PlayerStateTimer: DS 1 ; Used to count the time before respawning, and the number of invincibility frames.
+PlayerStateTimer: DS 1 ; Used to count the time before respawning, number of invincibility frames, and time after death before game overing
 
 SECTION "PlayerCode", ROM0
 
@@ -93,7 +94,14 @@ updatePlayer::
     jp z, .carInactive
     dec a
     jp z, .carActive
-    ; Car is exploding (PlayerState == 2)
+    dec a
+    jr z, .carExploding
+    ; Car is in time before game over (PlayerState == 3)
+    ld hl, PlayerStateTimer
+    dec [hl]
+    jp z, setupGameOver
+    ret
+.carExploding:
     ; Update explosion animation state
     ld hl, ExplosionAnimTimer
     inc [hl]
@@ -108,9 +116,19 @@ updatePlayer::
     cp EXPLOSION_NUM_FRAMES
     jr nz, .noExplosionTimerOverflow
     ; Explosion is over, set car to inactive and disable sprites
+    ld a, [LivesValue]          ; \
+    and a                       ; | ...unless player has no lives
+    jr nz, .explodeNormally     ; | then player should go into "Time before game over" state
+    ld a, 3                     ; |
+    ld [PlayerState], a         ; |
+    ld a, GAME_OVER_TIME        ; |
+    ld [PlayerStateTimer], a    ; |
+    xor a                       ; |
+    jr :+                       ; /
+.explodeNormally:
     xor a
     ld [PlayerState], a
-    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_Y], a
+:   ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 0)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 2)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_Y], a
@@ -145,6 +163,9 @@ updatePlayer::
     ret
 
 .carInactive:
+    ld a, [IsGameOver]
+    and a
+    ret nz ; game is over, player shouldn't respawn
     ld hl, PlayerStateTimer
     dec [hl]
     ret nz ; player is still waiting to respawn
@@ -328,9 +349,11 @@ updatePlayer::
     ld [ObjCollisionArray + PLAYER_COLLISION], a ; Disable collision array entry
     ld [CurrentRoadScrollSpeed], a      ; Set speed to 0
     ld [CurrentRoadScrollSpeed + 1], a  ;
+    play_sound_effect FX_CarExplode     ; play explode sound effect
     ld a, RESPAWN_TIME                  ; Setup respawn timer
     ld [PlayerStateTimer], a            ;
-    play_sound_effect FX_CarExplode ; play explode sound effect
+    ld hl, LivesValue                   ; decrement lives
+    dec [hl]                            ;
     ret
 .noStartExplode:
 
@@ -460,4 +483,11 @@ addMoney::
     ld a, $99
     ld [hld], a
     ld [hl], a
+    ret
+
+; player just ran out of lives, time to setup game over stuff
+setupGameOver:
+    ld a, 1
+    ld [IsGameOver], a
+    call startMenuBarAnim ; open game over menu (A is still 1 = game over screen)
     ret

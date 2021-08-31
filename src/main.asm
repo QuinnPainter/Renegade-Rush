@@ -4,6 +4,7 @@ INCLUDE "macros.inc"
 SECTION "GameVars", WRAM0
 ShadowScrollX:: DS 1
 IsGamePaused:: DS 1 ; 0 = unpaused, nonzero = paused
+IsGameOver:: DS 1 ; 0 = in play, nonzero = game over
 
 SECTION "MainGameCode", ROM0
 
@@ -91,6 +92,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 
     xor a
     ld [IsGamePaused], a
+    ld [IsGameOver], a
     ld a, 16 ; Init X scroll
 	ld [ShadowScrollX], a
 
@@ -143,7 +145,9 @@ GameLoop:
     call readInput
 
     ld a, [IsGamePaused]
-    and a
+    ld b, a
+    ld a, [IsGameOver]
+    or b
     jr z, .notPaused
     call updateMenuBar
     jr .paused
@@ -163,7 +167,6 @@ GameLoop:
     call updatePlayer
     call updateEnemyCars
     call updateStatusBar
-
 .paused:
     call updateAudio
 .doneGameLoop:
@@ -221,7 +224,9 @@ VBlank:
     call DMARoutineHRAM
 
     ld a, [IsGamePaused]
-    and a
+    ld b, a
+    ld a, [IsGameOver]
+    or b
     jr nz, .menuBarActive
     call setupStatusBarInterrupt ; If menu bar isn't present, go straight to status bar
     jr .doneLCDIntSetup
