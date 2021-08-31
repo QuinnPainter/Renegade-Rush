@@ -23,6 +23,7 @@ DEF EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of ani
 RSRESET
 DEF EnemyCarX RB 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
 DEF EnemyCarY RB 2
+DEF PrevFrameCarY RB 1 ; High byte of the car's Y last frame. Used to determine if the car has crossed a min/max boundary
 DEF EnemyCarXSpeed RB 2 ; Speed of the car moving left and right on the screen in pixels per frame. 8.8 fixed point.
 DEF EnemyCarRoadSpeed RB 2 ; Speed of the car, in terms of road scroll speed. 8.8 fixed point.
 DEF EnemyCarMaxRoadSpeed RB 2 ; Max and min speeds of the car, in terms of road scroll speed. 8.8 fixed point.
@@ -179,6 +180,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld [\1 + EnemyCarY + 1], a
     ld a, 150 ; spawn off the bottom of the screen
     ld [\1 + EnemyCarY], a
+    ld [\1 + PrevFrameCarY], a
 
     ; car just spawned, so initialise some variables
     ld a, $2
@@ -195,6 +197,9 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ; car is now active, so just fall into the "active" section
 
 .carActive\@:
+    ld a, [\1 + EnemyCarY]
+    ld [\1 + PrevFrameCarY], a
+
     ; Update animation state
     ld hl, \1 + EnemyCarAnimationTimer
     inc [hl]
@@ -299,14 +304,13 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 
     ; Take car speed from road speed to get the Y offset
     sub_16 CurrentRoadScrollSpeed, \1 + EnemyCarRoadSpeed, Scratchpad
-    ; Save the main byte of the previous Y pos for enforcing min and max
-    ld a, [\1 + EnemyCarY]
-    sub Y_BORDER_POS
-    ld b, a
     ; Add Y offset to Y coordinate
     add_16 Scratchpad, \1 + EnemyCarY, \1 + EnemyCarY
 
     ; Enforce minimum and maximum Y coordinates
+    ld a, [\1 + PrevFrameCarY]  ; \
+    sub Y_BORDER_POS            ; | setup previous frame Y into B
+    ld b, a                     ; /
     ld a, [\1 + EnemyCarY]
     sub Y_BORDER_POS ; Subtracting Y Border means we can use the sign to determine which "side" of the border we're on
     call difference         ; if the 2 numbers differ by a lot, then we wrapped around the border
@@ -335,6 +339,9 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld a, [\1 + KnockbackThisFrame]
     and b ; if car is in knockback state AND car hit a wall, car should explode
     jr z, .noStartExplode\@
+    ld a, [\1 + EnemyCarY]      ; \ no exploding when car is offscreen
+    cp 144 + 16 - 15            ; | height of screen + sprite Y offset - status bar height
+    jp nc, .noStartExplode\@    ; /
     ld a, 2
     ld [\1 + EnemyCarActive], a ; set car state to "Exploding"
     xor a
@@ -362,15 +369,15 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld a, [\1 + EnemyCarRoadSpeed]
     ld [hl], a
 
-    ld a, [\1 + EnemyCarY] ; \ no entity collision when car is offscreen
-    cp 144 + 16 - 15       ; | height of screen + sprite Y offset - status bar height
-    jp nc, .noCol\@        ; /
     ld a, CAR_OBJ_COLLISION\@
     call objCollisionCheck
     and a
     jp z, .noCol\@ ; collision happened - now apply knockback
+    ld a, [\1 + EnemyCarY]      ; \ no crash sounds when car is offscreen
+    cp 144 + 16 - 15            ; | height of screen + sprite Y offset - status bar height
+    jp nc, :+                   ; /
     play_sound_effect FX_ShortCrash ; play crash sound effect
-    rom_bank_switch BANK("PoliceCarCollision")
+:   rom_bank_switch BANK("PoliceCarCollision")
     process_knockback \1 + EnemyCarX, \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY
 .noCol\@:
 
