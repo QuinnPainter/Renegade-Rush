@@ -11,6 +11,8 @@ DEF DESTROYED_MONEY_GIVEN EQU $0020 ; Money given to the player when the enemy i
 ; CurrentRoadScrollSpeed - PLAYER_SPEED_WINDOW and CurrentRoadScrollSpeed + PLAYER_SPEED_WINDOW. 8 bit integer.
 DEF PLAYER_SPEED_WINDOW EQU 1
 
+DEF Y_BORDER_POS EQU 207 ; The maximum and minimum Y position, which roughly makes the area off the top and off the bottom equal
+
 DEF BASE_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit, in 255s of a pixel per frame per frame
 DEF CAR_SPAWN_CHANCE EQU 127 ; Chance of the car spawning each frame, out of 65535
 ; So, if you calculate 1 / (CAR_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
@@ -297,10 +299,26 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 
     ; Take car speed from road speed to get the Y offset
     sub_16 CurrentRoadScrollSpeed, \1 + EnemyCarRoadSpeed, Scratchpad
+    ; Save the main byte of the previous Y pos for enforcing min and max
+    ld a, [\1 + EnemyCarY]
+    sub Y_BORDER_POS
+    ld b, a
     ; Add Y offset to Y coordinate
     add_16 Scratchpad, \1 + EnemyCarY, \1 + EnemyCarY
 
-    ld c, 0
+    ; Enforce minimum and maximum Y coordinates
+    ld a, [\1 + EnemyCarY]
+    sub Y_BORDER_POS ; Subtracting Y Border means we can use the sign to determine which "side" of the border we're on
+    call difference         ; if the 2 numbers differ by a lot, then we wrapped around the border
+    cp 64                   ; if they don't differ by much, then they must have crossed from 127 to 128
+    jr c, .noEnforceYPos\@
+    ld a, b                 ; Change Y pos to what it was before
+    add Y_BORDER_POS        ;
+    ld [\1 + EnemyCarY], a  ;
+.noEnforceYPos\@:
+    
+
+    ld c, 0 ; remove this later - c will determine turning / straight = 0 is straight
     ld a, [\1 + EnemyCarAnimationState]
     and a
     jr z, .animState1\@

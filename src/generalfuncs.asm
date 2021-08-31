@@ -48,6 +48,23 @@ absolute::
     inc a
     ret
 
+SECTION "Difference", ROM0
+
+; Gets the difference between 2 unsigned 8 bit numbers
+; by subtracting the smaller number from the bigger one
+; Input - A B = Numbers to compare
+; Sets - A = Difference
+difference::
+    cp b
+    jr nc, .aGrtrThanB ; technically a >= b
+    cpl ; Calc B-A
+    inc a
+    add b
+    ret
+.aGrtrThanB:
+    sub b ; Calc A-B
+    ret
+
 SECTION "BCD16", ROM0
 
 ; https://github.com/pinobatch/little-things-gb/blob/master/bdos/src/math.z80
