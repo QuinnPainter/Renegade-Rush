@@ -478,11 +478,7 @@ updateMenuBar::
     ld a, [newButtons] ; Start shrinking menu bar if start button is pressed
     and PADF_START
     jr z, .pauseNotPressed
-    ld a, $FF
-    ld [menuBarState], a
-    xor a
-    ld [menuBarDoneAnim], a
-    play_sound_effect FX_Unpause
+    call unpause
 .pauseNotPressed:
 
     ld a, [menuBarDoneAnim]     ; \
@@ -490,6 +486,24 @@ updateMenuBar::
     jr z, .skipCheckMenuButtons ; /
 
     call selectionBarUpdate
+
+    ; Check for A button selecting the current menu option
+    ld a, [newButtons]
+    and PADF_A
+    jr z, .aNotPressed
+    ld a, [menuOptionSelected]  ; \
+    and a                       ; | Second option is "Menu" in both pause and game over
+    jr nz, .secondOptionSelected; /
+    ld a, [whichMenuOpen]       ; \
+    and a                       ; | Handle buttons differently if in pause menu or game over menu
+    jr z, .aPressedPauseMenu    ; /
+    jp EntryPoint ; First option selected in game over menu = Restart
+.aPressedPauseMenu: ; First option selected in pause menu = Resume
+    call unpause
+    jr .aNotPressed
+.secondOptionSelected: ; Second option = Go to main menu
+    ; TODO - main menu stuff
+.aNotPressed:
 
     ; Check for up/down buttons moving the selection
     ld a, [menuOptionSelected] ; B = old MenuOptionSelected
@@ -515,4 +529,16 @@ updateMenuBar::
     jr z, .skipCheckMenuButtons
     play_sound_effect FX_MenuBip
 .skipCheckMenuButtons:
+    ret
+
+; Unpause the game
+; This does not unpause immediately - it starts shrinking the menu bar
+; and the game is unpaused when the bar is done shrinking.
+; Called when Start is pressed in pause menu, or "Resume" is selected in pause menu
+unpause:
+    ld a, $FF
+    ld [menuBarState], a
+    xor a
+    ld [menuBarDoneAnim], a
+    play_sound_effect FX_Unpause
     ret
