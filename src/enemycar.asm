@@ -50,7 +50,7 @@ MACRO init_enemy_car
     ld [\1 + EnemyCarXSpeed + 1], a
     xor a
     ld [\1 + EnemyCarAcceleration], a
-    ld a, $05
+    ld a, $0F
     ld [\1 + EnemyCarAcceleration + 1], a
     xor a
     ld [\1 + EnemyCarActive], a
@@ -58,7 +58,7 @@ MACRO init_enemy_car
     ld [\1 + EnemyCarMinRoadSpeed], a
     xor a
     ld [\1 + EnemyCarMinRoadSpeed + 1], a
-    ld a, $6
+    ld a, $7
     ld [\1 + EnemyCarMaxRoadSpeed], a
     xor a
     ld [\1 + EnemyCarMaxRoadSpeed + 1], a
@@ -240,7 +240,20 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ; Bit 1 = Want to speed up
     ; Bit 2 = Want to turn left
     ; Bit 3 = Want to turn right
-    ld hl, CurrentRoadScrollSpeed
+    ld hl, PlayerY
+    ld a, [\1 + EnemyCarY]
+    cp Y_BORDER_POS         ; offscreen in the above-screen zone = slow down
+    jr nc, .wantSlowDown\@  ;
+    cp [hl] ; c set if EnemyY < PlayerY (enemy is higher on the screen)
+    jr z, .doneWantChangeSpeed\@
+    jr c, .wantSlowDown\@
+    set 1, e
+    jr .doneWantChangeSpeed\@
+.wantSlowDown\@:
+    set 0, e
+.doneWantChangeSpeed\@:
+
+    /*ld hl, CurrentRoadScrollSpeed
     ld a, [hli]
     ld c, [hl]
     add PLAYER_SPEED_WINDOW
@@ -258,7 +271,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     cp_16r hl, bc ; C set if HL < BC
     jr nc, :+
     set 1, e ; Car speed is significantly lower than player's speed - so speed up
-:
+:*/
     ; Process movement intentions
     bit 0, e ; Want to slow down
     jr z, :+
