@@ -13,7 +13,8 @@ DEF PLAYER_SPEED_WINDOW EQU 1
 
 DEF Y_BORDER_POS EQU 207 ; The maximum and minimum Y position, which roughly makes the area off the top and off the bottom equal
 
-DEF BASE_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit, in 255s of a pixel per frame per frame
+DEF PLAYER_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit by the player, in 255s of a pixel per frame per frame
+DEF OTHER_KNOCKBACK_SLOWDOWN EQU 40 ; How fast the car slows down after being hit by some other object
 DEF CAR_SPAWN_CHANCE EQU 127 ; Chance of the car spawning each frame, out of 65535
 ; So, if you calculate 1 / (CAR_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
 ; so 520 frames, or 8 seconds
@@ -35,6 +36,7 @@ DEF ExplosionAnimFrame RB 0 ; Current frame of the explosion animation (shares R
 DEF EnemyCarAnimationState RB 1 ; Current state of the animation. 0 = state 1, FF = state 2
 DEF CurrentKnockbackSpeedX RB 2 ; Speed of the current knockback effect, in pixels per frame. 8.8 fixed point.
 DEF CurrentKnockbackSpeedY RB 2
+DEF ObjectLastTouched RB 1 ; Which thing touched the car last? (0 = other enemy car, 1 = player)
 DEF EnemyCarActive RB 1 ; 0 = Inactive, 1 = Active, 2 = Exploding
 DEF KnockbackThisFrame RB 1 ; Was there any car knockback applied this frame? (0 or 1) Used to determine if car should explode when hitting a wall
 DEF sizeof_EnemyCarVars RB 0
@@ -224,10 +226,10 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     or [hl] ; Y byte 1
     inc hl
     or [hl] ; Y byte 2
-    jr z, .noKnockback\@
+    jp z, .noKnockback\@
     ld a, 1
     ld [\1 + KnockbackThisFrame], a
-    update_knockback \1 + EnemyCarX, \1 + EnemyCarY, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, BASE_KNOCKBACK_SLOWDOWN
+    update_knockback \1 + EnemyCarX, \1 + EnemyCarY, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, OTHER_KNOCKBACK_SLOWDOWN, PLAYER_KNOCKBACK_SLOWDOWN, \1 + ObjectLastTouched
     jp .skipAI\@ ; if in knockback state, car shouldn't move around
 .noKnockback\@:
 
@@ -378,7 +380,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     jp nc, :+                   ; /
     play_sound_effect FX_ShortCrash ; play crash sound effect
 :   rom_bank_switch BANK("PoliceCarCollision")
-    process_knockback \1 + EnemyCarX, \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY
+    process_knockback \1 + EnemyCarX, \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, \1 + ObjectLastTouched
 .noCol\@:
 
     ; Move the 6 car sprites to (EnemyCarX, EnemyCarY)

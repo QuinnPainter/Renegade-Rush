@@ -370,6 +370,7 @@ updatePlayer::
     add 16 ; Right X - player is 16 px wide
     ld [hli], a
     ld a, [CurrentRoadScrollSpeed]
+    set 4, a ; car type = player
     ld [hl], a ; movement info
 
     ld a, PLAYER_COLLISION

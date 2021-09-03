@@ -9,7 +9,8 @@
 ; Byte 5 = X Position (of right)
 ; Byte 6 = Movement Info (used for car collisions)
 ;   Bits 0 - 3 = Car Speed
-;   Bits 4 - 7 Unused
+;   Bit  4     = Car Type (1 = player, 0 = not player)
+;   Bits 5 - 7 = Unused
 SECTION "ObjCollisionArray", WRAM0, ALIGN[6]
 ObjCollisionArray::
     DS 6 * 10 ; 6 bytes * 10 collision objects. Don't think all 10 slots are used, could reduce this later?

@@ -14,6 +14,14 @@ DEF ThisObjY\@ EQUS "\2"                   ; Address
 DEF CollisionArray\@ EQUS "\3"             ; Address
 DEF KnockbackSpeedX\@ EQUS "\4"            ; Address
 DEF KnockbackSpeedY\@ EQUS "\5"            ; Address
+IF _NARG == 6
+DEF ObjectLastTouched\@ EQUS "\6"          ; Address (optional)
+    ; set ObjectLastTouched
+    ld a, e
+    swap a
+    and $01
+    ld [ObjectLastTouched\@], a
+ENDC
     ; calculate knockback speed
     ld a, [ThisObjX\@]
     sub d ; subtract x pos of other object
@@ -117,6 +125,9 @@ PURGE ThisObjY\@
 PURGE CollisionArray\@
 PURGE KnockbackSpeedX\@
 PURGE KnockbackSpeedY\@
+IF DEF(ObjectLastTouched\@)
+PURGE ObjectLastTouched\@
+ENDC
 ENDM
 
 MACRO update_knockback
@@ -124,19 +135,35 @@ DEF ThisObjX\@ EQUS "\1"                    ; Address
 DEF ThisObjY\@ EQUS "\2"                    ; Address
 DEF KnockbackSpeedX\@ EQUS "\3"             ; Address
 DEF KnockbackSpeedY\@ EQUS "\4"             ; Address
-DEF KnockbackSlowdownSpeed\@ EQUS "\5"      ; 8.8 fixed point constant
+DEF KnockbackSlowdownSpeedOther\@ EQUS "\5" ; 8.8 fixed point constant [Slowdown speed if hit by non-player]
+IF _NARG >= 6
+DEF KnockbackSlowdownSpeedPlayer\@ EQUS "\6"; 8.8 fixed point constant (optional) [Slowdown speed if hit by player]
+DEF ObjectLastTouched\@ EQUS "\7"           ; Address (optional)
+ENDC
     add_16 KnockbackSpeedX\@, ThisObjX\@, ThisObjX\@
     add_16 KnockbackSpeedY\@, ThisObjY\@, ThisObjY\@
+
+IF DEF(ObjectLastTouched\@)
+    ld a, [ObjectLastTouched\@]
+    rra ; set carry to bit 1
+    jr c, :+
+    ld bc, KnockbackSlowdownSpeedOther\@
+    jr .doneSetSlowdownSpeed\@
+:   ld bc, KnockbackSlowdownSpeedPlayer\@
+.doneSetSlowdownSpeed\@:
+ELSE
+    ld bc, KnockbackSlowdownSpeedOther\@
+ENDC
+    push bc
 
     ld hl, KnockbackSpeedX\@
     ld a, [hli]
     ld l, [hl]
     ld h, a
     ld d, a ; save top byte for later
-    ld bc, -KnockbackSlowdownSpeed\@
     bit 7, h
-    jr z, :+
-    ld bc, KnockbackSlowdownSpeed\@
+    jr nz, :+
+    neg_16 bc, bc
 :   add hl, bc
     ld a, d ; determine if sign of HL changed, if it did, set it to 0
     xor h
@@ -153,10 +180,10 @@ DEF KnockbackSlowdownSpeed\@ EQUS "\5"      ; 8.8 fixed point constant
     ld l, [hl]
     ld h, a
     ld d, a ; save top byte for later
-    ld bc, -KnockbackSlowdownSpeed\@
+    pop bc
     bit 7, h
-    jr z, :+
-    ld bc, KnockbackSlowdownSpeed\@
+    jr nz, :+
+    neg_16 bc, bc
 :   add hl, bc
     ld a, d ; determine if sign of HL changed, if it did, set it to 0
     xor h
@@ -171,5 +198,11 @@ PURGE ThisObjX\@
 PURGE ThisObjY\@
 PURGE KnockbackSpeedX\@
 PURGE KnockbackSpeedY\@
-PURGE KnockbackSlowdownSpeed\@
+PURGE KnockbackSlowdownSpeedOther\@
+IF DEF(KnockbackSlowdownSpeedPlayer\@)
+PURGE KnockbackSlowdownSpeedPlayer\@
+ENDC
+IF DEF(ObjectLastTouched\@)
+PURGE ObjectLastTouched\@
+ENDC
 ENDM
