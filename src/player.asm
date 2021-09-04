@@ -178,6 +178,12 @@ updatePlayer::
     ld [PlayerX], a         ; | put player in appropriate position
     ld a, $70               ; | (middle near bottom of screen)
     ld [PlayerY], a         ; /
+    xor a                                   ; \
+    ld hl, CurrentKnockbackSpeedX           ; |
+    ld [hli], a ;CurrentKnockbackSpeedX     ; | reset player knockback
+    ld [hli], a ;CurrentKnockbackSpeedX + 1 ; |
+    ld [hli], a ;CurrentKnockbackSpeedY     ; |
+    ld [hl], a  ;CurrentKnockbackSpeedY + 1 ; /
 
 .carActive:
     ; Decrement invincibility timer if necessary
