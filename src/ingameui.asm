@@ -497,12 +497,12 @@ updateMenuBar::
     ld a, [whichMenuOpen]       ; \
     and a                       ; | Handle buttons differently if in pause menu or game over menu
     jr z, .aPressedPauseMenu    ; /
-    jp EntryPoint ; First option selected in game over menu = Restart
+    jp StartGame ; First option selected in game over menu = Restart
 .aPressedPauseMenu: ; First option selected in pause menu = Resume
     call unpause
     jr .aNotPressed
 .secondOptionSelected: ; Second option = Go to main menu
-    ; TODO - main menu stuff
+    jp EntryPoint
 .aNotPressed:
 
     ; Check for up/down buttons moving the selection

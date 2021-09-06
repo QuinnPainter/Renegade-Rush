@@ -53,6 +53,9 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
 	ldh [rBGP], a
     ldh [rOBP0], a ; Init sprite palettes
 	ldh [rOBP1], a
+    xor a
+    ld [rSCX], a
+    ld [rSCY], a
 
     ; No, vblank has not happened yet
     xor a
