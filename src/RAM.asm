@@ -1,6 +1,8 @@
 INCLUDE "hardware.inc"
 
-SECTION "VRAM 8000", VRAM[_VRAM8000]
+; In Game VRAM
+
+SECTION UNION "VRAM 8000", VRAM[_VRAM8000]
 PlayerTilesVRAM::
     DS 12 * 16 ; 12 tiles * 16 bytes per tile
 PoliceCarTilesVRAM::
@@ -8,7 +10,7 @@ PoliceCarTilesVRAM::
 Explosion1TilesVRAM::
     DS 20 * 16
 
-SECTION "VRAM 8800", VRAM[_VRAM8800]
+SECTION UNION "VRAM 8800", VRAM[_VRAM8800]
 StatusBarVRAM::
     DS 61 * 16 ; 60 tiles * 16 bytes per tile
 StatusBarVRAMEnd::
@@ -16,10 +18,24 @@ MenuBarTilesVRAM::
     DS 50 * 16 ; no idea how many tiles needed, change this later
 MenuBarTilesVRAMEnd::
 
-SECTION "VRAM 9000", VRAM[_VRAM9000]
+SECTION UNION "VRAM 9000", VRAM[_VRAM9000]
 RoadTilesVRAM::
     DS 16 * 16 ; 16 tiles * 16 bytes per tile
 RoadTilesVRAMEnd::
+
+; Title Screen / Menus VRAM
+
+SECTION UNION "VRAM 8800", VRAM[_VRAM8800]
+TitleTilesVRAM::
+    DS 100 * 16 ; no idea how many
+
+SECTION UNION "VRAM 9000", VRAM[_VRAM9000]
+TitleBottomTilesVRAM::
+    DS 80 * 16 ; ??
+MainMenuBottomTilesVRAM::
+    DS 20 * 16 ; another guess
+
+
 
 SECTION "StackArea", WRAM0[$DF00]
     DS $FF ; Reserve 255 bytes for the stack at the end of WRAM.

@@ -133,6 +133,8 @@ VblankHandler:
 	ld l, a
 	jp hl ; jump to [VblankVectorRAM]
 VblankEnd::
+	ld a, 1
+    ld [HasVblankHappened], a
 	pop de
 	pop bc
 	pop af

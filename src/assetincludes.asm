@@ -37,3 +37,11 @@ ENDM
     compact_incbin_align CurveBarTilemap, "res/curvebar.tilemap", ROMX, 6
     compact_incbin MenuBarTiles, "res/menubar.2bpp", ROMX
     compact_incbin MenuBarTilemap, "res/menubar.tilemap", ROMX
+
+; Title Screen / Main Menu
+    compact_incbin TitleTiles, "res/title.2bpp", ROMX
+    compact_incbin TitleTilemap, "res/title.tilemap", ROMX
+    compact_incbin TitleScreenBottomTiles, "res/titleScreenBottom.2bpp", ROMX
+    compact_incbin TitleScreenBottomTilemap, "res/titleScreenBottom.tilemap", ROMX
+    compact_incbin MainMenuBottomTiles, "res/mainMenuBottom.2bpp", ROMX
+    compact_incbin MainMenuBottomTilemap, "res/mainMenuBottom.tilemap", ROMX

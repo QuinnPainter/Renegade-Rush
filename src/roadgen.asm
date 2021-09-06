@@ -161,7 +161,7 @@ RoadCollisionTableRightFlags:: DS 8 * 32
 
 SECTION "RoadGenCode", ROM0
 
-InitRoadGen::
+initRoadGen::
     ld a, $9A
     ld [RoadTileWriteAddr], a
     ld a, $20
@@ -178,7 +178,7 @@ InitRoadGen::
     ld [TarRoadLeft], a
     ld [TarRoadRight], a
     ld [RoadLineReady], a
-    jp EntryPoint.doneInitRoad
+    ret
 
 ; Generates a new line of road, and puts it into RoadGenBuffer
 ; could split right + left side and run them on alternate frames?

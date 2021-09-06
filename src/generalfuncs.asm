@@ -1,3 +1,6 @@
+INCLUDE "hardware.inc"
+INCLUDE "macros.inc"
+
 ; All functions are in different sections so they can cram into small gaps
 ; such as the gaps between interrupt vectors
 
@@ -143,3 +146,43 @@ copyString::
 	ld [hli], a
 	inc de
 	jr copyString
+
+SECTION "Disable LCD", ROM0
+
+; Disable the LCD during VBlank
+; Calling this when the LCD is already disabled
+; will result in a permanent loop!
+; Sets - A to 0
+disableLCD::
+	ldh a, [rLY]
+	cp 144 ; Check if the LCD is past VBlank
+	jr c, disableLCD
+	xor a ; turn off the LCD
+	ldh [rLCDC], a
+    ret
+
+SECTION "ScreenTilemapCopy", ROM0
+
+; Copy a tilemap to the screen
+; Input - HL = Destination Screen RAM address
+; Input - BC = Source data address
+; Input - A = Number of lines to copy (Line = 20 tiles)
+; Sets - A B C D E H L S[0] to garbage
+ScreenTilemapCopy::
+    ldh [Scratchpad], a
+    lb de, 20, 12
+    ;ld de, 12 ; Offset needed to jump from end of this line to start of next line
+    ;ld e, 20 ; 20 tiles in a line
+.tilemapCopyLp:
+    ld a, [bc]
+    inc bc
+    ld [hli], a
+    dec d
+    jr nz, .tilemapCopyLp
+    add hl, de ; D is always 0 here, so this is add hl, 12
+    ld d, 20
+    ldh a, [Scratchpad]
+    dec a
+    ldh [Scratchpad], a
+    jr nz, .tilemapCopyLp
+    ret

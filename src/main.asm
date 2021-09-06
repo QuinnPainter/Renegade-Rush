@@ -8,35 +8,8 @@ IsGameOver:: DS 1 ; 0 = in play, nonzero = game over
 
 SECTION "MainGameCode", ROM0
 
-EntryPoint:: ; At this point, interrupts are already disabled from the header code
-
-    ld sp, $E000 ; Set the stack pointer to the top of RAM to free up HRAM
-
-    ; Turn off the LCD
-.waitVBlank
-	ld a, [rLY]
-	cp 144 ; Check if the LCD is past VBlank
-	jr c, .waitVBlank
-	xor a ; turn off the LCD
-	ld [rLCDC], a
-
-    ; Initialize VRAM to 0
-	ld hl, $8000
-	ld bc, $A000 - $8000
-	ld d, 0
-	rst memset
-    ; Initialize sprite buffer to 0
-	ld hl, STARTOF("SpriteBuffer")
-	ld c, SIZEOF("SpriteBuffer")
-	ld d, 0
-	rst memsetFast
-    ; Copy the OAM DMA routine into HRAM
-    ld hl, DMARoutineHRAM
-    ld de, DMARoutine
-    ld c, 14
-    rst memcpyFast
-    ; Copy the empty sprite buffer into OAM
-    call DMARoutineHRAM
+StartGame::
+    call disableLCD
 
     ; Copy tileset into VRAM
     rom_bank_switch BANK("RoadTiles")
@@ -73,20 +46,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ; Init menu bar tilemaps
     call genMenuBarTilemaps
 
-    ; Init input
-    xor a
-    ld [curButtons], a
-    ld [newButtons], a
-
-    ; TEMP : seed random
-    ld hl, $9574;$38
-    call seedRandom
-
     ; Initialise variables
     call initCollision
     call initGameUI
-    jp InitRoadGen
-.doneInitRoad::
+    call initRoadGen
     call initPlayer
     call initEnemyCars
 
@@ -106,25 +69,12 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     dec a
     jr nz, .pregenRoadLp
 
-    ; Init display registers
-	ld a, %11100100 ; Init background palette
-	ldh [rBGP], a
-    ld [rOBP0], a ; Init sprite palettes
-	ld [rOBP1], a
-
     ; Init VBlank vector
     ld hl, VblankVectorRAM
-    ld a, LOW(VBlank)
+    ld a, LOW(InGameVBlank)
     ld [hli], a
-    ld a, HIGH(VBlank)
+    ld a, HIGH(InGameVBlank)
     ld [hl], a
-
-    ; No, vblank has not happened yet
-    xor a
-    ld [HasVblankHappened], a
-
-    ; Start up audio
-    call initAudio
 
     ; Enable screen and initialise screen settings
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 \
@@ -134,6 +84,9 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ; Enable LY=LYC as LCD STAT interrupt source
     ld a, STATF_LYC
     ldh [rSTAT], a
+    ; Make sure no erroneous LYC interrupts happen before it's set up
+    ld a, $FF
+    ldh [rLYC], a
 
     ; Disable all interrupts except VBlank and LCD
 	ld a, IEF_VBLANK | IEF_STAT
@@ -200,7 +153,7 @@ updateRoad:
     call GenRoadRow
     ret
 
-VBlank:
+InGameVBlank:
     ; Copy new road line onto the background tilemap if one is ready
     ld a, [RoadLineReady]
     and a ; update zero flag
@@ -233,10 +186,6 @@ VBlank:
 .menuBarActive:
     call setupMenuBarInterrupt ; If game is paused, setup menu bar interrupt instead of status bar
 .doneLCDIntSetup:
-
-    ld a, 1
-    ld [HasVblankHappened], a
-
     jp VblankEnd
 
 ; Setup LY interrupt for top of status bar
