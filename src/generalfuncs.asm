@@ -48,20 +48,19 @@ memcpy::
     jr nz, .loop
     ret
 
-SECTION "Shift Left", ROM0
+/*SECTION "Shift Left", ROM0
 
 ; Shift B left by a given amount
 ; Input - B = Value to shift
-; Input - C = How many times to shift
+; Input - A = How many times to shift
 ; Sets - B to shifted value
-; Sets - A C to garbage
+; Sets - A to 0
 shiftLeft::
-    xor a ; \
-    add c ; | Return immediately if C is 0
-    ret z ; /
+    and a ; Return immediately if A is 0
+    ret z ;
 .lp:
     sla b
-    dec c
+    dec a
     jr nz, .lp
     ret
 
@@ -69,18 +68,17 @@ SECTION "Shift Left 16", ROM0
 
 ; Shift HL left by a given amount
 ; Input - HL = Value to shift
-; Input - C = How many times to shift
+; Input - A = How many times to shift
 ; Sets - HL to shifted value
-; Sets - A C to garbage
+; Sets - A to 0
 shiftLeft16::
-    xor a ; \
-    add c ; | Return immediately if C is 0
-    ret z ; /
+    and a ; Return immediately if A is 0
+    ret z ;
 .lp:
     add hl, hl ; adding with itself is equivalent to left shift by 1
-    dec c
+    dec a
     jr nz, .lp
-    ret
+    ret*/
 
 SECTION "Absolute", ROM0
 
