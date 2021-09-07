@@ -61,15 +61,15 @@ $(RESDIR)/menubar.2bpp $(RESDIR)/menubar.tilemap: $(ASSETSDIR)/menubar.png | $(R
 
 $(RESDIR)/title.2bpp $(RESDIR)/title.tilemap: $(ASSETSDIR)/title.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/title.2bpp -t $(RESDIR)/title.tilemap $(ASSETSDIR)/title.png
-	$(ADDOFFSET) $(RESDIR)/title.tilemap $(RESDIR)/title.tilemap -128
+	$(ADDOFFSET) $(RESDIR)/title.tilemap $(RESDIR)/title.tilemap 23
 
 $(RESDIR)/titleScreenBottom.2bpp $(RESDIR)/titleScreenBottom.tilemap: $(ASSETSDIR)/titleScreenBottom.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/titleScreenBottom.2bpp -t $(RESDIR)/titleScreenBottom.tilemap $(ASSETSDIR)/titleScreenBottom.png
-#	$(ADDOFFSET) $(RESDIR)/titleScreenBottom.tilemap $(RESDIR)/titleScreenBottom.tilemap 0
+	$(ADDOFFSET) $(RESDIR)/titleScreenBottom.tilemap $(RESDIR)/titleScreenBottom.tilemap -52
 
 $(RESDIR)/mainMenuBottom.2bpp $(RESDIR)/mainMenuBottom.tilemap: $(ASSETSDIR)/mainMenuBottom.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/mainMenuBottom.2bpp -t $(RESDIR)/mainMenuBottom.tilemap $(ASSETSDIR)/mainMenuBottom.png
-	$(ADDOFFSET) $(RESDIR)/mainMenuBottom.tilemap $(RESDIR)/mainMenuBottom.tilemap 80
+	$(ADDOFFSET) $(RESDIR)/mainMenuBottom.tilemap $(RESDIR)/mainMenuBottom.tilemap -72
 
 $(RESDIR):
 	$(MKDIR_P) $(RESDIR)

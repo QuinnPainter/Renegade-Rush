@@ -25,16 +25,12 @@ RoadTilesVRAMEnd::
 
 ; Title Screen / Menus VRAM
 
-SECTION UNION "VRAM 8800", VRAM[_VRAM8800]
-TitleTilesVRAM::
-    DS 100 * 16 ; no idea how many
+RSSET (_VRAM8800 + (56 * 16))
+DEF MainMenuBottomTilesVRAM RB 20 * 16 ; 20 tiles
+DEF TitleBottomTilesVRAM RB 75 * 16 ; 75 tiles
+DEF TitleTilesVRAM RB 105 * 16 ; 105 tiles
 
-SECTION UNION "VRAM 9000", VRAM[_VRAM9000]
-TitleBottomTilesVRAM::
-    DS 80 * 16 ; ??
-MainMenuBottomTilesVRAM::
-    DS 20 * 16 ; another guess
-
+EXPORT TitleTilesVRAM, TitleBottomTilesVRAM, MainMenuBottomTilesVRAM
 
 
 SECTION "StackArea", WRAM0[$DF00]
