@@ -177,18 +177,17 @@ waitVblank::
 
 SECTION "Copy String", ROM0
 
-; Copies a string (ending in -1)
+; Copies a string (ending in 0)
 ; Input - HL = Destination address
-; Input - DE = Start address
-; Input - C = Amount to increase each char by (tile offset)
-; Sets	- A H L D E to garbage
+; Input - BC = Start address
+; Sets	- A to garbage
+; Sets  - HL BC to original values + string length
 copyString::
-	ld a, [de]
-    cp -1
+	ld a, [bc]
+    and a
     ret z
-    add c
 	ld [hli], a
-	inc de
+	inc bc
 	jr copyString
 
 SECTION "Disable LCD", ROM0
@@ -210,8 +209,8 @@ SECTION "ScreenTilemapCopy", ROM0
 ; Copy a tilemap to the screen
 ; Input - HL = Destination Screen RAM address
 ; Input - BC = Source data address
-; Input - A = Number of lines to copy (Line = 20 tiles)
-; Sets - A B C D E H L S[0] to garbage
+; Input - A  = Number of lines to copy (Line = 20 tiles)
+; Sets  - A B C D E H L S[0] to garbage
 ScreenTilemapCopy::
     ldh [Scratchpad], a
     lb de, 20, 12
@@ -230,3 +229,82 @@ ScreenTilemapCopy::
     ldh [Scratchpad], a
     jr nz, .tilemapCopyLp
     ret
+
+SECTION "LCD Memset", ROM0
+
+; Set a block of VRAM, while making sure VRAM is accesible.
+; Input - HL = Destination address
+; Input - BC = Length
+; Input - D  = Value to set
+; Sets  - HL = Original value + BC
+; Sets  - BC = 0
+; Sets  - A  = D
+LCDMemset::
+    inc b
+    inc c
+    jr .decCounter
+.loadByte:
+	ldh a, [rSTAT]      ; \
+	and STATF_BUSY      ; | Wait for VRAM to be ready
+	jr nz, .loadByte    ; /
+    ld a, d
+    ld [hli], a
+.decCounter:
+    dec c
+    jr nz, .loadByte
+    dec b
+    jr nz, .loadByte
+    ret
+
+SECTION "LCD Memset Fast", ROM0
+
+; Set a block of VRAM, while making sure VRAM is accesible.
+; Input - HL = Destination address
+; Input - C  = Length
+; Input - B  = Value to set
+; Sets  - HL = Original value + C
+; Sets  - C  = 0
+; Sets  - A  = B
+LCDMemsetFast::
+	ldh a, [rSTAT]          ; \
+	and STATF_BUSY          ; | Wait for VRAM to be ready
+	jr nz, LCDMemsetFast    ; /
+	ld a, b
+	ld [hli], a
+	dec c
+	jr nz, LCDMemsetFast
+	ret
+
+SECTION "LCD Memcpy Fast", ROM0
+; Copy data into VRAM, while making sure VRAM is accesible.
+; Input - HL = Destination address
+; Input - DE = Source address
+; Input - C  = Length
+LCDMemcpyFast::
+    ldh a, [rSTAT]          ; \
+    and STATF_BUSY          ; | Wait for VRAM to be ready
+    jr nz, LCDMemcpyFast    ; /
+    ld a, [de]
+    ld [hli], a
+    inc de
+    dec c
+    jr nz, LCDMemcpyFast
+    ret
+
+SECTION "LCD Copy String", ROM0
+
+; Copies a string (ending in 0), while making sure VRAM is accessible.
+; Input - HL = Destination address
+; Input - BC = Start address
+; Sets	- A to garbage
+; Sets  - HL BC to original values + string length
+LCDCopyString::
+    ldh a, [rSTAT]          ; \
+    and STATF_BUSY          ; | Wait for VRAM to be ready
+    jr nz, LCDCopyString    ; /
+	ld a, [bc]
+    and a
+    ret z
+	ld [hli], a
+	inc bc
+	jr LCDCopyString

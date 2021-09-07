@@ -75,10 +75,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld de, STARTOF("TitleScreenBottomTiles")
     ld bc, SIZEOF("TitleScreenBottomTiles")
     call memcpy
-    rom_bank_switch BANK("MainMenuBottomTiles")
-    ld hl, MainMenuBottomTilesVRAM
-    ld de, STARTOF("MainMenuBottomTiles")
-    ld bc, SIZEOF("MainMenuBottomTiles")
+    rom_bank_switch BANK("FontTiles")
+    ld hl, MainMenuFontVRAM
+    ld de, STARTOF("FontTiles")
+    ld bc, SIZEOF("FontTiles")
     call memcpy
 
     ; Copy title screen tilemap into VRAM
@@ -166,15 +166,23 @@ TitleScreenLoop:
     ld [MainMenuState], a
     ld a, $FF       ; Disable LYC
     ldh [rLYC], a   ;
-    call waitVblank ; Tilemap copy must be split across 2 vblanks, not enough time in 1
-    rom_bank_switch BANK("MainMenuBottomTilemap")
-    ld hl, $9920
-    ld bc, STARTOF("MainMenuBottomTilemap")
-    ld a, 5
-    call ScreenTilemapCopy
-    call waitVblank
-    ld a, 4
-    call ScreenTilemapCopy
+    ld hl, $9920            ; \
+    ld bc, $9A33 - $9920    ; | Fill bottom half of screen with blank tiles
+    ld d, $CC               ; | 
+    call LCDMemset          ; /
+    ld hl, $9968                ; Copy menu option strings
+    ld bc, MM_PlayString        
+    call LCDCopyString
+    ld hl, $9987
+    ld bc, MM_GarageString
+    call LCDCopyString
+    ld hl, $99A6
+    ld bc, MM_SettingsString
+    call LCDCopyString
+    ld hl, $99C8
+    ld bc, MM_InfoString
+    call LCDCopyString
+
     ld hl, VblankVectorRAM          ; \
     ld a, LOW(MainMenuVBlank)       ; |
     ld [hli], a                     ; | Setup main menu Vblank

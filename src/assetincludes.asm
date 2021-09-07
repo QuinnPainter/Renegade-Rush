@@ -43,5 +43,4 @@ ENDM
     compact_incbin TitleTilemap, "res/title.tilemap", ROMX
     compact_incbin TitleScreenBottomTiles, "res/titleScreenBottom.2bpp", ROMX
     compact_incbin TitleScreenBottomTilemap, "res/titleScreenBottom.tilemap", ROMX
-    compact_incbin MainMenuBottomTiles, "res/mainMenuBottom.2bpp", ROMX
-    compact_incbin MainMenuBottomTilemap, "res/mainMenuBottom.tilemap", ROMX
+    compact_incbin FontTiles, "res/font.2bpp", ROMX
