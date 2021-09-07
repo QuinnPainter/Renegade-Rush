@@ -4,6 +4,50 @@ INCLUDE "macros.inc"
 ; All functions are in different sections so they can cram into small gaps
 ; such as the gaps between interrupt vectors
 
+SECTION "Memset", ROM0
+
+; Fills a block of memory with a value
+; Input - HL = Destination address
+; Input - BC = Number of bytes
+; Input - A	 = Value to fill with
+; Sets	- BC to 0
+; Sets	- HL to end of block
+memset::
+    inc b
+    inc c
+    jr .decCounter
+.loadByte:
+    ld [hli], a
+.decCounter:
+    dec c
+    jr nz, .loadByte
+    dec b
+    jr nz, .loadByte
+    ret
+
+SECTION "Memcpy", ROM0
+
+; Copies a block of data
+; Input - HL = Destination address
+; Input - DE = Start address
+; Input - BC = Data length
+; Sets  - A to garbage
+; Sets	- BC to 0
+; Sets	- HL DE to their initial values + BC
+memcpy::
+    dec bc
+    inc b
+    inc c
+.loop:
+    ld a, [de]
+    ld [hli], a
+    inc de
+    dec c
+    jr nz, .loop
+    dec b
+    jr nz, .loop
+    ret
+
 SECTION "Shift Left", ROM0
 
 ; Shift B left by a given amount

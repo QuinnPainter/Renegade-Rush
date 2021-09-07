@@ -16,32 +16,32 @@ StartGame::
     ld hl, RoadTilesVRAM
     ld de, STARTOF("RoadTiles")
     ld bc, SIZEOF("RoadTiles")
-    rst memcpy
+    call memcpy
     rom_bank_switch BANK("PlayerTiles")
     ld hl, PlayerTilesVRAM
     ld de, STARTOF("PlayerTiles")
     ld bc, SIZEOF("PlayerTiles")
-    rst memcpy
+    call memcpy
     rom_bank_switch BANK("PoliceCarTiles")
     ld hl, PoliceCarTilesVRAM
     ld de, STARTOF("PoliceCarTiles")
     ld bc, SIZEOF("PoliceCarTiles")
-    rst memcpy
+    call memcpy
     rom_bank_switch BANK("Explosion1Tiles")
     ld hl, Explosion1TilesVRAM
     ld de, STARTOF("Explosion1Tiles")
     ld bc, SIZEOF("Explosion1Tiles")
-    rst memcpy
+    call memcpy
     rom_bank_switch BANK("StatusBar")
     ld hl, StatusBarVRAM
     ld de, STARTOF("StatusBar")
     ld bc, SIZEOF("StatusBar")
-    rst memcpy
+    call memcpy
     rom_bank_switch BANK("MenuBarTiles")
     ld hl, MenuBarTilesVRAM
     ld de, STARTOF("MenuBarTiles")
     ld bc, SIZEOF("MenuBarTiles")
-    rst memcpy
+    call memcpy
 
     ; Init menu bar tilemaps
     call genMenuBarTilemaps

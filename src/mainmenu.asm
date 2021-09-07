@@ -24,8 +24,8 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ; Initialize VRAM to 0
 	ld hl, $8000
 	ld bc, $A000 - $8000
-	ld d, 0
-	rst memset
+	xor a
+	call memset
     ; Initialize sprite buffer to 0
 	ld hl, STARTOF("SpriteBuffer")
 	ld c, SIZEOF("SpriteBuffer")
@@ -69,17 +69,17 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld hl, TitleTilesVRAM
     ld de, STARTOF("TitleTiles")
     ld bc, SIZEOF("TitleTiles")
-    rst memcpy
+    call memcpy
     rom_bank_switch BANK("TitleScreenBottomTiles")
     ld hl, TitleBottomTilesVRAM
     ld de, STARTOF("TitleScreenBottomTiles")
     ld bc, SIZEOF("TitleScreenBottomTiles")
-    rst memcpy
+    call memcpy
     rom_bank_switch BANK("MainMenuBottomTiles")
     ld hl, MainMenuBottomTilesVRAM
     ld de, STARTOF("MainMenuBottomTiles")
     ld bc, SIZEOF("MainMenuBottomTiles")
-    rst memcpy
+    call memcpy
 
     ; Copy title screen tilemap into VRAM
     rom_bank_switch BANK("TitleTilemap")

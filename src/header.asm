@@ -2,24 +2,8 @@ INCLUDE "macros.inc"
 
 ; rst vectors
 ; Used for fast, small, frequently used functions, since "rst" is slightly faster than "call"
-; Can just substitute "call" for "rst", like "rst memset"
+; Can just substitute "call" for "rst", like "rst memsetFast"
 SECTION "rst00",ROM0[$00]
-; Fills a block of memory with a value
-; Input - HL = Destination address
-; Input - BC = Number of bytes
-; Input - D	 = Value to fill with
-; Sets	- A B C to 0
-; Sets	- H L to garbage
-memset::
-	ld [hl], d
-	inc hl
-	dec bc
-	ld a, b
-	or c
-	jr nz, memset
-	ret
-
-SECTION "rst08",ROM0[$08]
 ; Fills a block of memory with a value
 ; Faster than Memset, but can only set max 256 bytes
 ; Input - HL = Destination address
@@ -33,26 +17,7 @@ memsetFast::
 	jr nz, memsetFast
 	ret
 
-SECTION "rst10",ROM0[$10]
-; Copies a block of data
-; Input - HL = Destination address
-; Input - DE = Start address
-; Input - BC = Data length
-; Sets	- A B C to 0
-; Sets	- H L D E to garbage
-memcpy::
-	ld a, [de] ; Grab 1 byte from the source
-	ld [hli], a ; Place it at the destination, incrementing hl
-	inc de ; Move to next byte
-	dec bc ; Decrement count
-	ld a, b ; Check if count is 0, since `dec bc` doesn't update flags
-	or c
-	jr nz, memcpy
-	ret
-	
-; SECTION "rst18",ROM0[$18] ; memcpy is too big, so rst18 is sacrificed to make room
-
-SECTION "rst20",ROM0[$20]
+SECTION "rst08",ROM0[$08]
 ; Copies a block of data with max size 256
 ; Input - HL = Destination address
 ; Input - DE = Start address
@@ -67,7 +32,7 @@ memcpyFast::
 	jr nz, memcpyFast ; c3/2 b2
 	ret ; total = 10 cycles per byte
 
-SECTION "rst28",ROM0[$28]
+SECTION "rst10",ROM0[$10]
 ; Copies a block of data with max size 256, and adds a number to each byte
 ; Input - HL = Destination address
 ; Input - DE = Start address
@@ -85,6 +50,9 @@ memcpyFastOffset::
 	ret
 
 ; May as well remove unused rsts so that space can be used for other stuff
+;SECTION "rst18",ROM0[$18]
+;SECTION "rst20",ROM0[$20]
+;SECTION "rst28",ROM0[$28]
 ;SECTION "rst30",ROM0[$30]
 ;SECTION "rst38",ROM0[$38]
 
