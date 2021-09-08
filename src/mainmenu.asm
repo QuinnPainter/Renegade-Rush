@@ -41,13 +41,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     call DMARoutineHRAM
 
     ; Init input
+    ld a, PADF_START    ; act as if start is already pressed, so holding start when console boots
+    ld [curButtons], a  ; doesn't go straight into the menu (this helps with random seeding)
     xor a
-    ld [curButtons], a
     ld [newButtons], a
-
-    ; TEMP : seed random
-    ld hl, $9574;$38
-    call seedRandom
 
     ; Init display registers
 	ld a, %11100100 ; Init background palette
@@ -154,6 +151,8 @@ TitleScreenLoop:
     ld [hli], a ; MainMenuState
     ld a, START_FAST_FLASH_TIME
     ld [hl], a ; MainMenuStateTimer
+    ldh a, [rDIV]       ; Seed first byte of the RNG with DIV
+    ld [RandState], a   ; when "start" is pressed at title screen
 .startNotPressed:
 
     ; Update the state timer to go into the main menu
@@ -285,6 +284,8 @@ MainMenuLoop:
     jp AboutPageLoop
 
 .playSelected:
+    ldh a, [rDIV]           ; Seed second byte of the RNG with DIV
+    ld [RandState + 1], a   ; when "Play" is selected
     jp StartGame
 .garageSelected: ; todo
 .settingsSelected:
