@@ -9,9 +9,10 @@ DEF MENU_TOP_ITEM_POS EQU 88 ; Y position of the top item in the main menu
 SECTION "MainMenuVars", WRAM0
 PressStartFlashState: DS 1 ; 0 = Off  1 = On
 PressStartFlashCtr: DS 1
-MainMenuState: DS 1 ; 0 = Title Screen, 1 = Title Screen after Start press, 2 = Main Menu
+MainMenuState: DS 1 ; 0 = Title Screen, 1 = Title Screen after Start press, 0 = Main Menu
 MainMenuStateTimer: DS 1 ; Used to count frames for stuff relating to the main menu state
 menuOptionSelected: DS 1 ; Which item is selected in the main menu (0-3)
+selectionBarEnabled: DS 1
 
 SECTION "MainMenuCode", ROM0
 
@@ -162,12 +163,12 @@ TitleScreenLoop:
     ld hl, MainMenuStateTimer
     dec [hl]
     jr nz, .noUpdateStateTimer
-    ld a, 2 ; Timer has run out, time to transition to the menu
+    xor a ; Timer has run out, time to transition to the menu
     ld [MainMenuState], a
     ld a, $FF       ; Disable LYC
     ldh [rLYC], a   ;
     ld hl, $9920            ; \
-    ld bc, $9A33 - $9920    ; | Fill bottom half of screen with blank tiles
+    ld bc, $9A34 - $9920    ; | Fill bottom half of screen with blank tiles
     ld d, $CC               ; | 
     call LCDMemset          ; /
     ld hl, $9968                ; Copy menu option strings
@@ -191,6 +192,8 @@ TitleScreenLoop:
     xor a                           ; \
     ld [menuOptionSelected], a      ; |
     ld [SelBarTopLine + 1], a       ; | Start with top option (Play) selected
+    inc a                           ; |
+    ld [selectionBarEnabled], a     ; |
     ld a, MENU_TOP_ITEM_POS         ; |
     ld [SelBarTopLine], a           ; |
     ld [SelBarTargetPos], a         ; /
@@ -257,7 +260,30 @@ MainMenuLoop:
     dec a
     jr z, .settingsSelected
     ; "About" is selected
-    ; todo
+    ld hl, $9C00            ; \
+    ld bc, $9E34 - $9C00    ; | Fill secondary BG map with blank tiles
+    ld d, $CC               ; | 
+    call LCDMemset          ; /
+    ld hl, $9C00
+    ld de, $0020
+    ld bc, INFO_Line1
+.drawInfoLoop:
+    call LCDCopyString
+    ld a, $E0               ; \
+    and l                   ; | return to beginning of line
+    ld l, a                 ; /
+    add hl, de              ; go to next line
+    inc bc                  ; progress forward from the end-string character
+    ld a, [bc]              ; value of 1 indicates the string block should end
+    cp 1                    ;
+    jr nz, .drawInfoLoop
+    ldh a, [rLCDC]          ; \
+    or a, LCDCF_BG9C00      ; | switch to secondary BG map
+    ldh [rLCDC], a          ; /
+    xor a
+    ld [selectionBarEnabled], a
+    jp AboutPageLoop
+
 .playSelected:
     jp StartGame
 .garageSelected: ; todo
@@ -295,10 +321,31 @@ MainMenuLoop:
     call selectionBarUpdate
 
     call waitVblank
-    jr MainMenuLoop
+    jp MainMenuLoop
 
 MainMenuVBlank:
+    ld a, [selectionBarEnabled]
+    and a
+    jp z, VblankEnd
     call selectionBarSetupTopInt
     jp VblankEnd
 
 
+AboutPageLoop:
+    call readInput
+
+    ld a, [newButtons]
+    and PADF_B
+    jr z, .noBPress
+    ldh a, [rLCDC]          ; \
+    and a, ~LCDCF_BG9C00    ; | switch to primary BG map
+    ldh [rLCDC], a          ; /
+    ld a, 1
+    ld [selectionBarEnabled], a
+    jp MainMenuLoop
+.noBPress:
+
+    call updateAudio
+
+    call waitVblank
+    jr AboutPageLoop
