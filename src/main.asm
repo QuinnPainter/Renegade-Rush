@@ -27,6 +27,11 @@ StartGame::
     ld de, STARTOF("PoliceCarTiles")
     ld bc, SIZEOF("PoliceCarTiles")
     call memcpy
+    rom_bank_switch BANK("HelicopterTiles")
+    ld hl, HelicopterTilesVRAM
+    ld de, STARTOF("HelicopterTiles")
+    ld bc, SIZEOF("HelicopterTiles")
+    call memcpy
     rom_bank_switch BANK("Explosion1Tiles")
     ld hl, Explosion1TilesVRAM
     ld de, STARTOF("Explosion1Tiles")
@@ -52,6 +57,7 @@ StartGame::
     call initRoadGen
     call initPlayer
     call initEnemyCars
+    call initHelicopter
 
     xor a
     ld [IsGamePaused], a
@@ -119,6 +125,7 @@ GameLoop:
     call updateRoad
     call updatePlayer
     call updateEnemyCars
+    call updateHelicopter
     call updateStatusBar
 .paused:
     call updateAudio

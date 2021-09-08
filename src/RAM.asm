@@ -7,6 +7,8 @@ PlayerTilesVRAM::
     DS 12 * 16 ; 12 tiles * 16 bytes per tile
 PoliceCarTilesVRAM::
     DS 18 * 16 ; 18 tiles * 16 bytes per tile
+HelicopterTilesVRAM::
+    DS 36 * 16
 Explosion1TilesVRAM::
     DS 20 * 16
 
