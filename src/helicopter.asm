@@ -32,6 +32,7 @@ initHelicopter::
     ret
 
 updateHelicopter::
+    ; Update animation
     ld hl, HeliAnimationFrameCtr
     dec [hl]
     jr nz, .noUpdateAnim
@@ -56,7 +57,6 @@ updateHelicopter::
 .rotorCel1:
     xor a
 .doneFindCel:
-
     sla a ; a = AnimationCel * 2
     ld b, a
     sla a ; a = AnimationCel * 4
@@ -76,6 +76,7 @@ updateHelicopter::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 5)) + OAMA_TILEID], a
 .noUpdateAnim:
 
+    ; Update sprite positions
     ld a, [HelicopterX]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 0)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 3)) + OAMA_X], a
