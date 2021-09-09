@@ -279,38 +279,22 @@ updatePlayer::
 .ads:
 
     ; Enforce minimum road speed
-    ld hl, PlayerMinRoadSpeed
-    ld a, [CurrentRoadScrollSpeed]
-    cp [hl] ; C: Set if (CurrentRoadScrollSpeed < PlayerMinRoadSpeed)
-    inc hl
-    jr nc, .scrollSpeedAboveMin
-    jr nz, .scrollSpeedBelowMin
-    ld a, [CurrentRoadScrollSpeed + 1]
-    cp [hl]
-    jr nc, .scrollSpeedAboveMin
-.scrollSpeedBelowMin:
-    ld a, [hld]
-    ld [CurrentRoadScrollSpeed + 1], a
-    ld a, [hl]
-    ld [CurrentRoadScrollSpeed], a
-.scrollSpeedAboveMin:
+    cp_16 PlayerMinRoadSpeed, CurrentRoadScrollSpeed
+    jr c, .speedAboveMin
+    ld a, [PlayerMinRoadSpeed]
+    ld [hli], a ; HL = CurrentRoadScrollSpeed from cp_16
+    ld a, [PlayerMinRoadSpeed + 1]
+    ld [hl], a
+.speedAboveMin:
 
     ; Enforce maximum road speed (comment this out to engage hyperspeed!)
-    ld hl, PlayerMaxRoadSpeed
-    ld a, [CurrentRoadScrollSpeed]
-    cp [hl] ; C: Set if (CurrentRoadScrollSpeed < PlayerMaxRoadSpeed)
-    inc hl
-    jr c, .scrollSpeedBelowMax
-    jr nz, .scrollSpeedAboveMax
-    ld a, [CurrentRoadScrollSpeed + 1]
-    cp [hl]
-    jr c, .scrollSpeedBelowMax
-.scrollSpeedAboveMax:
-    ld a, [hld]
-    ld [CurrentRoadScrollSpeed + 1], a
-    ld a, [hl]
-    ld [CurrentRoadScrollSpeed], a
-.scrollSpeedBelowMax:
+    cp_16 PlayerMaxRoadSpeed, CurrentRoadScrollSpeed
+    jr nc, .speedBelowMax
+    ld a, [PlayerMaxRoadSpeed]
+    ld [hli], a ; HL = CurrentRoadScrollSpeed from cp_16
+    ld a, [PlayerMaxRoadSpeed + 1]
+    ld [hl], a
+.speedBelowMax:
 
     ld a, c
     and a ; get flags

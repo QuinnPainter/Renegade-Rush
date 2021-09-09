@@ -43,6 +43,22 @@ MACRO sub_16
     ld [\3], a
 ENDM
 
+; Compare two 16 bit numbers in RAM
+; \1 = Number 1
+; \2 = Number 2
+; Sets - A to garbage
+; Sets - HL = \2
+; Sets - Z if high bytes are equal (high byte result is 0)
+; Sets - C if underflow occurs (\1 < \2)
+MACRO cp_16
+    ld hl, \2 + 1
+    ld a, [\1 + 1]
+    sub [hl]
+    dec hl
+    ld a, [\1]
+    sbc [hl]
+ENDM
+
 ; Safe version of "inc hl" that doesn't have the OAM bug
 MACRO inc_hl
     push bc

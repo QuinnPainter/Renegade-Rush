@@ -54,9 +54,8 @@ MACRO init_enemy_car
     ld [\1 + EnemyCarAcceleration + 1], a
     xor a
     ld [\1 + EnemyCarActive], a
-    ld a, $1
     ld [\1 + EnemyCarMinRoadSpeed], a
-    xor a
+    ld a, $BB
     ld [\1 + EnemyCarMinRoadSpeed + 1], a
     ld a, $7
     ld [\1 + EnemyCarMaxRoadSpeed], a
@@ -282,37 +281,21 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 :
 
     ; Enforce minimum road speed
-    ld hl, \1 + EnemyCarMinRoadSpeed
-    ld a, [\1 + EnemyCarRoadSpeed]
-    cp [hl] ; C: Set if (EnemyCarRoadSpeed < EnemyCarMinRoadSpeed)
-    inc hl
-    jr nc, .speedAboveMin\@
-    jr nz, .speedBelowMin\@
-    ld a, [\1 + EnemyCarRoadSpeed + 1]
-    cp [hl]
-    jr nc, .speedAboveMin\@
-.speedBelowMin\@:
-    ld a, [hld]
-    ld [\1 + EnemyCarRoadSpeed + 1], a
-    ld a, [hl]
-    ld [\1 + EnemyCarRoadSpeed], a
+    cp_16 \1 + EnemyCarMinRoadSpeed, \1 + EnemyCarRoadSpeed
+    jr c, .speedAboveMin\@
+    ld a, [\1 + EnemyCarMinRoadSpeed]
+    ld [hli], a ; HL = EnemyCarRoadSpeed from cp_16
+    ld a, [\1 + EnemyCarMinRoadSpeed + 1]
+    ld [hl], a
 .speedAboveMin\@:
 
     ; Enforce maximum road speed
-    ld hl, \1 + EnemyCarMaxRoadSpeed
-    ld a, [\1 + EnemyCarRoadSpeed]
-    cp [hl] ; C: Set if (EnemyCarRoadSpeed < EnemyCarMaxRoadSpeed)
-    inc hl
-    jr c, .speedBelowMax\@
-    jr nz, .speedAboveMax\@
-    ld a, [\1 + EnemyCarRoadSpeed + 1]
-    cp [hl]
-    jr c, .speedBelowMax\@
-.speedAboveMax\@:
-    ld a, [hld]
-    ld [\1 + EnemyCarRoadSpeed + 1], a
-    ld a, [hl]
-    ld [\1 + EnemyCarRoadSpeed], a
+    cp_16 \1 + EnemyCarMaxRoadSpeed, \1 + EnemyCarRoadSpeed
+    jr nc, .speedBelowMax\@
+    ld a, [\1 + EnemyCarMaxRoadSpeed]
+    ld [hli], a ; HL = EnemyCarRoadSpeed from cp_16
+    ld a, [\1 + EnemyCarMaxRoadSpeed + 1]
+    ld [hl], a
 .speedBelowMax\@:
 
 .skipAI\@
