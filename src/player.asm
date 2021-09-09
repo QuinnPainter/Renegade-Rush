@@ -17,6 +17,8 @@ DEF PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
 DEF KNOCKBACK_SPEED_CHANGE EQU $0090 ; How much each knockback changes the road speed by. 8.8 fixed point
 DEF BASE_KNOCKBACK_SLOWDOWN EQU 30
 
+DEF STARTING_ROAD_SPEED EQU $2CC ; Road speed when game starts or player respawns.
+
 SECTION "PlayerVariables", WRAM0
 PlayerX:: DS 2 ; Coordinates of the top-left of the player. 8.8 fixed point.
 PlayerY:: DS 2
@@ -47,9 +49,9 @@ initPlayer::
     ld [PlayerY], a
     ld a, $1
     ld [PlayerXSpeed], a
-    ld a, $2
+    ld a, HIGH(STARTING_ROAD_SPEED)
     ld [CurrentRoadScrollSpeed], a
-    ld a, $CC
+    ld a, LOW(STARTING_ROAD_SPEED)
     ld [CurrentRoadScrollSpeed + 1], a
     ld a, $1
     ld [PlayerMinRoadSpeed], a
@@ -184,6 +186,10 @@ updatePlayer::
     ld [hli], a ;CurrentKnockbackSpeedX + 1 ; |
     ld [hli], a ;CurrentKnockbackSpeedY     ; |
     ld [hl], a  ;CurrentKnockbackSpeedY + 1 ; /
+    ld a, HIGH(STARTING_ROAD_SPEED)
+    ld [CurrentRoadScrollSpeed], a
+    ld a, LOW(STARTING_ROAD_SPEED)
+    ld [CurrentRoadScrollSpeed + 1], a
 
 .carActive:
     ; Decrement invincibility timer if necessary
