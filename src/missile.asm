@@ -89,6 +89,13 @@ updateMissile:
     sbc b                                   ; |
     ld [hl], a                              ; /
 .doneProcessMove:
+    cp 200                                  ; \
+    jr c, .notOffScreen                     ; |
+    xor a                                   ; |
+    ld l, LOW(Missile1Vars) + MissileState  ; | deactivate missile if it went offscreen
+    ld [hl], a                              ; |
+    ret                                     ; |
+.notOffScreen:                              ; /
 
     ; Update speed
     ld l, LOW(Missile1Vars) + MissileYSpeed + 1 ; \
@@ -150,7 +157,7 @@ firePlayerMissile::
     ld a, [PlayerY]                         ; | MissileY = PlayerY - 12
     sub 10                                  ; |
     ld [hli], a                             ; /
-    xor a                                   ; \ 
+    xor a                                   ; \
     ld [hli], a                             ; | MissileY low byte = 0
     ld [hli], a                             ; | MissileYSpeed = 0
     ld [hli], a                             ; /
