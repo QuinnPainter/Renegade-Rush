@@ -4,7 +4,7 @@ INCLUDE "spriteallocation.inc"
 
 DEF MISSILE_TILE_OFFSET EQUS "((MissileTilesVRAM - $8000) / 16)"
 
-DEF MISSILE_ACCELERATION EQU $0020 ; How fast missile accelerates, in pixels per frame per frame. 8.8
+DEF MISSILE_ACCELERATION EQU $0026 ; How fast missile accelerates, in pixels per frame per frame. 8.8
 DEF MISSILE_ANIM_SPEED EQU 4 ; Number of frames between the animation cels.
 
 RSRESET
@@ -55,7 +55,8 @@ initMissile:
     ld b, HIGH(SpriteBuffer)    ; Set sprite Y position to 0 (offscreen)
     ld [bc], a                  ;
     ld [hli], a                 ; Set MissileAnimState to 0
-    ld [hli], a                 ; Set MissileAnimFrameCtr to 0
+    inc a
+    ld [hli], a                 ; Set MissileAnimFrameCtr to 1
     ret
 
 ; Updates a single missile
@@ -142,10 +143,12 @@ firePlayerMissile::
     ld a, %11                               ; | Set state to Active and Moving Up
     ld [hl], a                              ; /
     ld l, LOW(Missile1Vars) + MissileX      ; \
-    ld a, [PlayerX]                         ; | MissileX = PlayerX
+    ld a, [PlayerX]                         ; | MissileX = (PlayerX + offset) so missile is centered
+    add (16 / 2) - (8 / 2)                  ; | PlayerWidth / 2 - MissileWidth / 2
     ld [hli], a                             ; /
     inc l                                   ; \
-    ld a, [PlayerY]                         ; | MissileY = PlayerY
+    ld a, [PlayerY]                         ; | MissileY = PlayerY - 12
+    sub 10                                  ; |
     ld [hli], a                             ; /
     xor a                                   ; \ 
     ld [hli], a                             ; | MissileY low byte = 0

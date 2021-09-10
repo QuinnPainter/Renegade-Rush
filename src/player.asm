@@ -255,27 +255,6 @@ updatePlayer::
 .rightNotPressed:
 .controlsDisabled:
 
-    ld a, [newButtons] ; TEMP - for testing charge bars
-    and PADF_A
-    jr z, .asd
-    ;ld hl, MissileChargeValue
-    ;ld a, [hl]
-    ;scf
-    ;rla
-    ;ld [hl], a
-    call firePlayerMissile
-.asd:
-
-    ld a, [newButtons]
-    and PADF_B
-    jr z, .ads
-    ld hl, SpecialChargeValue
-    ld a, [hl]
-    scf
-    rla
-    ld [hl], a
-.ads:
-
     ; Enforce minimum road speed
     cp_16 PlayerMinRoadSpeed, CurrentRoadScrollSpeed
     jr c, .speedAboveMin
@@ -423,6 +402,27 @@ updatePlayer::
     add 8
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_X], a
+
+    ld a, [newButtons] ; TEMP - for testing charge bars
+    and PADF_A
+    jr z, .asd
+    ;ld hl, MissileChargeValue
+    ;ld a, [hl]
+    ;scf
+    ;rla
+    ;ld [hl], a
+    call firePlayerMissile
+.asd:
+
+    ld a, [newButtons]
+    and PADF_B
+    jr z, .ads
+    ld hl, SpecialChargeValue
+    ld a, [hl]
+    scf
+    rla
+    ld [hl], a
+.ads:
 
     ret
 
