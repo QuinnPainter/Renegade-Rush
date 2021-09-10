@@ -32,6 +32,9 @@ ENDM
 ; Helicopter
     compact_incbin HelicopterTiles, "res/helicopter.2bpp", ROMX
 
+; Missile
+    compact_incbin MissileTiles, "res/missile.2bpp", ROMX
+
 ; Explosions
     compact_incbin Explosion1Tiles, "res/explosion1.2bpp", ROMX
 

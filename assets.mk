@@ -20,12 +20,13 @@ else
 	MKDIR_P := -mkdir
 endif
 
-all: road player policecar gameui explosion title font helicopter
+all: road player policecar gameui explosion title font helicopter missile
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
 player: $(RESDIR)/player.2bpp
 policecar: $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecarcol.bin
 helicopter: $(RESDIR)/helicopter.2bpp
+missile: $(RESDIR)/missile.2bpp
 gameui: $(RESDIR)/statusbar.2bpp $(RESDIR)/curvebar.tilemap $(RESDIR)/menubar.2bpp $(RESDIR)/menubar.tilemap
 explosion: $(RESDIR)/explosion1.2bpp
 title: $(RESDIR)/title.2bpp $(RESDIR)/title.tilemap $(RESDIR)/titleScreenBottom.2bpp $(RESDIR)/titleScreenBottom.tilemap
@@ -50,6 +51,9 @@ $(RESDIR)/policecarcol.bin: | $(RESDIR)
 
 $(RESDIR)/helicopter.2bpp: $(ASSETSDIR)/helicopter.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/helicopter.2bpp $(ASSETSDIR)/helicopter.png
+
+$(RESDIR)/missile.2bpp: $(ASSETSDIR)/missile.png | $(RESDIR)
+	$(GFX) -h -o $(RESDIR)/missile.2bpp $(ASSETSDIR)/missile.png
 
 $(RESDIR)/roadcollision.bin: $(RESDIR)/lines.tilemap | $(RESDIR)
 	$(ROADCOLGEN) $(RESDIR)/roadcollision.bin $(RESDIR)/lines.tilemap

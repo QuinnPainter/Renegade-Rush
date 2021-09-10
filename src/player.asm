@@ -258,14 +258,12 @@ updatePlayer::
     ld a, [newButtons] ; TEMP - for testing charge bars
     and PADF_A
     jr z, .asd
-    ;ld a, [LivesValue]
-    ;dec a
-    ;ld [LivesValue], a
-    ld hl, MissileChargeValue
-    ld a, [hl]
-    scf
-    rla
-    ld [hl], a
+    ;ld hl, MissileChargeValue
+    ;ld a, [hl]
+    ;scf
+    ;rla
+    ;ld [hl], a
+    call firePlayerMissile
 .asd:
 
     ld a, [newButtons]

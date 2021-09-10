@@ -32,6 +32,11 @@ StartGame::
     ld de, STARTOF("HelicopterTiles")
     ld bc, SIZEOF("HelicopterTiles")
     call memcpy
+    rom_bank_switch BANK("MissileTiles")
+    ld hl, MissileTilesVRAM
+    ld de, STARTOF("MissileTiles")
+    ld bc, SIZEOF("MissileTiles")
+    call memcpy
     rom_bank_switch BANK("Explosion1Tiles")
     ld hl, Explosion1TilesVRAM
     ld de, STARTOF("Explosion1Tiles")
@@ -58,6 +63,7 @@ StartGame::
     call initPlayer
     call initEnemyCars
     call initHelicopter
+    call initMissiles
 
     xor a
     ld [IsGamePaused], a
@@ -126,6 +132,7 @@ GameLoop:
     call updatePlayer
     call updateEnemyCars
     call updateHelicopter
+    call updateMissiles
     call updateStatusBar
 .paused:
     call updateAudio
