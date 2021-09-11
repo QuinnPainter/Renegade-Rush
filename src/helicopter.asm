@@ -35,6 +35,12 @@ initHelicopter::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 3)) + OAMA_FLAGS], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 4)) + OAMA_FLAGS], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 5)) + OAMA_FLAGS], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 0)) + OAMA_Y], a ; Put all heli sprites offscreen
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 1)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 3)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 4)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 5)) + OAMA_Y], a
     ld [HeliState], a
     inc a
     ld [HeliAnimationCel], a

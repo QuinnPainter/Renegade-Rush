@@ -412,6 +412,7 @@ updatePlayer::
     ;rla
     ;ld [hl], a
     call firePlayerMissile
+    play_sound_effect FX_PlayerMissile
 .asd:
 
     ld a, [newButtons]
