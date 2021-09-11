@@ -1,6 +1,7 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 INCLUDE "spriteallocation.inc"
+INCLUDE "collision.inc"
 
 DEF HELI_TILE_OFFSET EQUS "((HelicopterTilesVRAM - $8000) / 16)"
 
@@ -193,4 +194,24 @@ updateHelicopter::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 3)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 4)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 5)) + OAMA_Y], a
+
+    ; Update entry in object collision array
+    ld hl, ObjCollisionArray + HELICOPTER_COLLISION
+    ld a, %00000100 ; Collision Layer Flags
+    ld [hli], a
+    ld a, [HelicopterY] ; Top Y
+    ld [hli], a
+    add 32 ; Bottom Y - heli is 32 px tall
+    ld [hli], a
+    ld a, [HelicopterX] ; Left X
+    ld [hli], a
+    add 16 ; Right X - heli is 16 px wide
+    ld [hl], a
+
+    ; Check for collisions
+    ld a, HELICOPTER_COLLISION
+    call objCollisionCheck
+    and a
+    jr z, .noCol ; collision happened
+.noCol:
     ret

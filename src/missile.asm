@@ -1,6 +1,7 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 INCLUDE "spriteallocation.inc"
+INCLUDE "collision.inc"
 
 DEF MISSILE_TILE_OFFSET EQUS "((MissileTilesVRAM - $8000) / 16)"
 
@@ -15,6 +16,7 @@ DEF MissileState RB 1   ; Bit 0 [0 = Inactive, 1 = Active], Bit 1 [0 = Moving Do
 DEF MissileSprite RB 1  ; Low byte of the address in the SpriteBuffer.
 DEF MissileAnimState RB 1 ; 0 = Cel 1, FF = Cel 2
 DEF MissileAnimFrameCtr RB 1
+DEF MissileCollisionIndex RB 1 ; Index into the object collision array
 DEF sizeof_MissileVars RB 0
 
 SECTION "Missile1Vars", WRAM0, ALIGN[8]
@@ -29,9 +31,11 @@ SECTION "MissileCode", ROM0
 initMissiles::
     ld h, HIGH(Missile1Vars)
     ld c, LOW(sizeof_OAM_ATTRS * MISSILE_SPRITE_1)
+    ld d, MISSILE_COLLISION_1
     call initMissile
     ld h, HIGH(Missile2Vars)
     ld c, LOW(sizeof_OAM_ATTRS * MISSILE_SPRITE_2)
+    ld d, MISSILE_COLLISION_2
     call initMissile
     ret
 
@@ -46,6 +50,7 @@ updateMissiles::
 ; Initialises a single missile
 ; Input - H = High byte of missile state address
 ; Input - C = Low byte of sprite address
+; Input - D = Collision array index
 initMissile:
     ld l, LOW(Missile1Vars) + MissileState
     xor a
@@ -57,6 +62,7 @@ initMissile:
     ld [hli], a                 ; Set MissileAnimState to 0
     inc a
     ld [hli], a                 ; Set MissileAnimFrameCtr to 1
+    ld [hl], d                  ; Set MissileCollisionIndex
     ret
 
 ; Updates a single missile
@@ -94,7 +100,14 @@ updateMissile:
     xor a                                   ; |
     ld l, LOW(Missile1Vars) + MissileState  ; | deactivate missile if it went offscreen
     ld [hl], a                              ; |
-    ret                                     ; |
+    ld l, LOW(Missile1Vars) + MissileCollisionIndex ; \
+    ld a, [hl]                                      ; |
+    add LOW(ObjCollisionArray)                      ; |
+    ld c, a                                         ; | disable collision array entry
+    ld b, HIGH(ObjCollisionArray)                   ; |
+    xor a                                           ; |
+    ld [bc], a                                      ; /
+    jr .updateSprite                        ; |
 .notOffScreen:                              ; /
 
     ; Update speed
@@ -106,6 +119,50 @@ updateMissile:
     adc HIGH(MISSILE_ACCELERATION)              ; |
     ld [hl], a                                  ; /
 
+    ; Update entry in object collision array
+    ld b, h ; Use BC instead of HL for missile vars for now
+    ld l, LOW(Missile1Vars) + MissileCollisionIndex ; \
+    ld a, [hl]                                      ; |
+    add LOW(ObjCollisionArray)                      ; | HL = ObjCollisionArray pointer
+    ld l, a                                         ; |
+    ld h, HIGH(ObjCollisionArray)                   ; /
+    ld a, %00000100 ; Collision Layer Flags
+    ld [hli], a
+    ld c, LOW(Missile1Vars) + MissileY
+    ld a, [bc] ; Top Y
+    ld [hli], a
+    add 9 ; Bottom Y - missile is 9 px tall
+    ld [hli], a
+    ld c, LOW(Missile1Vars) + MissileX
+    ld a, [bc] ; Left X
+    ld [hli], a
+    add 8 ; Right X - missile is 8 px wide
+    ld [hl], a
+    ld h, b ; Put HL back as the missile var pointer
+
+    ; Check for collisions
+    ld l, LOW(Missile1Vars) + MissileCollisionIndex
+    ld a, [hl]
+    push hl
+    call objCollisionCheck
+    pop hl
+    and a
+    jr z, .noCol ; collision happened - missile was destroyed
+    ld l, LOW(Missile1Vars) + MissileState  ; \
+    xor a                                   ; | state = disabled
+    ld [hl], a                              ; /
+    ld l, LOW(Missile1Vars) + MissileY      ; move missile offscreen
+    ld [hl], a                              ;
+    ld l, LOW(Missile1Vars) + MissileCollisionIndex ; \
+    ld a, [hl]                                      ; |
+    add LOW(ObjCollisionArray)                      ; |
+    ld c, a                                         ; | disable collision array entry
+    ld b, HIGH(ObjCollisionArray)                   ; |
+    xor a                                           ; |
+    ld [bc], a                                      ; /
+.noCol:
+
+.updateSprite:
     ; Update sprite position
     ld l, LOW(Missile1Vars) + MissileSprite ; \
     ld c, [hl]                              ; | BC = Y Position attribute of MissileSprite
@@ -139,7 +196,6 @@ updateMissile:
     add 2
 .cel1:
     ld [bc], a
-
     ret
 
 ; Fire the player's missile
