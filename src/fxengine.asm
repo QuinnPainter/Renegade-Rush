@@ -95,10 +95,9 @@ UpdateFXEngine::
     inc b ; cp $FA
     jr z, .ch4Pan
     ; Set Register command
-    ld c, a     ; BC = Pointer to sound register
-    ld b, $FF   ;
+    ld c, a     ; C = Pointer to sound register
     ld a, [hli] ; A = Command Parameter
-    ld [bc], a  ; Set register
+    ld [$FF00+C], a ; Set register
     jr .doneProcessCommand
 .stopSound:
     xor a
