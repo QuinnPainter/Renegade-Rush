@@ -43,6 +43,7 @@ DEF sizeof_EnemyCarVars RB 0
 
 ; Init variables that only need to be initialised once, at the game start.
 ; Input - \1 = Car State Offset
+; Input - \2 = Sprite Offset
 MACRO init_enemy_car
     ld a, $2
     ld [\1 + EnemyCarXSpeed], a
@@ -61,6 +62,10 @@ MACRO init_enemy_car
     ld [\1 + EnemyCarMaxRoadSpeed], a
     xor a
     ld [\1 + EnemyCarMaxRoadSpeed + 1], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_Y], a ; make sure car is offscreen
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 3)) + OAMA_Y], a
 ENDM
 
 ; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
@@ -379,7 +384,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     process_knockback \1 + EnemyCarX, \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, \1 + ObjectLastTouched
 .noCol\@:
 
-    ; Move the 6 car sprites to (EnemyCarX, EnemyCarY)
+    ; Move the 4 car sprites to (EnemyCarX, EnemyCarY)
     ld a, [\1 + EnemyCarX]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 0)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (CAR_SPRITE\@ + 2)) + OAMA_X], a
@@ -405,9 +410,9 @@ EnemyCarState3: DS sizeof_EnemyCarVars
 SECTION "EnemyCarCode", ROM0
 
 initEnemyCars::
-    init_enemy_car EnemyCarState1
-    init_enemy_car EnemyCarState2
-    init_enemy_car EnemyCarState3
+    init_enemy_car EnemyCarState1, ENEMYCAR_SPRITE_1
+    init_enemy_car EnemyCarState2, ENEMYCAR_SPRITE_2
+    init_enemy_car EnemyCarState3, ENEMYCAR_SPRITE_3
     ret
 
 updateEnemyCars::

@@ -314,6 +314,7 @@ updatePlayer::
     ld a, [PlayerStateTimer]    ; \
     and a                       ; | UNLESS player is currently invincible
     jr nz, .noStartExplode      ; /
+.explodePlayer:
     ld a, 2
     ld [PlayerState], a ; set car state to "Exploding"
     xor a
@@ -350,6 +351,13 @@ updatePlayer::
     call objCollisionCheck
     and a
     jp z, .noCol ; collision happened - now apply knockback
+    bit 1, b ; check if collision was with enemy missile or car
+    jr z, .doKnockback
+    ld a, [PlayerStateTimer]    ; \
+    and a                       ; | don't explode if currently invincible
+    jp nz, .noCol               ; /
+    jr .explodePlayer
+.doKnockback:
     rom_bank_switch BANK("PoliceCarCollision")
     process_knockback PlayerX, PlayerY, PoliceCarCollision, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY
     ld a, [CurrentKnockbackSpeedY] ; change car speed based on KnockbackY
