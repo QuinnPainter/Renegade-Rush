@@ -81,14 +81,14 @@ FX_ShortCrash:: ; (CH4) Played for small "bumps" between cars
     DB SOUND_END
 
 FX_CarExplode:: ; (CH4) Played for car explosions
-    DB 0
+    DB 1
     CH4_VOLENV $D, AUDENV_DOWN, 2, 0
     CH4_POLYCT NOISE_WIDTH_15, $9, 0, 0
     CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
     DB SOUND_END
 
 FX_PlayerMissile:: ; (CH4) When player fires a missile
-    DB 0
+    DB 1
     CH4_VOLENV $C, AUDENV_DOWN, 3, 0
     CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
     CH4_POLYCT NOISE_WIDTH_15, $4, 0, 1
@@ -96,8 +96,17 @@ FX_PlayerMissile:: ; (CH4) When player fires a missile
     CH4_POLYCT NOISE_WIDTH_15, $6, 1, 0
     DB SOUND_END
 
+FX_EnemyMissile:: ; (CH4) When an enemy fires a missile
+    DB 1
+    CH4_VOLENV $C, AUDENV_DOWN, 3, 0
+    CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
+    CH4_POLYCT NOISE_WIDTH_15, $4, 0, 1
+    CH4_POLYCT NOISE_WIDTH_15, $5, 0, 1
+    CH4_POLYCT NOISE_WIDTH_15, $6, 2, 0
+    DB SOUND_END
+
 FX_HeliExplode:: ; (CH4) Played for helicopter explosions
-    DB 0
+    DB 2
     CH4_VOLENV $E, AUDENV_DOWN, 3, 0
     CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
     CH4_POLYCT NOISE_WIDTH_15, $4, 1, 1

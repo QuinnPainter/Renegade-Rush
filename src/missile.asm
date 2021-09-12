@@ -17,6 +17,7 @@ DEF MissileSprite RB 1  ; Low byte of the address in the SpriteBuffer.
 DEF MissileAnimState RB 1 ; 0 = Cel 1, FF = Cel 2
 DEF MissileAnimFrameCtr RB 1
 DEF MissileCollisionIndex RB 1 ; Index into the object collision array
+DEF MissileCollisionFlags RB 1 ; Object collision flags, determines which objects this missile will collide with
 DEF sizeof_MissileVars RB 0
 
 SECTION "Missile1Vars", WRAM0, ALIGN[8]
@@ -136,7 +137,8 @@ updateMissile:
     add LOW(ObjCollisionArray)                      ; | HL = ObjCollisionArray pointer
     ld l, a                                         ; |
     ld h, HIGH(ObjCollisionArray)                   ; /
-    ld a, %00000100 ; Collision Layer Flags
+    ld c, LOW(Missile1Vars) + MissileCollisionFlags
+    ld a, [bc] ; Collision Layer Flags
     ld [hli], a
     ld c, LOW(Missile1Vars) + MissileY
     ld a, [bc] ; Top Y
@@ -227,4 +229,40 @@ firePlayerMissile::
     inc c                                   ; |
     inc c                                   ; |
     ld [bc], a                              ; /
+    ld l, LOW(Missile1Vars) + MissileCollisionFlags ; \
+    ld a, %00000100                                 ; | Collision Flags = Collide with Enemies
+    ld [hl], a                                      ; /
+    ret
+
+; Fire an enemy missile
+; Will "dynamically" allocate any missile other than missile 1 (reserved for player)
+; If there aren't any missiles available, nothing will happen.
+; Input - B = Missile X
+; Input - C = Missile Y
+; Sets  - H L A to garbage
+fireEnemyMissile::
+    ld hl, Missile2Vars + MissileState      ; \
+    ld a, %01                               ; | Set state to Active and Moving Down
+    ld [hl], a                              ; /
+    ld l, LOW(Missile1Vars) + MissileX      ; \
+    ld a, b                                 ; | MissileX = B
+    ld [hli], a                             ; /
+    inc l                                   ; \
+    ld a, c                                 ; | MissileY = C
+    ld [hli], a                             ; /
+    xor a                                   ; \
+    ld [hli], a                             ; | MissileY low byte = 0
+    ld [hli], a                             ; | MissileYSpeed = 0
+    ld [hli], a                             ; /
+    ld l, LOW(Missile1Vars) + MissileSprite ; \
+    ld c, [hl]                              ; |
+    ld b, HIGH(SpriteBuffer)                ; |
+    inc c                                   ; | Sprite Attributes = Y Flip Enabled
+    inc c                                   ; |
+    inc c                                   ; |
+    ld a, OAMF_YFLIP                        ; |
+    ld [bc], a                              ; /
+    ld l, LOW(Missile1Vars) + MissileCollisionFlags ; \
+    ld a, %00000010                                 ; | Collision Flags = Collide with Player
+    ld [hl], a                                      ; /
     ret

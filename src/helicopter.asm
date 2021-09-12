@@ -20,6 +20,9 @@ DEF HELI_X_SPEED EQU $00BB      ; The side-to-side movement speed, in pixels per
 DEF HELI_BASE_Y EQU 17          ; The Y pos the helicopter is normally at.
 DEF HELI_SPAWN_Y_SPEED EQU $0063    ; The speed the helicopter moves in at when spawning, in pixels per frame. 8.8
 
+DEF HELI_MISSILE_FIRE_RATE EQU 120 ; Number of frames the heli will wait before readying a new missile
+DEF HELI_PLAYER_X_TOLERANCE EQU 2 ; When the middle of the heli is within this many pixels of the middle of player, fire missile
+
 DEF EXPLOSION_NUM_FRAMES EQU 3 ; Number of animation frames in the explosion animation.
 DEF EXPLOSION_ANIM_SPEED EQU 5 ; Number of game frames between each frame of animation.
 
@@ -30,6 +33,7 @@ HeliAnimationFrameCtr: DS 1
 HeliAnimationCel: DS 1
 HeliMovementState: DS 1 ; 0 - Moving Left, 1 = Moving Right
 HeliState: DS 1 ; 0 - Inactive, 1 = Spawning, 2 = Active, 3 = Exploding
+HeliMissileFrameCtr: DS 1 ; Frames left to wait before it can fire another missile (0 = missile is ready)
 
 SECTION "HelicopterCode", ROM0
 
@@ -159,6 +163,8 @@ updateHelicopter::
     ld [HelicopterY + 1], a
     ld a, -16 ; spawn 32 pixels off the top
     ld [HelicopterY], a
+    ld a, HELI_MISSILE_FIRE_RATE
+    ld [HeliMissileFrameCtr], a
 
 .StateActive:
     ; Update movement
@@ -192,6 +198,39 @@ updateHelicopter::
     ld [HelicopterX], a
     ld a, l
     ld [HelicopterX + 1], a
+
+    ; Check if we're ready to fire a missile
+    ld a, [HeliMissileFrameCtr]
+    and a
+    jr nz, .missileNotReady
+    ld a, [HelicopterX]                 ; \ 
+    add 12 + HELI_PLAYER_X_TOLERANCE    ; | B = HelicopterCenterX + XTolerance
+    ld b, a                             ; |
+    sub HELI_PLAYER_X_TOLERANCE * 2     ; | C = HelicopterCenterX - XTolerance
+    ld c, a                             ; /
+    ld a, [PlayerX]     ; \
+    add 8               ; | D = Player Center X
+    ld d, a             ; /
+    cp b ; c set if PlayerCenterX < HelicopterCenterX + XTolerance
+    jr nc, .doneHandleMissile
+    ld a, c
+    cp d ; c set if HelicopterCenterX - XTolerance < PlayerCenterX
+    jr nc, .doneHandleMissile
+    ; passed checks - fire missile!
+    ld a, [HelicopterX] ; \
+    add 12              ; |
+    ld b, a             ; | setup missile position inputs
+    ld a, [HelicopterY] ; |
+    ld c, a             ; /
+    call fireEnemyMissile
+    ld a, HELI_MISSILE_FIRE_RATE
+    ld [HeliMissileFrameCtr], a
+    play_sound_effect FX_EnemyMissile
+    jr .doneHandleMissile
+.missileNotReady:
+    ld hl, HeliMissileFrameCtr
+    dec [hl]
+.doneHandleMissile:
 
 .setAnimAndPos: ; Spawning state jumps here
     ; Update entry in object collision array
