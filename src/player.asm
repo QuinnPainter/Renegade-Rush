@@ -34,6 +34,10 @@ KnockbackThisFrame: DS 1 ; Was there any car knockback applied this frame? (0 or
 MoneyAmount:: DS 2 ; Your current money value. 2 byte BCD (little endian)
 SpecialChargeValue:: DS 1 ; Current special ability charge. Each bit represents a bar, so the bottom 6 bits.
 MissileChargeValue:: DS 1 ; Current missile charge.
+SpecialChargeSpeed: DS 1 ; Number of frames it takes for the bar to increase by 1.
+MissileChargeSpeed: DS 1
+SpecialChargeFrameCtr: DS 1 ; Number of frames left before bar increments.
+MissileChargeFrameCtr: DS 1
 LivesValue:: DS 1 ; The player's current lives. 0 to 4.
 PlayerState: DS 1 ; 0 = Waiting to respawn, 1 = Active, 2 = Exploding, 3 = Waiting to game over
 ExplosionAnimFrame: DS 1 ; Current frame of the explosion animation
@@ -83,6 +87,11 @@ initPlayer::
     ld [SpecialChargeValue], a
     ld [MissileChargeValue], a
     ld [PlayerStateTimer], a
+    ld a, 20
+    ld [SpecialChargeSpeed], a
+    ld [SpecialChargeFrameCtr], a
+    ld [MissileChargeSpeed], a
+    ld [MissileChargeFrameCtr], a
     ld a, 4
     ld [LivesValue], a
     ld a, 1
@@ -199,6 +208,26 @@ updatePlayer::
     dec a
     ld [PlayerStateTimer], a
 .noInvincibility:
+
+    ; Handle charge bar increasing
+    ld hl, MissileChargeFrameCtr ; Charge missile bar
+    dec [hl]
+    jr nz, .noIncreaseMissileCharge
+    ld a, [MissileChargeSpeed]  ; Reset counter
+    ld [hl], a                  ;
+    ld hl, MissileChargeValue
+    scf
+    rl [hl]
+.noIncreaseMissileCharge:
+    ld hl, SpecialChargeFrameCtr ; Charge special bar
+    dec [hl]
+    jr nz, .noIncreaseSpecialCharge
+    ld a, [SpecialChargeSpeed]  ; Reset counter
+    ld [hl], a                  ;
+    ld hl, SpecialChargeValue
+    scf
+    rl [hl]
+.noIncreaseSpecialCharge:
 
     xor a
     ld [KnockbackThisFrame], a
@@ -411,27 +440,24 @@ updatePlayer::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 1)) + OAMA_X], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (PLAYER_SPRITE + 3)) + OAMA_X], a
 
-    ld a, [newButtons] ; TEMP - for testing charge bars
+    ; Handle A or B inputs activating missile / special
+    ld a, [newButtons]
     and PADF_A
-    jr z, .asd
-    ;ld hl, MissileChargeValue
-    ;ld a, [hl]
-    ;scf
-    ;rla
-    ;ld [hl], a
+    jr z, .aNotPressed
+    ld hl, MissileChargeValue   ; \
+    bit 5, [hl]                 ; | only fire if bar is fully charged
+    jr z, .aNotPressed          ; /
+    xor a                       ; reset bar to empty
+    ld [hl], a                  ;
     call firePlayerMissile
     play_sound_effect FX_PlayerMissile
-.asd:
+.aNotPressed:
 
     ld a, [newButtons]
     and PADF_B
-    jr z, .ads
-    ld hl, SpecialChargeValue
-    ld a, [hl]
-    scf
-    rla
-    ld [hl], a
-.ads:
+    jr z, .bNotPressed
+    ; todo : special
+.bNotPressed:
 
     ret
 
