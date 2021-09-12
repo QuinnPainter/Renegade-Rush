@@ -71,8 +71,18 @@ updateMissile:
     ld l, LOW(Missile1Vars) + MissileState
     ld a, [hl]
     rra ; set carry to bit 0 (inactive / active)
-    ret nc ; missile is inactive
+    jr c, .missileActive
+    ; Missile is inactive
+    ld l, LOW(Missile1Vars) + MissileCollisionIndex ; \
+    ld a, [hl]                                      ; |
+    add LOW(ObjCollisionArray)                      ; |
+    ld c, a                                         ; | disable collision array entry
+    ld b, HIGH(ObjCollisionArray)                   ; |
+    xor a                                           ; |
+    ld [bc], a                                      ; /
+    ret
 
+.missileActive:
     ; Update position
     rra ; set carry to bit 1 (moving down / moving up)
     ld l, LOW(Missile1Vars) + MissileYSpeed ; \
@@ -153,13 +163,6 @@ updateMissile:
     ld [hl], a                              ; /
     ld l, LOW(Missile1Vars) + MissileY      ; move missile offscreen
     ld [hl], a                              ;
-    ld l, LOW(Missile1Vars) + MissileCollisionIndex ; \
-    ld a, [hl]                                      ; |
-    add LOW(ObjCollisionArray)                      ; |
-    ld c, a                                         ; | disable collision array entry
-    ld b, HIGH(ObjCollisionArray)                   ; |
-    xor a                                           ; |
-    ld [bc], a                                      ; /
 .noCol:
 
 .updateSprite:

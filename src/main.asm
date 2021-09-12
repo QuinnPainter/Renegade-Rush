@@ -32,6 +32,11 @@ StartGame::
     ld de, STARTOF("HelicopterTiles")
     ld bc, SIZEOF("HelicopterTiles")
     call memcpy
+    rom_bank_switch BANK("HelicopterExplosionTiles")
+    ld hl, HelicopterExplosionTilesVRAM
+    ld de, STARTOF("HelicopterExplosionTiles")
+    ld bc, SIZEOF("HelicopterExplosionTiles")
+    call memcpy
     rom_bank_switch BANK("MissileTiles")
     ld hl, MissileTilesVRAM
     ld de, STARTOF("MissileTiles")

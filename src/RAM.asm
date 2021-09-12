@@ -9,6 +9,8 @@ PoliceCarTilesVRAM::
     DS 18 * 16 ; 18 tiles * 16 bytes per tile
 HelicopterTilesVRAM::
     DS 36 * 16
+HelicopterExplosionTilesVRAM::
+    DS 36 * 16
 MissileTilesVRAM::
     DS 4 * 16
 Explosion1TilesVRAM::
@@ -17,15 +19,12 @@ Explosion1TilesVRAM::
 SECTION UNION "VRAM 8800", VRAM[_VRAM8800]
 StatusBarVRAM::
     DS 61 * 16 ; 60 tiles * 16 bytes per tile
-StatusBarVRAMEnd::
 MenuBarTilesVRAM::
     DS 50 * 16 ; no idea how many tiles needed, change this later
-MenuBarTilesVRAMEnd::
 
 SECTION UNION "VRAM 9000", VRAM[_VRAM9000]
 RoadTilesVRAM::
     DS 16 * 16 ; 16 tiles * 16 bytes per tile
-RoadTilesVRAMEnd::
 
 ; Title Screen / Menus VRAM
 

@@ -96,6 +96,15 @@ FX_PlayerMissile:: ; (CH4) When player fires a missile
     CH4_POLYCT NOISE_WIDTH_15, $6, 1, 0
     DB SOUND_END
 
+FX_HeliExplode:: ; (CH4) Played for helicopter explosions
+    DB 0
+    CH4_VOLENV $E, AUDENV_DOWN, 3, 0
+    CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
+    CH4_POLYCT NOISE_WIDTH_15, $4, 1, 1
+    CH4_POLYCT NOISE_WIDTH_15, $6, 1, 1
+    CH4_POLYCT NOISE_WIDTH_15, $7, 2, 0
+    DB SOUND_END
+
 FX_MenuBip:: ; (CH2) The small bip when moving between menu items
     DB 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_12_5, 0, 0

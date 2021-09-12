@@ -4,6 +4,7 @@ INCLUDE "spriteallocation.inc"
 INCLUDE "collision.inc"
 
 DEF HELI_TILE_OFFSET EQUS "((HelicopterTilesVRAM - $8000) / 16)"
+DEF HELI_EXPLOSION_TILE_OFFSET EQUS "((HelicopterExplosionTilesVRAM - $8000) / 16)"
 
 DEF HELI_ANIM_SPEED EQU 3 ; Number of frames between each animation cel.
 DEF HELI_NUM_ANIM_CELS EQU 8 ; Number of animation cels.
@@ -16,6 +17,9 @@ DEF HELI_RIGHT_BOUND EQU 135    ;
 DEF HELI_X_SPEED EQU $00BB      ; The side-to-side movement speed, in pixels per frame. 8.8 fixed-point
 DEF HELI_BASE_Y EQU 17          ; The Y pos the helicopter is normally at.
 DEF HELI_SPAWN_Y_SPEED EQU $0063    ; The speed the helicopter moves in at when spawning, in pixels per frame. 8.8
+
+DEF EXPLOSION_NUM_FRAMES EQU 3 ; Number of animation frames in the explosion animation.
+DEF EXPLOSION_ANIM_SPEED EQU 5 ; Number of game frames between each frame of animation.
 
 SECTION "HelicopterVars", WRAM0
 HelicopterX: DS 2 ; Coordinates of the top-left of the heli. 8.8 fixed point.
@@ -50,12 +54,62 @@ initHelicopter::
 updateHelicopter::
     ld a, [HeliState]
     and a
-    jr z, .StateInactive
+    jp z, .StateInactive
     dec a
     jr z, .StateSpawning
     dec a
-    jr z, .StateActive
+    jp z, .StateActive
     ; Exploding State
+    xor a               ; Disable collision array entry
+    ld [ObjCollisionArray + HELICOPTER_COLLISION], a
+    ; Update explosion animation
+    ld hl, HeliAnimationFrameCtr
+    dec [hl]
+    jr nz, .noExplosionTimerOverflow
+    ld a, EXPLOSION_ANIM_SPEED
+    ld [hl], a
+    ld hl, HeliAnimationCel
+    inc [hl]
+    ld a, [hl]
+    cp EXPLOSION_NUM_FRAMES
+    jr nz, .noExplosionTimerOverflow
+    ; Explosion is over, set heli to inactive and disable sprites
+.explosionOver:
+    xor a
+    ld [HeliState], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 0)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 1)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 2)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 3)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 4)) + OAMA_Y], a
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 5)) + OAMA_Y], a
+    inc a   ; reset animation vars so they're ready to play the idle animation again
+    ld [HeliAnimationCel], a
+    ld [HeliAnimationFrameCtr], a
+    ret
+.noExplosionTimerOverflow:
+    ; Set explosion sprite tiles
+    ld a, [HeliAnimationCel]
+    sla a ; a = AnimationCel * 2
+    ld b, a
+    sla a ; a = AnimationCel * 4
+    add b ; a = AnimationCel * 6
+    add HELI_EXPLOSION_TILE_OFFSET ; a = HELI_EXPLOSION_TILE_OFFSET + (AnimationCel * 6)
+    ld b, 2
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 0)) + OAMA_TILEID], a
+    add b
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 1)) + OAMA_TILEID], a
+    add b
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 2)) + OAMA_TILEID], a
+    add 14
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 3)) + OAMA_TILEID], a
+    add b
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 4)) + OAMA_TILEID], a
+    add b
+    ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 5)) + OAMA_TILEID], a
+
+    ; Move the explosion sprites into position
+    jp .setSpritePos
 
 .StateSpawning:
     ld hl, HelicopterY
@@ -138,6 +192,33 @@ updateHelicopter::
     ld [HelicopterX + 1], a
 
 .setAnimAndPos: ; Spawning state jumps here
+    ; Update entry in object collision array
+    ld hl, ObjCollisionArray + HELICOPTER_COLLISION
+    ld a, %00000100 ; Collision Layer Flags
+    ld [hli], a
+    ld a, [HelicopterY] ; Top Y
+    ld [hli], a
+    add 32 ; Bottom Y - heli is 32 px tall
+    ld [hli], a
+    ld a, [HelicopterX] ; Left X
+    ld [hli], a
+    add 16 ; Right X - heli is 16 px wide
+    ld [hl], a
+
+    ; Check for collisions
+    ld a, HELICOPTER_COLLISION
+    call objCollisionCheck
+    and a
+    jr z, .noCol ; collision happened - must be with missile, so should explode
+    ld a, 3             ; Set state to Exploding
+    ld [HeliState], a   ;
+    ld a, EXPLOSION_ANIM_SPEED
+    ld [HeliAnimationFrameCtr], a
+    xor a
+    ld [HeliAnimationCel], a
+    play_sound_effect FX_HeliExplode
+.noCol:
+
     ; Update animation
     ld hl, HeliAnimationFrameCtr
     dec [hl]
@@ -182,6 +263,7 @@ updateHelicopter::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 5)) + OAMA_TILEID], a
 .noUpdateAnim:
 
+.setSpritePos: ; Exploding state jumps here
     ; Update sprite positions
     ld a, [HelicopterX]
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 0)) + OAMA_X], a
@@ -201,23 +283,4 @@ updateHelicopter::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 4)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (HELICOPTER_SPRITE + 5)) + OAMA_Y], a
 
-    ; Update entry in object collision array
-    ld hl, ObjCollisionArray + HELICOPTER_COLLISION
-    ld a, %00000100 ; Collision Layer Flags
-    ld [hli], a
-    ld a, [HelicopterY] ; Top Y
-    ld [hli], a
-    add 32 ; Bottom Y - heli is 32 px tall
-    ld [hli], a
-    ld a, [HelicopterX] ; Left X
-    ld [hli], a
-    add 16 ; Right X - heli is 16 px wide
-    ld [hl], a
-
-    ; Check for collisions
-    ld a, HELICOPTER_COLLISION
-    call objCollisionCheck
-    and a
-    jr z, .noCol ; collision happened
-.noCol:
     ret

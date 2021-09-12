@@ -37,6 +37,7 @@ ENDM
 
 ; Explosions
     compact_incbin Explosion1Tiles, "res/explosion1.2bpp", ROMX
+    compact_incbin HelicopterExplosionTiles, "res/helicopterExplode.2bpp", ROMX
 
 ; Game UI
     compact_incbin StatusBar, "res/statusbar.2bpp", ROMX
