@@ -6,6 +6,8 @@ INCLUDE "collision.inc"
 DEF HELI_TILE_OFFSET EQUS "((HelicopterTilesVRAM - $8000) / 16)"
 DEF HELI_EXPLOSION_TILE_OFFSET EQUS "((HelicopterExplosionTilesVRAM - $8000) / 16)"
 
+DEF DESTROYED_MONEY_GIVEN EQU $0040 ; Money given to the player when the enemy is destroyed. 16 bit BCD
+
 DEF HELI_ANIM_SPEED EQU 3 ; Number of frames between each animation cel.
 DEF HELI_NUM_ANIM_CELS EQU 8 ; Number of animation cels.
 
@@ -217,6 +219,8 @@ updateHelicopter::
     xor a
     ld [HeliAnimationCel], a
     play_sound_effect FX_HeliExplode
+    ld bc, DESTROYED_MONEY_GIVEN
+    call addMoney
 .noCol:
 
     ; Update animation
