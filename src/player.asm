@@ -87,9 +87,10 @@ initPlayer::
     ld [SpecialChargeValue], a
     ld [MissileChargeValue], a
     ld [PlayerStateTimer], a
-    ld a, 20
+    ld a, 40
     ld [SpecialChargeSpeed], a
     ld [SpecialChargeFrameCtr], a
+    ld a, 20
     ld [MissileChargeSpeed], a
     ld [MissileChargeFrameCtr], a
     ld a, 4
@@ -216,8 +217,13 @@ updatePlayer::
     ld a, [MissileChargeSpeed]  ; Reset counter
     ld [hl], a                  ;
     ld hl, MissileChargeValue
+    ld a, [hl] ; save value to check against
     scf
     rl [hl]
+    xor [hl]        ; if wasn't charged before, but is now, play sound
+    bit 5, a        ;
+    jr z, .noIncreaseMissileCharge
+    play_sound_effect FX_PlayerMissileCharged
 .noIncreaseMissileCharge:
     ld hl, SpecialChargeFrameCtr ; Charge special bar
     dec [hl]
@@ -225,8 +231,13 @@ updatePlayer::
     ld a, [SpecialChargeSpeed]  ; Reset counter
     ld [hl], a                  ;
     ld hl, SpecialChargeValue
+    ld a, [hl]
     scf
     rl [hl]
+    xor [hl]
+    bit 5, a
+    jr z, .noIncreaseSpecialCharge
+    play_sound_effect FX_PlayerSpecialCharged
 .noIncreaseSpecialCharge:
 
     xor a

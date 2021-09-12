@@ -114,6 +114,22 @@ FX_HeliExplode:: ; (CH4) Played for helicopter explosions
     CH4_POLYCT NOISE_WIDTH_15, $7, 2, 0
     DB SOUND_END
 
+FX_PlayerMissileCharged:: ; (CH2) Played when the player's missile bar is fully charged
+    DB 1
+    CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
+    CH2_VOLENV $7, AUDENV_DOWN, 1, 0
+    CH2_FREQ NOTE_Cs5, AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 5
+    CH2_FREQ NOTE_F_5, AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
+    DB SOUND_END
+
+FX_PlayerSpecialCharged:: ; (CH2) Played when the player's special bar is fully charged
+    DB 1
+    CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
+    CH2_VOLENV $7, AUDENV_DOWN, 1, 0
+    CH2_FREQ NOTE_Ds5, AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 5
+    CH2_FREQ NOTE_G_5, AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
+    DB SOUND_END
+
 FX_MenuBip:: ; (CH2) The small bip when moving between menu items
     DB 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_12_5, 0, 0
