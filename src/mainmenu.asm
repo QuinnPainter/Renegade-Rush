@@ -124,6 +124,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     inc a
     ld [PressStartFlashCtr], a
 
+    ; Load savegame
+    ld c, 0
+    call loadGameSave
+
     ; Disable all interrupts except VBlank and LCD
 	ld a, IEF_VBLANK | IEF_STAT
 	ldh [rIE], a

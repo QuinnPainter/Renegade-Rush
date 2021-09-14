@@ -82,8 +82,6 @@ initPlayer::
     ld [CurrentKnockbackSpeedX + 1], a
     ld [CurrentKnockbackSpeedY], a
     ld [CurrentKnockbackSpeedY + 1], a
-    ld [MoneyAmount], a
-    ld [MoneyAmount + 1], a
     ld [SpecialChargeValue], a
     ld [MissileChargeValue], a
     ld [PlayerStateTimer], a
@@ -135,6 +133,7 @@ updatePlayer::
     ld [PlayerState], a         ; |
     ld a, GAME_OVER_TIME        ; |
     ld [PlayerStateTimer], a    ; |
+    call saveGame               ; | save game since game is over
     xor a                       ; |
     jr :+                       ; /
 .explodeNormally:
