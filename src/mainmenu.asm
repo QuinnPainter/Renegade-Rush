@@ -267,7 +267,7 @@ MainMenuLoop:
     ; "About" is selected
     ld hl, $9C00            ; \
     ld bc, $9E34 - $9C00    ; | Fill secondary BG map with blank tiles
-    ld d, $CC               ; | 
+    ld d, $CC               ; |
     call LCDMemset          ; /
     ld hl, $9C00
     ld de, $0020
@@ -417,8 +417,26 @@ SettingsPageLoop:
     dec a
     jr z, .musicToggleSelected
     ; Reset Save Selected
-
-    jr .aNotPressed
+    ld hl, $9C00            ; \
+    ld bc, $9E34 - $9C00    ; | Fill secondary BG map with blank tiles
+    ld d, $CC               ; |
+    call LCDMemset          ; /
+    ld hl, $9C00
+    ld de, $0020
+    ld bc, RS_Line1
+.drawSaveResetLoop:
+    call LCDCopyString
+    ld a, $E0               ; \
+    and l                   ; | return to beginning of line
+    ld l, a                 ; /
+    add hl, de              ; go to next line
+    inc bc                  ; progress forward from the end-string character
+    ld a, [bc]              ; value of 1 indicates the string block should end
+    cp 1                    ;
+    jr nz, .drawSaveResetLoop
+    xor a
+    ld [selectionBarEnabled], a
+    jp saveResetPageLoop
 .soundFXToggleSelected:
     ld hl, AudioEnableFlags
     ld a, [hl]
@@ -492,3 +510,25 @@ drawSettingsPageToggles:
 .drawMusic:
     ld hl, $9D4C
     jp LCDCopyString
+
+
+; Save reset page loop
+saveResetPageLoop:
+    call readInput
+
+    ld a, [newButtons]
+    and PADF_B
+    jr z, .bNotPressed
+    jp EntryPoint
+.bNotPressed:
+    ld a, [curButtons]
+    and PADF_A | PADF_START
+    cp PADF_A | PADF_START
+    jr nz, .noResetSave
+    ld c, 1
+    call loadGameSave
+    jp EntryPoint
+.noResetSave:
+
+    call waitVblank
+    jr saveResetPageLoop

@@ -102,3 +102,18 @@ SP_Music::          DB " MUSIC<E>"
 SP_ResetSave::      DB " RESET SAVE<E>"
 SP_SelectionOn::    DB "     <selOn><E>"
 SP_SelectionOff::   DB "     <selOff><E>"
+
+SECTION "ResetSavegameStrings", ROM0
+RS_Line1:: DB "<E>"
+DB " - SAVEGAME RESET - <E>"
+DB "<E>"
+DB "<E>"
+DB " This will erase<E>"
+DB " all game progress<E>"
+DB "<E>"
+DB "<E>"
+DB " Press START and A<E>"
+DB " to confirm<E>"
+DB "<E>"
+DB "<E>"
+DB " Press B to cancel<E>", 1
