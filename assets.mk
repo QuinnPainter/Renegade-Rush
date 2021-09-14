@@ -79,7 +79,7 @@ $(RESDIR)/titleScreenBottom.2bpp $(RESDIR)/titleScreenBottom.tilemap: $(ASSETSDI
 	$(ADDOFFSET) $(RESDIR)/titleScreenBottom.tilemap $(RESDIR)/titleScreenBottom.tilemap -52
 
 $(RESDIR)/font.2bpp: $(ASSETSDIR)/font.png | $(RESDIR)
-	$(GFX) -x 15 -o $(RESDIR)/font.2bpp $(ASSETSDIR)/font.png
+	$(GFX) -x 13 -o $(RESDIR)/font.2bpp $(ASSETSDIR)/font.png
 
 $(RESDIR):
 	$(MKDIR_P) $(RESDIR)

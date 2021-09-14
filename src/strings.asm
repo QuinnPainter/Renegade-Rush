@@ -65,6 +65,8 @@ CHARMAP "8", "7" + 1
 CHARMAP "9", "8" + 1
 CHARMAP ".", "9" + 1
 CHARMAP ":", "." + 1
+CHARMAP "<selOff>", ":" + 1
+CHARMAP "<selOn>", "<selOff>" + 1
 CHARMAP " ", $CC
 
 SECTION "MainMenuStrings", ROM0
@@ -91,3 +93,12 @@ DB "   by Chasersgaming<E>"
 DB "<E>"
 DB "<E>"
 DB " press B to return<E>", 1
+
+SECTION "SettingsPageStrings", ROM0
+SP_Header::         DB "    - SETTINGS -    <E>"
+SP_Back::           DB " BACK<E>"
+SP_SoundFX::        DB " SOUND FX<E>"
+SP_Music::          DB " MUSIC<E>"
+SP_ResetSave::      DB " RESET SAVE<E>"
+SP_SelectionOn::    DB "     <selOn><E>"
+SP_SelectionOff::   DB "     <selOff><E>"

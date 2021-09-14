@@ -119,7 +119,11 @@ ENDM
 ; Input - \1 = Address of sound effect
 ; Sets - A B H L to garbage
 MACRO play_sound_effect
+    ld a, [AudioEnableFlags]
+    rra ; carry = bit 0
+    jr nc, :+
     rom_bank_switch BANK("Sound FX")
     ld hl, \1
     call PlayNewFX
+:
 ENDM

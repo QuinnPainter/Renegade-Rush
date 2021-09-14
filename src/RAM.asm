@@ -29,12 +29,11 @@ RoadTilesVRAM::
 ; Title Screen / Menus VRAM
 
 RSSET (_VRAM8800 + (3 * 16))
-DEF MainMenuFontVRAM RB 53 * 16 ; 53 tiles
-DEF MainMenuBottomTilesVRAM RB 20 * 16 ; 20 tiles
+DEF MainMenuFontVRAM RB 73 * 16 ; 73 tiles (overallocated)
 DEF TitleBottomTilesVRAM RB 75 * 16 ; 75 tiles
 DEF TitleTilesVRAM RB 105 * 16 ; 105 tiles
 
-EXPORT TitleTilesVRAM, TitleBottomTilesVRAM, MainMenuBottomTilesVRAM, MainMenuFontVRAM
+EXPORT TitleTilesVRAM, TitleBottomTilesVRAM, MainMenuFontVRAM
 
 
 SECTION "StackArea", WRAM0[$DF00]

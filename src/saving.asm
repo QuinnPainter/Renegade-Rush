@@ -9,11 +9,13 @@ SaveVerifyStringEnd:
 SECTION "SramInitialState", ROM0
 SramInitialState:
 DB $00, $00 ; MoneySRAM
+DB %11 ; AudioEnableFlagsSRAM
 SramInitialStateEnd:
 
 RSSET _SRAM
 DEF SaveVerifyStringSRAM RB (SaveVerifyStringEnd - SaveVerifyString)
 DEF MoneySRAM RB 2
+DEF AudioEnableFlagsSRAM RB 1
 
 SECTION "SavingCode", ROM0
 
@@ -30,6 +32,8 @@ saveGame::
     ld a, [MoneyAmount]
     ld [hli], a
     ld a, [MoneyAmount + 1]
+    ld [hli], a
+    ld a, [AudioEnableFlags]
     ld [hli], a
 
     xor a           ; Disable SRAM
@@ -71,6 +75,8 @@ loadGameSave::
     ld [MoneyAmount], a
     ld a, [hli]
     ld [MoneyAmount + 1], a
+    ld a, [hli]
+    ld [AudioEnableFlags], a
 
     xor a           ; Disable SRAM
     ld [rRAMG], a   ;

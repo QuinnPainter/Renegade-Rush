@@ -1,6 +1,9 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 
+SECTION "AudioVars", WRAM0
+AudioEnableFlags:: DS 1 ; Bit 0 = Enable SFX, Bit 1 = Enable Music
+
 SECTION "Audio Code", ROM0
 
 initAudio::

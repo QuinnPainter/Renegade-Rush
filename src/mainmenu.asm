@@ -5,6 +5,7 @@ DEF START_FLASH_FRAMES EQU 40 ; Speed of the "Press Start" flash animation
 DEF START_FAST_FLASH_FRAMES EQU 10 ; Speed of the flash animation after Start has been pressed
 DEF START_FAST_FLASH_TIME EQU 80 ; Number of frames to wait after start press before going to main menu
 DEF MENU_TOP_ITEM_POS EQU 88 ; Y position of the top item in the main menu
+DEF SETTINGS_TOP_ITEM_POS EQU 64
 
 SECTION "MainMenuVars", WRAM0
 PressStartFlashState: DS 1 ; 0 = Off  1 = On
@@ -13,6 +14,7 @@ MainMenuState: DS 1 ; 0 = Title Screen, 1 = Title Screen after Start press, 0 = 
 MainMenuStateTimer: DS 1 ; Used to count frames for stuff relating to the main menu state
 menuOptionSelected: DS 1 ; Which item is selected in the main menu (0-3)
 selectionBarEnabled: DS 1
+settingsOptionSelected: DS 1 ; Which item is selected in the settings menu
 
 SECTION "MainMenuCode", ROM0
 
@@ -254,7 +256,7 @@ MainMenuLoop:
     ; Check for A / Start button selecting the current menu option
     ld a, [newButtons]
     and PADF_A | PADF_START
-    jr z, .aNotPressed
+    jp z, .aNotPressed
     ld a, [menuOptionSelected]
     and a
     jr z, .playSelected
@@ -292,7 +294,36 @@ MainMenuLoop:
     ld [RandState + 1], a   ; when "Play" is selected
     jp StartGame
 .garageSelected: ; todo
-.settingsSelected:
+    jr .aNotPressed
+.settingsSelected:  ; Open Settings page
+    ld hl, $9C00            ; \
+    ld bc, $9E34 - $9C00    ; | Fill secondary BG map with blank tiles
+    ld d, $CC               ; | 
+    call LCDMemset          ; /
+    ld hl, $9C20
+    ld bc, SP_Header
+    call LCDCopyString
+    ld hl, $9D00
+    ld bc, SP_Back
+    call LCDCopyString
+    ld hl, $9D20
+    ld bc, SP_SoundFX
+    call LCDCopyString
+    ld hl, $9D40
+    ld bc, SP_Music
+    call LCDCopyString
+    ld hl, $9D60
+    ld bc, SP_ResetSave
+    call LCDCopyString
+    ldh a, [rLCDC]          ; \
+    or a, LCDCF_BG9C00      ; | switch to secondary BG map
+    ldh [rLCDC], a          ; /
+    xor a                           ; \
+    ld [settingsOptionSelected], a  ; |
+    ld a, SETTINGS_TOP_ITEM_POS     ; | Start with top option (Back) selected
+    ld [SelBarTargetPos], a         ; /
+    call drawSettingsPageToggles
+    jp SettingsPageLoop
 .aNotPressed:
 
     ; Check for up/down buttons moving the selection
@@ -329,6 +360,9 @@ MainMenuLoop:
     jp MainMenuLoop
 
 MainMenuVBlank:
+	ld a, %11100100 ; fix background palette if the selection bar broke it
+	ldh [rBGP], a   ; is this really a great fix?
+
     ld a, [selectionBarEnabled]
     and a
     jp z, VblankEnd
@@ -354,3 +388,107 @@ AboutPageLoop:
 
     call waitVblank
     jr AboutPageLoop
+
+
+; --- SETTINGS PAGE LOOP ---
+SettingsPageLoop:
+    call readInput
+
+    ld a, [newButtons]
+    and PADF_B
+    jr z, .noBPress
+.backSelected:
+    call saveGame           ; save new settings
+    ldh a, [rLCDC]          ; \
+    and a, ~LCDCF_BG9C00    ; | switch to primary BG map
+    ldh [rLCDC], a          ; /
+    ld a, MENU_TOP_ITEM_POS + 16    ; put selection over "Settings"
+    ld [SelBarTargetPos], a         ;
+    jp MainMenuLoop
+.noBPress:
+    ld a, [newButtons]
+    and PADF_A
+    jp z, .aNotPressed
+    ld a, [settingsOptionSelected]
+    and a
+    jr z, .backSelected
+    dec a
+    jr z, .soundFXToggleSelected
+    dec a
+    jr z, .musicToggleSelected
+    ; Reset Save Selected
+
+    jr .aNotPressed
+.soundFXToggleSelected:
+    ld hl, AudioEnableFlags
+    ld a, [hl]
+    xor 1
+    ld [hl], a
+    call drawSettingsPageToggles
+    jr .aNotPressed
+.musicToggleSelected:
+    ld hl, AudioEnableFlags
+    ld a, [hl]
+    xor %10
+    ld [hl], a
+    call drawSettingsPageToggles
+    jr .aNotPressed
+.aNotPressed:
+
+    ; Check for up/down buttons moving the selection
+    ld hl, settingsOptionSelected
+    ld a, [hl]                  ; \
+    and a                       ; | Skip "up" check if already at the top
+    jr z, .upNotPressed         ; /
+    ld a, [newButtons]
+    and PADF_UP
+    jr z, .upNotPressed
+    dec [hl]
+    ld a, [SelBarTargetPos]
+    sub 8
+    ld [SelBarTargetPos], a
+    play_sound_effect FX_MenuBip
+.upNotPressed:
+    ld a, [hl]                  ; \
+    cp 3                        ; | Skip "down" check if already at the bottom
+    jr z, .downNotPressed       ; /
+    ld a, [newButtons]
+    and PADF_DOWN
+    jr z, .downNotPressed
+    inc [hl]
+    ld a, [SelBarTargetPos]
+    add 8
+    ld [SelBarTargetPos], a
+    play_sound_effect FX_MenuBip
+.downNotPressed:
+
+    call updateAudio
+    call selectionBarUpdate
+
+    call waitVblank
+    jp SettingsPageLoop
+
+
+; Draw the on/off boxes on the settings page
+drawSettingsPageToggles:
+    ld a, [AudioEnableFlags]
+    rra
+    jr nc, .sfxOff
+    ld bc, SP_SelectionOn
+    jr .drawSFX
+.sfxOff:
+    ld bc, SP_SelectionOff
+.drawSFX:
+    ld hl, $9D2C
+    call LCDCopyString
+
+    ld a, [AudioEnableFlags]
+    bit 1, a
+    jr z, .musicOff
+    ld bc, SP_SelectionOn
+    jr .drawMusic
+.musicOff:
+    ld bc, SP_SelectionOff
+.drawMusic:
+    ld hl, $9D4C
+    jp LCDCopyString
