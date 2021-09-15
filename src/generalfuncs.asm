@@ -228,6 +228,34 @@ ScreenTilemapCopy::
     jr nz, .tilemapCopyLp
     ret
 
+SECTION "LCDScreenTilemapCopy", ROM0
+; Copy a tilemap to the screen, while LCD is enabled
+; Input - HL = Destination Screen RAM address
+; Input - BC = Source data address
+; Input - A  = Number of lines to copy (Line = 20 tiles)
+; Sets  - A B C D E H L S[0] to garbage
+LCDScreenTilemapCopy::
+    ldh [Scratchpad], a
+    lb de, 20, 12
+    ;ld de, 12 ; Offset needed to jump from end of this line to start of next line
+    ;ld e, 20 ; 20 tiles in a line
+.tilemapCopyLp:
+    ldh a, [rSTAT]          ; \
+	and STATF_BUSY          ; | Wait for VRAM to be ready
+	jr nz, .tilemapCopyLp   ; /
+    ld a, [bc]
+    ld [hli], a
+    inc bc
+    dec d
+    jr nz, .tilemapCopyLp
+    add hl, de ; D is always 0 here, so this is add hl, 12
+    ld d, 20
+    ldh a, [Scratchpad]
+    dec a
+    ldh [Scratchpad], a
+    jr nz, .tilemapCopyLp
+    ret
+
 SECTION "LCD Memset", ROM0
 
 ; Set a block of VRAM, while making sure VRAM is accesible.
@@ -273,11 +301,35 @@ LCDMemsetFast::
 	jr nz, LCDMemsetFast
 	ret
 
+/*SECTION "LCD Memcpy", ROM0
+; Copy data into VRAM, while making sure VRAM is accesible.
+; Input - HL = Destination address
+; Input - DE = Source address
+; Input - BC = Length
+LCDMemcpy::
+    dec bc
+    inc b
+    inc c
+.loop:
+    ldh a, [rSTAT]          ; \
+    and STATF_BUSY          ; | Wait for VRAM to be ready
+    jr nz, .loop            ; /
+    ld a, [de]
+    ld [hli], a
+    inc de
+    dec c
+    jr nz, .loop
+    dec b
+    jr nz, .loop
+    ret*/
+
 SECTION "LCD Memcpy Fast", ROM0
 ; Copy data into VRAM, while making sure VRAM is accesible.
 ; Input - HL = Destination address
 ; Input - DE = Source address
 ; Input - C  = Length
+; Sets  - C to 0
+; Sets  - HL DE = HL DE + C
 LCDMemcpyFast::
     ldh a, [rSTAT]          ; \
     and STATF_BUSY          ; | Wait for VRAM to be ready

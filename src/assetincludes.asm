@@ -51,3 +51,8 @@ ENDM
     compact_incbin TitleScreenBottomTiles, "res/titleScreenBottom.2bpp", ROMX
     compact_incbin TitleScreenBottomTilemap, "res/titleScreenBottom.tilemap", ROMX
     compact_incbin FontTiles, "res/font.2bpp", ROMX
+
+; Garage
+    compact_incbin GarageTiles, "res/garage.2bpp", ROMX
+    compact_incbin GarageTilemap, "res/garage.tilemap", ROMX
+    compact_incbin CarStatBarTiles, "res/carStatBar.2bpp", ROMX

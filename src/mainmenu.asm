@@ -80,6 +80,16 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld de, STARTOF("FontTiles")
     ld bc, SIZEOF("FontTiles")
     call memcpy
+    rom_bank_switch BANK("GarageTiles")
+    ld hl, GarageTilesVRAM
+    ld de, STARTOF("GarageTiles")
+    ld bc, SIZEOF("GarageTiles")
+    call memcpy
+    rom_bank_switch BANK("CarStatBarTiles")
+    ld hl, CarStatBarTilesVRAM
+    ld de, STARTOF("CarStatBarTiles")
+    ld bc, SIZEOF("CarStatBarTiles")
+    call memcpy
 
     ; Copy title screen tilemap into VRAM
     rom_bank_switch BANK("TitleTilemap")
@@ -293,8 +303,8 @@ MainMenuLoop:
     ldh a, [rDIV]           ; Seed second byte of the RNG with DIV
     ld [RandState + 1], a   ; when "Play" is selected
     jp StartGame
-.garageSelected: ; todo
-    jr .aNotPressed
+.garageSelected:
+    jp openGarage
 .settingsSelected:  ; Open Settings page
     ld hl, $9C00            ; \
     ld bc, $9E34 - $9C00    ; | Fill secondary BG map with blank tiles

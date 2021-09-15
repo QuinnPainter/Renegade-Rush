@@ -50,3 +50,9 @@ DB " to confirm<E>"
 DB "<E>"
 DB "<E>"
 DB " Press B to cancel<E>", 1
+
+SECTION "GarageStrings", ROM0
+GR_SpeedString:: DB "SPEED<E>"
+GR_WeightString:: DB "WEIGHT<E>"
+GR_MissileString:: DB "MISSILE<E>"
+GR_SpecialString:: DB "SPECIAL<E>"

@@ -20,7 +20,7 @@ else
 	MKDIR_P := -mkdir
 endif
 
-all: road player policecar gameui explosion title font helicopter missile
+all: road player policecar gameui explosion title font helicopter missile garage
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
 player: $(RESDIR)/player.2bpp
@@ -31,6 +31,7 @@ gameui: $(RESDIR)/statusbar.2bpp $(RESDIR)/curvebar.tilemap $(RESDIR)/menubar.2b
 explosion: $(RESDIR)/explosion1.2bpp
 title: $(RESDIR)/title.2bpp $(RESDIR)/title.tilemap $(RESDIR)/titleScreenBottom.2bpp $(RESDIR)/titleScreenBottom.tilemap
 font: $(RESDIR)/font.2bpp
+garage: $(RESDIR)/garage.2bpp $(RESDIR)/garage.tilemap $(RESDIR)/carStatBar.2bpp
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/lines.png
@@ -77,6 +78,12 @@ $(RESDIR)/title.2bpp $(RESDIR)/title.tilemap: $(ASSETSDIR)/title.png | $(RESDIR)
 $(RESDIR)/titleScreenBottom.2bpp $(RESDIR)/titleScreenBottom.tilemap: $(ASSETSDIR)/titleScreenBottom.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/titleScreenBottom.2bpp -t $(RESDIR)/titleScreenBottom.tilemap $(ASSETSDIR)/titleScreenBottom.png
 	$(ADDOFFSET) $(RESDIR)/titleScreenBottom.tilemap $(RESDIR)/titleScreenBottom.tilemap -52
+
+$(RESDIR)/garage.2bpp $(RESDIR)/garage.tilemap: $(ASSETSDIR)/garage.png | $(RESDIR)
+	$(GFX) -u -o $(RESDIR)/garage.2bpp -t $(RESDIR)/garage.tilemap $(ASSETSDIR)/garage.png
+
+$(RESDIR)/carStatBar.2bpp: $(ASSETSDIR)/carStatBar.png | $(RESDIR)
+	$(GFX) -u -o $(RESDIR)/carStatBar.2bpp $(ASSETSDIR)/carStatBar.png
 
 $(RESDIR)/font.2bpp: $(ASSETSDIR)/font.png | $(RESDIR)
 	$(GFX) -x 13 -o $(RESDIR)/font.2bpp $(ASSETSDIR)/font.png
