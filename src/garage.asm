@@ -1,7 +1,7 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 
-DEF STATBAR_TILE_OFFSET EQUS "((CarStatBarTilesVRAM - $8000) / 16)"
+DEF GROBJ_TILE_OFFSET EQUS "((GarageObjectTilesVRAM - $8000) / 16)"
 
 SECTION "GarageVars", WRAM0
 SelectedCar:: DS 1
@@ -41,7 +41,9 @@ GarageLoop:
     call waitVblank
     jp GarageLoop
 
-
+; Redraw the parts of the garage screen related to the car info
+; Called when opening the garage menu, and when the user changes
+; selection, or upgrades a car or something.
 drawCarEntry:
     rom_bank_switch BANK("Car Info")
     ld a, [SelectedCar] ; \
@@ -59,14 +61,24 @@ FOR N, 7                        ; \
     ld c, 9                     ; | Draw description
     call LCDMemcpyFast          ; |
 ENDR                            ; /
-    ld hl, $9C4B
-    call drawStatBar
-    ld hl, $9C8B
-    call drawStatBar
-    ld hl, $9CCB
-    call drawStatBar
-    ld hl, $9D0B
-    call drawStatBar
+    ld hl, $9C4B        ; \
+    call drawStatBar    ; |
+    ld hl, $9C8B        ; |
+    call drawStatBar    ; | Draw stat bars
+    ld hl, $9CCB        ; |
+    call drawStatBar    ; |
+    ld hl, $9D0B        ; |
+    call drawStatBar    ; /
+:   ldh a, [rSTAT]                  ;
+    and STATF_BUSY                  ;
+    jr nz, :-                       ;
+    ld a, GROBJ_TILE_OFFSET + 2     ;
+    ld [$9CC1], a                   ;
+:   ldh a, [rSTAT]                  ; Draw left / right arrows
+    and STATF_BUSY                  ;
+    jr nz, :-                       ;
+    ld a, GROBJ_TILE_OFFSET + 3     ;
+    ld [$9CC7], a                   ;
     ret
 
 ; Draw one of the bars representing the car's stats
@@ -86,7 +98,7 @@ drawStatBar:
     jr nz, .barLp           ; /
     ld a, b
     rla     ; put top bit (negative) into carry
-    ld a, STATBAR_TILE_OFFSET
+    ld a, GROBJ_TILE_OFFSET
     adc 0   ; switch tile type if carry set
     ld [hli], a
     dec b

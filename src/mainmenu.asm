@@ -85,10 +85,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld de, STARTOF("GarageTiles")
     ld bc, SIZEOF("GarageTiles")
     call memcpy
-    rom_bank_switch BANK("CarStatBarTiles")
-    ld hl, CarStatBarTilesVRAM
-    ld de, STARTOF("CarStatBarTiles")
-    ld bc, SIZEOF("CarStatBarTiles")
+    rom_bank_switch BANK("GarageObjectTiles")
+    ld hl, GarageObjectTilesVRAM
+    ld de, STARTOF("GarageObjectTiles")
+    ld bc, SIZEOF("GarageObjectTiles")
     call memcpy
 
     ; Copy title screen tilemap into VRAM

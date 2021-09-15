@@ -55,4 +55,4 @@ ENDM
 ; Garage
     compact_incbin GarageTiles, "res/garage.2bpp", ROMX
     compact_incbin GarageTilemap, "res/garage.tilemap", ROMX
-    compact_incbin CarStatBarTiles, "res/carStatBar.2bpp", ROMX
+    compact_incbin GarageObjectTiles, "res/garageObjects.2bpp", ROMX
