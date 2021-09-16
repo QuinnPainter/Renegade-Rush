@@ -1,5 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
+INCLUDE "spriteallocation.inc"
 
 SECTION "SaveVerifyString", ROM0
 SaveVerifyString:
@@ -11,6 +12,8 @@ SramInitialState:
 DB $00, $00 ; MoneySRAM
 DB %11 ; AudioEnableFlagsSRAM
 DB 0 ; SelectedCarSRAM
+DB 1 ; StarterCar Unlocked
+DS NUM_PLAYER_CARS, 0 ; Other Cars Locked
 SramInitialStateEnd:
 
 RSSET _SRAM
@@ -18,6 +21,7 @@ DEF SaveVerifyStringSRAM RB (SaveVerifyStringEnd - SaveVerifyString)
 DEF MoneySRAM RB 2
 DEF AudioEnableFlagsSRAM RB 1
 DEF SelectedCarSRAM RB 1
+DEF CarLockStateArraySRAM RB NUM_PLAYER_CARS
 
 SECTION "SavingCode", ROM0
 
@@ -39,6 +43,9 @@ saveGame::
     ld [hli], a
     ld a, [SelectedCar]
     ld [hli], a
+    ld de, CarLockStateArray
+    ld c, NUM_PLAYER_CARS
+    rst memcpyFast
 
     xor a           ; Disable SRAM
     ld [rRAMG], a   ;
@@ -83,6 +90,11 @@ loadGameSave::
     ld [AudioEnableFlags], a
     ld a, [hli]
     ld [SelectedCar], a
+    ld d, h
+    ld e, l
+    ld hl, CarLockStateArray
+    ld c, NUM_PLAYER_CARS
+    rst memcpyFast
 
     xor a           ; Disable SRAM
     ld [rRAMG], a   ;

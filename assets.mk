@@ -30,7 +30,7 @@ missile: $(RESDIR)/missile.2bpp
 gameui: $(RESDIR)/statusbar.2bpp $(RESDIR)/curvebar.tilemap $(RESDIR)/menubar.2bpp $(RESDIR)/menubar.tilemap
 explosion: $(RESDIR)/explosion1.2bpp
 title: $(RESDIR)/title.2bpp $(RESDIR)/title.tilemap $(RESDIR)/titleScreenBottom.2bpp $(RESDIR)/titleScreenBottom.tilemap
-font: $(RESDIR)/font.2bpp
+font: $(RESDIR)/font.2bpp $(RESDIR)/fontPSwap.2bpp
 garage: $(RESDIR)/garage.2bpp $(RESDIR)/garage.tilemap $(RESDIR)/garageObjects.2bpp
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
@@ -89,6 +89,9 @@ $(RESDIR)/garageObjects.2bpp: $(ASSETSDIR)/garageObjects.png | $(RESDIR)
 
 $(RESDIR)/font.2bpp: $(ASSETSDIR)/font.png | $(RESDIR)
 	$(GFX) -x 13 -o $(RESDIR)/font.2bpp $(ASSETSDIR)/font.png
+
+$(RESDIR)/fontPSwap.2bpp: $(ASSETSDIR)/fontPSwap.png | $(RESDIR)
+	$(GFX) -x 6 -o $(RESDIR)/fontPSwap.2bpp $(ASSETSDIR)/fontPSwap.png
 
 $(RESDIR):
 	$(MKDIR_P) $(RESDIR)

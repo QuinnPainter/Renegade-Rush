@@ -1,12 +1,12 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 
-DEF SELECTION_PALETTE EQU %00100111 ; Swap index 3 and 0 (darkest and lightest), middle 2 shades stay same
 DEF SELECTION_HEIGHT EQU 8 ; Vertical size of the selection bar, in pixels
 
 SECTION "Menu Selection Vars", WRAM0
 AfterSelIntVec:: DS 2 ; The interrupt vector that the LCD int is set to after the last line of the menu selection bar
 AfterSelIntLine:: DS 1 ; The LY line the LCD int is set to afterwards
+SelectionPalette:: DS 1 ; The palette used for the selection bar.
 PrevPalette: DS 1 ; The palette used before the selection bar, that gets reset when the bar is over
 IntState: DS 1 ; Are we on the first or last line interrupt? 0 = first, nonzero = last
 SelBarTopLine:: DS 2 ; Current position of the top of the selection bar. 8.8 fixed point
@@ -59,7 +59,8 @@ selectionBarIntFunc:
     jr nz, .lastLine
     ldh a, [rBGP]
     ld [PrevPalette], a ; First line - set previous palette, and set current palette to flipped one
-    ld b, SELECTION_PALETTE
+    ld a, [SelectionPalette]
+    ld b, a
     jr .donePickPalette
 .lastLine: ; Last line - selection bar is over, set palette back to previous one
     ld a, [PrevPalette]

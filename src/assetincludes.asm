@@ -54,6 +54,7 @@ ENDM
     compact_incbin FontTiles, "res/font.2bpp", ROMX
 
 ; Garage
+    compact_incbin FontPSwapTiles, "res/fontPSwap.2bpp", ROMX
     compact_incbin GarageTiles, "res/garage.2bpp", ROMX
     compact_incbin GarageTilemap, "res/garage.tilemap", ROMX
     compact_incbin GarageObjectTiles, "res/garageObjects.2bpp", ROMX

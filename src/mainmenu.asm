@@ -7,6 +7,8 @@ DEF START_FAST_FLASH_TIME EQU 80 ; Number of frames to wait after start press be
 DEF MENU_TOP_ITEM_POS EQU 88 ; Y position of the top item in the main menu
 DEF SETTINGS_TOP_ITEM_POS EQU 64
 
+EXPORT MENU_TOP_ITEM_POS ; used by Garage
+
 SECTION "MainMenuVars", WRAM0
 PressStartFlashState: DS 1 ; 0 = Off  1 = On
 PressStartFlashCtr: DS 1
@@ -57,6 +59,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld [rSCX], a
     ld [rSCY], a
 
+    ; Palette for selection bar
+    ld a, %00100111 ; Swap index 3 and 0 (darkest and lightest), middle 2 shades stay same
+    ld [SelectionPalette], a
+
     ; No, vblank has not happened yet
     xor a
     ld [HasVblankHappened], a
@@ -89,6 +95,11 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ld hl, GarageObjectTilesVRAM
     ld de, STARTOF("GarageObjectTiles")
     ld bc, SIZEOF("GarageObjectTiles")
+    call memcpy
+    rom_bank_switch BANK("FontPSwapTiles")
+    ld hl, FontPSwapTilesVRAM
+    ld de, STARTOF("FontPSwapTiles")
+    ld bc, SIZEOF("FontPSwapTiles")
     call memcpy
 
     ; Copy title screen tilemap into VRAM
@@ -260,7 +271,7 @@ TitleScreenLYC:
     jp LCDIntEnd
 
 
-MainMenuLoop:
+MainMenuLoop::
     call readInput
 
     ; Check for A / Start button selecting the current menu option
@@ -369,11 +380,9 @@ MainMenuLoop:
     call waitVblank
     jp MainMenuLoop
 
-MainMenuVBlank:
+MainMenuVBlank::
 	ld a, %11100100 ; fix background palette if the selection bar broke it
 	ldh [rBGP], a   ; is this really a great fix?
-
-    call DMARoutineHRAM
 
     ld a, [selectionBarEnabled]
     and a

@@ -11,3 +11,6 @@ DEF MISSILE_SPRITE_2 RB 1
 ; In the Garage
 RSRESET
 DEF GARAGE_CAR_SPRITE RB 4
+
+; couldn't think of a good place to put this
+DEF NUM_PLAYER_CARS EQU 2

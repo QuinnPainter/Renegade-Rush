@@ -7,6 +7,8 @@ DEF GRCARSPRITE_TILE_OFFSET EQUS "((GarageCarTilesVRAM - $8000) / 16)"
 
 SECTION "GarageVars", WRAM0
 SelectedCar:: DS 1
+CurCarLockState: DS 1 ; Selected car's entry in CarLockStateArray
+CarLockStateArray:: DS NUM_PLAYER_CARS ; In each entry 0 = Locked, 1 = Unlocked, 2 = Upgraded
 
 SECTION "GarageCode", ROM0
 
@@ -61,11 +63,50 @@ openGarage::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (GARAGE_CAR_SPRITE + 2)) + OAMA_Y], a    ; |
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (GARAGE_CAR_SPRITE + 3)) + OAMA_Y], a    ; /
 
+    ld hl, VblankVectorRAM
+    di
+    ld a, LOW(garageVblank)
+    ld [hli], a
+    ld a, HIGH(garageVblank)
+    ld [hl], a
+    ei
+
+    ld a, %11001100 ; Swap Middle 2
+    ld [SelectionPalette], a
+    ld a, 112 ; Selection bar over "Select" option
+    ld [SelBarTargetPos], a
+    ld [SelBarTopLine], a
+
     call drawCarEntry
     
 
 GarageLoop:
     call readInput
+
+    ld a, [newButtons]
+    and PADF_B
+    jr z, .noBPress
+    ; Return to main menu
+    call saveGame ; save the new stuff
+    ld a, %11100100 ; Init background palette
+	ldh [rBGP], a
+    ld a, %00100111 ; Palette for selection bar
+    ld [SelectionPalette], a
+    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_WINOFF | LCDCF_BG8800 \
+    | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJOFF | LCDCF_BGON
+    ldh [rLCDC], a ; Screen settings
+    di
+    ld hl, VblankVectorRAM
+    ld a, LOW(MainMenuVBlank)
+    ld [hli], a
+    ld a, HIGH(MainMenuVBlank)
+    ld [hl], a
+    ei
+    ld a, MENU_TOP_ITEM_POS + 8     ; put selection over "Garage"
+    ld [SelBarTopLine], a           ;
+    ld [SelBarTargetPos], a         ;
+    jp MainMenuLoop
+.noBPress:
 
     ld a, [newButtons]
     and PADF_LEFT
@@ -88,7 +129,10 @@ GarageLoop:
     call drawCarEntry
 .noRightPress:
 
+
+
     call updateAudio
+    call selectionBarUpdate
 
     call waitVblank
     jp GarageLoop
@@ -159,6 +203,46 @@ ENDR                            ; /
     jr nz, :-                       ; |
     ld a, b                         ; |
     ld [$9CC7], a                   ; /
+
+    ld hl, CarLockStateArray    ; \
+    ld b, 0                     ; |
+    ld a, [SelectedCar]         ; |
+    ld c, a                     ; | Update the lock state
+    add hl, bc                  ; |
+    ld a, [hl]                  ; |
+    ld [CurCarLockState], a     ; /
+
+    and a                       ; \
+    jr nz, .carUnlockedPal      ; |
+    ld a, %11111111             ; |
+    jr .doneSetCarPal           ; | Set car palette based on lock state
+.carUnlockedPal:                ; |
+    ld a, %11100100             ; |
+.doneSetCarPal:                 ; |
+    ldh [rOBP0], a              ; /
+
+    ld a, [CurCarLockState]
+    and a
+    jr z, .carLockedMenu
+    dec a
+    jr z, .carUnlockedMenu
+    ; Car Unlocked + Upgraded Menu (todo)
+.carLockedMenu:
+    ld hl, $9DC1
+    ld bc, GR_BuyString
+    call LCDCopyString
+    ld hl, $9DE1
+    ld bc, GR_BlankString
+    call LCDCopyString
+    jr .doneSetMenu
+.carUnlockedMenu:
+    ld hl, $9DC1
+    ld bc, GR_SelectString
+    call LCDCopyString
+    ld hl, $9DE1
+    ld bc, GR_UpgradeString
+    call LCDCopyString
+.doneSetMenu:
     ret
 
 ; Draw one of the bars representing the car's stats
@@ -189,3 +273,27 @@ drawStatBar:
     jr nz, .barLp
     pop de
     ret
+
+
+garageVblank:
+	ld a, %11100100
+	ldh [rBGP], a
+
+    call DMARoutineHRAM
+
+    ld hl, LCDIntVectorRAM
+    ld a, LOW(garageLYC)
+    ld [hli], a
+    ld a, HIGH(garageLYC)
+    ld [hl], a
+    ld a, 96 - 1
+    ld [rLYC], a
+    jp VblankEnd
+
+; Triggers near the top of the Buy / Select menu box, to set up the selection bar palette effect
+garageLYC:
+    ld a, %11110000 ; 0 and 1 = Lightest, 2 and 3 = Darkest
+    ldh [rBGP], a
+
+    call selectionBarSetupTopInt
+    jp LCDIntEnd

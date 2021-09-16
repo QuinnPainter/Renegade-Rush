@@ -273,8 +273,8 @@ LCDMemset::
 	ldh a, [rSTAT]      ; \
 	and STATF_BUSY      ; | Wait for VRAM to be ready
 	jr nz, .loadByte    ; /
-    ld a, d
-    ld [hli], a
+    ld [hl], d ;ld a, d
+    inc hl ;ld [hli], a
 .decCounter:
     dec c
     jr nz, .loadByte

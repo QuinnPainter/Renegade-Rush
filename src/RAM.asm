@@ -29,17 +29,19 @@ RoadTilesVRAM::
 ; Title Screen / Menus VRAM
 
 RSSET (_VRAM8000)
-DEF GarageTilesVRAM RB 17 * 16 ; 17 tiles
+DEF GarageTilesVRAM RB 19 * 16 ; 19 tiles
 DEF GarageObjectTilesVRAM RB 6 * 16 ; 6 tiles
 DEF GCARPAD RB 16 ; CarTiles must be aligned on even number tile index
 DEF GarageCarTilesVRAM RB 16 * 16 ; SAME AS PlayerTilesVRAM above
+DEF FontPSwapTilesVRAM RB 26 * 16 ; 26 tiles
 
 RSSET (_VRAM8800 + (3 * 16))
 DEF MainMenuFontVRAM RB 73 * 16 ; 73 tiles (overallocated)
 DEF TitleBottomTilesVRAM RB 75 * 16 ; 75 tiles
 DEF TitleTilesVRAM RB 105 * 16 ; 105 tiles
 
-EXPORT GarageTilesVRAM, GarageObjectTilesVRAM, GarageCarTilesVRAM, TitleTilesVRAM, TitleBottomTilesVRAM, MainMenuFontVRAM
+EXPORT GarageTilesVRAM, GarageObjectTilesVRAM, GarageCarTilesVRAM, FontPSwapTilesVRAM
+EXPORT TitleTilesVRAM, TitleBottomTilesVRAM, MainMenuFontVRAM
 
 
 SECTION "StackArea", WRAM0[$DF00]
