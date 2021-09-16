@@ -31,7 +31,7 @@ makeAssets:
 	$(MAKE) -f assets.mk
 
 $(ROMNAME): $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(SOURCES))
-	$(LINK) $(LDFLAGS) -o $(BINDIR)/$@.$(ROMEXT) -m $(BINDIR)/$@.map -n $(BINDIR)/$@.sym $^
+	$(LINK) $(LDFLAGS) -l layout.link -o $(BINDIR)/$@.$(ROMEXT) -m $(BINDIR)/$@.map -n $(BINDIR)/$@.sym $^
 	$(FIX) $(FIXFLAGS) $(BINDIR)/$@.$(ROMEXT)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm force | $(OBJDIR) $(BINDIR)

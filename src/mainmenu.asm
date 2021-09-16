@@ -373,6 +373,8 @@ MainMenuVBlank:
 	ld a, %11100100 ; fix background palette if the selection bar broke it
 	ldh [rBGP], a   ; is this really a great fix?
 
+    call DMARoutineHRAM
+
     ld a, [selectionBarEnabled]
     and a
     jp z, VblankEnd

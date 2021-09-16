@@ -17,10 +17,10 @@ StartGame::
     ld de, STARTOF("RoadTiles")
     ld bc, SIZEOF("RoadTiles")
     call memcpy
-    rom_bank_switch BANK("PlayerTiles")
+    rom_bank_switch BANK("StarterCarTiles")
     ld hl, PlayerTilesVRAM
-    ld de, STARTOF("PlayerTiles")
-    ld bc, SIZEOF("PlayerTiles")
+    ld de, STARTOF("StarterCarTiles")
+    ld bc, SIZEOF("StarterCarTiles")
     call memcpy
     rom_bank_switch BANK("PoliceCarTiles")
     ld hl, PoliceCarTilesVRAM

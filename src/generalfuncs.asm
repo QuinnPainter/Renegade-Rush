@@ -301,7 +301,7 @@ LCDMemsetFast::
 	jr nz, LCDMemsetFast
 	ret
 
-/*SECTION "LCD Memcpy", ROM0
+SECTION "LCD Memcpy", ROM0
 ; Copy data into VRAM, while making sure VRAM is accesible.
 ; Input - HL = Destination address
 ; Input - DE = Source address
@@ -321,7 +321,7 @@ LCDMemcpy::
     jr nz, .loop
     dec b
     jr nz, .loop
-    ret*/
+    ret
 
 SECTION "LCD Memcpy Fast", ROM0
 ; Copy data into VRAM, while making sure VRAM is accesible.

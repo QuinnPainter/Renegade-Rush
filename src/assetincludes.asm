@@ -19,7 +19,8 @@ ENDM
     compact_incbin RoadCollisionROM, "res/roadcollision.bin", ROMX
 
 ; Player Car
-    compact_incbin PlayerTiles, "res/player.2bpp", ROMX
+    compact_incbin StarterCarTiles, "res/starterCar.2bpp", ROMX
+    compact_incbin TruckTiles, "res/truck.2bpp", ROMX
     compact_incbin PlayerTilemap, "staticres/player.tilemap", ROMX
     compact_incbin PlayerAttrmap, "staticres/player.attrmap", ROMX
 
