@@ -138,10 +138,11 @@ GarageLoop:
     ld a, [ViewedCar]
     ld hl, SelectedCar
     cp [hl]
-    jr z, .noAPress ; do nothing if car is already selected
+    jp z, .noAPress ; do nothing if car is already selected
     ld [hl], a
+    play_sound_effect FX_CarSelect
     call drawCarEntry
-    jr .noAPress
+    jp .noAPress
 .carBuyButton:
     ld l, CARINFO_PRICE
     jr .buyCarOrUpgrade
@@ -169,6 +170,7 @@ GarageLoop:
     sbc [hl]                ; |
     daa                     ; |
     ld [MoneyAmount + 1], a ; /
+    play_sound_effect FX_CarBuy
     ld hl, CurCarLockState      ; \
     inc [hl]                    ; |
     ld hl, CarLockStateArray    ; |
@@ -185,6 +187,7 @@ GarageLoop:
     call drawCarEntry           ; Redraw car box
     jr .noAPress
 .notEnoughMoney:
+    play_sound_effect FX_CarFailBuy
     ld hl, $9DCA
     ld bc, GR_NoMoneyString1
     call LCDCopyString
