@@ -56,6 +56,8 @@ GR_SpeedString:: DB "SPEED<E>"
 GR_WeightString:: DB "WEIGHT<E>"
 GR_MissileString:: DB "MISSILE<E>"
 GR_SpecialString:: DB "SPECIAL<E>"
+GR_BalanceString:: DB "BALANCE:<E>"
+GR_CostString:: DB "COST:<E>"
 
 SETCHARMAP PSwapCharmap
 

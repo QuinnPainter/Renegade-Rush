@@ -88,7 +88,7 @@ $(RESDIR)/garageObjects.2bpp: $(ASSETSDIR)/garageObjects.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/garageObjects.2bpp $(ASSETSDIR)/garageObjects.png
 
 $(RESDIR)/font.2bpp: $(ASSETSDIR)/font.png | $(RESDIR)
-	$(GFX) -x 13 -o $(RESDIR)/font.2bpp $(ASSETSDIR)/font.png
+	$(GFX) -x 12 -o $(RESDIR)/font.2bpp $(ASSETSDIR)/font.png
 
 $(RESDIR)/fontPSwap.2bpp: $(ASSETSDIR)/fontPSwap.png | $(RESDIR)
 	$(GFX) -x 6 -o $(RESDIR)/fontPSwap.2bpp $(ASSETSDIR)/fontPSwap.png
