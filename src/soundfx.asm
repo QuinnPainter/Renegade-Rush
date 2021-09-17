@@ -9,8 +9,6 @@ DEF PAN_CH3 EQU $FB
 DEF PAN_CH4 EQU $FA
 
 DEF AUDHIGH_NO_RESTART EQU 0 ; missing from hardware.inc (counterpart to AUDHIGH_RESTART)
-DEF NOISE_WIDTH_15 EQU %00000000
-DEF NOISE_WIDTH_7 EQU %00001000
 
 ; --- Channel 2 ---
 
@@ -54,7 +52,7 @@ MACRO CH4_VOLENV
     DB LOW(rNR42), (\1 << 4) | \2 | \3, \4
 ENDM
 
-; \1 = Counter Width (use the NOISE_WIDTH defs)
+; \1 = Counter Width (use the AUD4POLY defs)
 ; \2 = Shift Clock Frequency (0-15)
 ; \3 = Frequency Dividing Ratio (0-7)
 ; \4 = Frame Wait (0-255)
@@ -76,14 +74,14 @@ SECTION FRAGMENT "Sound FX", ROMX
 FX_ShortCrash:: ; (CH4) Played for small "bumps" between cars
     DB 0 ; Starting priority byte
     CH4_VOLENV $6, AUDENV_DOWN, 1, 0
-    CH4_POLYCT NOISE_WIDTH_15, $8, 0, 0
+    CH4_POLYCT AUD4POLY_15STEP, $8, 0, 0
     CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
     DB SOUND_END
 
 FX_CarExplode:: ; (CH4) Played for car explosions
     DB 1
     CH4_VOLENV $D, AUDENV_DOWN, 2, 0
-    CH4_POLYCT NOISE_WIDTH_15, $9, 0, 0
+    CH4_POLYCT AUD4POLY_15STEP, $9, 0, 0
     CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
     DB SOUND_END
 
@@ -91,27 +89,27 @@ FX_PlayerMissile:: ; (CH4) When player fires a missile
     DB 1
     CH4_VOLENV $C, AUDENV_DOWN, 3, 0
     CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
-    CH4_POLYCT NOISE_WIDTH_15, $4, 0, 1
-    CH4_POLYCT NOISE_WIDTH_15, $5, 0, 1
-    CH4_POLYCT NOISE_WIDTH_15, $6, 1, 0
+    CH4_POLYCT AUD4POLY_15STEP, $4, 0, 1
+    CH4_POLYCT AUD4POLY_15STEP, $5, 0, 1
+    CH4_POLYCT AUD4POLY_15STEP, $6, 1, 0
     DB SOUND_END
 
 FX_EnemyMissile:: ; (CH4) When an enemy fires a missile
     DB 1
     CH4_VOLENV $C, AUDENV_DOWN, 3, 0
     CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
-    CH4_POLYCT NOISE_WIDTH_15, $4, 0, 1
-    CH4_POLYCT NOISE_WIDTH_15, $5, 0, 1
-    CH4_POLYCT NOISE_WIDTH_15, $6, 2, 0
+    CH4_POLYCT AUD4POLY_15STEP, $4, 0, 1
+    CH4_POLYCT AUD4POLY_15STEP, $5, 0, 1
+    CH4_POLYCT AUD4POLY_15STEP, $6, 2, 0
     DB SOUND_END
 
 FX_HeliExplode:: ; (CH4) Played for helicopter explosions
     DB 2
     CH4_VOLENV $E, AUDENV_DOWN, 3, 0
     CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
-    CH4_POLYCT NOISE_WIDTH_15, $4, 1, 1
-    CH4_POLYCT NOISE_WIDTH_15, $6, 1, 1
-    CH4_POLYCT NOISE_WIDTH_15, $7, 2, 0
+    CH4_POLYCT AUD4POLY_15STEP, $4, 1, 1
+    CH4_POLYCT AUD4POLY_15STEP, $6, 1, 1
+    CH4_POLYCT AUD4POLY_15STEP, $7, 2, 0
     DB SOUND_END
 
 FX_PlayerMissileCharged:: ; (CH2) Played when the player's missile bar is fully charged
