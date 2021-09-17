@@ -9,7 +9,8 @@ DEF GRCARSPRITE_TILE_OFFSET EQUS "((GarageCarTilesVRAM - $8000) / 16)"
 DEF GARAGE_TOP_ITEM_POS EQU 112
 
 SECTION "GarageVars", WRAM0
-SelectedCar:: DS 1
+SelectedCar:: DS 1 ; Car the user has selected, and is currently using.
+ViewedCar:: DS 1 ; Car the user is currently viewing in the garage.
 GarageOptionSelected: DS 1
 CurCarLockState: DS 1 ; Selected car's entry in CarLockStateArray
 CarLockStateArray:: DS NUM_PLAYER_CARS ; In each entry 0 = Locked, 1 = Unlocked, 2 = Upgraded
@@ -67,13 +68,13 @@ openGarage::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (GARAGE_CAR_SPRITE + 2)) + OAMA_Y], a    ; |
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (GARAGE_CAR_SPRITE + 3)) + OAMA_Y], a    ; /
 
-    ld hl, VblankVectorRAM
-    di
-    ld a, LOW(garageVblank)
-    ld [hli], a
-    ld a, HIGH(garageVblank)
-    ld [hl], a
-    ei
+    ld hl, VblankVectorRAM      ; \
+    di                          ; |
+    ld a, LOW(garageVblank)     ; |
+    ld [hli], a                 ; | Setup VBlank vector
+    ld a, HIGH(garageVblank)    ; |
+    ld [hl], a                  ; |
+    ei                          ; /
 
     ld a, %11001100 ; Swap Middle 2
     ld [SelectionPalette], a
@@ -83,12 +84,16 @@ openGarage::
     xor a
     ld [GarageOptionSelected], a
 
+    ld a, [SelectedCar] ; Start with the view on the selected car
+    ld [ViewedCar], a   ;
+
     call drawCarEntry
     
 
 GarageLoop:
     call readInput
 
+    ; B Input
     ld a, [newButtons]
     and PADF_B
     jr z, .noBPress
@@ -114,31 +119,107 @@ GarageLoop:
     jp MainMenuLoop
 .noBPress:
 
+    ; A Input
+    ld a, [newButtons]
+    and PADF_A
+    jp z, .noAPress
+    ld a, [CurCarLockState]
+    and a
+    jr z, .carBuyButton ; Car is locked - cursor is over "buy"
+    dec a
+    jr z, .checkSelection ; Car is unlocked - need to check if we're over "select" or "upgrade"
+    jr .carSelectButton ; Car is upgraded - cursor is over "select"
+.checkSelection:
+    ld a, [GarageOptionSelected]
+    and a
+    jr z, .carSelectButton
+    jr .carUpgradeButton
+.carSelectButton:
+    ld a, [ViewedCar]
+    ld [SelectedCar], a
+    jr .noAPress
+.carBuyButton:
+    ld l, CARINFO_PRICE
+    jr .buyCarOrUpgrade
+.carUpgradeButton:
+    ld l, CARINFO_UPGRADEPRICE
+.buyCarOrUpgrade:
+    rom_bank_switch BANK("StarterCar Info")
+    ld a, [ViewedCar]
+    add HIGH(FirstCarInfo)
+    ld h, a
+
+    ld a, [MoneyAmount]     ; \
+    sub [hl]                ; |
+    inc l                   ; | Check if there's enough money
+    ld a, [MoneyAmount + 1] ; |
+    sbc [hl]                ; |
+    jr c, .notEnoughMoney   ; /
+    dec l
+    ld a, [MoneyAmount]     ; \
+    sub [hl]                ; |
+    daa                     ; |
+    ld [MoneyAmount], a     ; |
+    inc l                   ; | Take money away
+    ld a, [MoneyAmount + 1] ; |
+    sbc [hl]                ; |
+    daa                     ; |
+    ld [MoneyAmount + 1], a ; /
+    ld hl, CurCarLockState      ; \
+    inc [hl]                    ; |
+    ld hl, CarLockStateArray    ; |
+    ld b, 0                     ; |
+    ld a, [ViewedCar]           ; | Increment lock state
+    ld c, a                     ; |
+    add hl, bc                  ; |
+    ld a, [CurCarLockState]     ; |
+    ld [hl], a                  ; /
+    ld a, GARAGE_TOP_ITEM_POS       ; \
+    ld [SelBarTargetPos], a         ; | Move selection to top item
+    xor a                           ; |
+    ld [GarageOptionSelected], a    ; /
+    call drawCarEntry           ; Redraw car box
+    jr .noAPress
+.notEnoughMoney:
+    ld hl, $9DCA
+    ld bc, GR_NoMoneyString1
+    call LCDCopyString
+    ld hl, $9DEA
+    ld bc, GR_NoMoneyString2
+    call LCDCopyString
+    ld hl, $9E0A
+    ld bc, GR_NoMoneyString3
+    call LCDCopyString
+.noAPress:
+
+    ; Left / Right Inputs
     ld a, [newButtons]
     and PADF_LEFT
     jr z, .noLeftPress
-    ld a, [SelectedCar]
+    ld a, [ViewedCar]
     dec a
     bit 7, a
     jr nz, .noLeftPress
-    jr .selectedCarChanged
+    jr .viewedCarChanged
 .noLeftPress:
     ld a, [newButtons]
     and PADF_RIGHT
-    jr z, .doneSelectedCarChange
-    ld a, [SelectedCar]
+    jr z, .doneViewedCarChange
+    ld a, [ViewedCar]
     inc a
     cp NUM_PLAYER_CARS
-    jr z, .doneSelectedCarChange
-.selectedCarChanged:
-    ld [SelectedCar], a
+    jr z, .doneViewedCarChange
+.viewedCarChanged:
+    ld [ViewedCar], a
+    play_sound_effect FX_MenuBip
     call drawCarEntry
     ld a, GARAGE_TOP_ITEM_POS
     ld [SelBarTargetPos], a
     xor a
     ld [GarageOptionSelected], a
-.doneSelectedCarChange:
+.doneViewedCarChange:
 
+    ; Up / Down Inputs
     ld a, [newButtons]
     and PADF_UP
     jr z, .noUpPress
@@ -191,7 +272,7 @@ GarageLoop:
 ; selection, or upgrades a car or something.
 drawCarEntry:
     rom_bank_switch BANK("StarterCar Info")
-    ld a, [SelectedCar]             ; \
+    ld a, [ViewedCar]               ; \
     add HIGH(FirstCarInfo)          ; |
     ld d, a                         ; |
     ld e, CARINFO_GFXADDR           ; |
@@ -205,7 +286,7 @@ drawCarEntry:
     ld bc, SIZEOF("StarterCarTiles"); |
     call LCDMemcpy                  ; /
 
-    ld a, [SelectedCar]     ; \
+    ld a, [ViewedCar]       ; \
     add HIGH(FirstCarInfo)  ; |
     ld d, a                 ; |
     ld e, CARINFO_NAME1     ; |
@@ -227,7 +308,7 @@ drawCarEntry:
 
     ld hl, CarLockStateArray    ; \
     ld b, 0                     ; |
-    ld a, [SelectedCar]         ; |
+    ld a, [ViewedCar]           ; |
     ld c, a                     ; | Update the lock state
     add hl, bc                  ; |
     ld a, [hl]                  ; |
@@ -245,7 +326,7 @@ drawCarEntry:
     call drawDescriptionBox
 
     ld b, GROBJ_TILE_OFFSET + 2     ; \
-    ld a, [SelectedCar]             ; |
+    ld a, [ViewedCar]               ; |
     and a                           ; |
     jr nz, .leftArrowBright         ; |
     inc b                           ; |
@@ -257,7 +338,7 @@ drawCarEntry:
     ld [$9CC1], a                   ; /
 
     ld b, GROBJ_TILE_OFFSET + 4     ; \
-    ld a, [SelectedCar]             ; |
+    ld a, [ViewedCar]               ; |
     cp NUM_PLAYER_CARS - 1          ; |
     jr nz, .rightArrowBright        ; |
     inc b                           ; |
@@ -273,7 +354,14 @@ drawCarEntry:
     jr z, .carLockedMenu
     dec a
     jr z, .carUnlockedMenu
-    ; Car Unlocked + Upgraded Menu (todo)
+    ; Car Unlocked + Upgraded Menu
+    ld hl, $9DC1
+    ld bc, GR_SelectString
+    call LCDCopyString
+    ld hl, $9DE1
+    ld bc, GR_BlankString
+    call LCDCopyString
+    jr .doneSetMenu
 .carLockedMenu:
     ld hl, $9DC1
     ld bc, GR_BuyString
@@ -351,7 +439,7 @@ ENDR                            ; /
 .drawBuyUpgradeBox:
     ld l, CARINFO_UPGRADEPRICE
 .drawBuyBox:
-    ld a, [SelectedCar]     ; \
+    ld a, [ViewedCar]       ; \
     add HIGH(FirstCarInfo)  ; |
     ld h, a                 ; | BC = Car Price
     ld a, [hli]             ; |
@@ -376,7 +464,7 @@ ENDR                            ; /
     ret
 
 .drawCarDescription:
-    ld a, [SelectedCar]
+    ld a, [ViewedCar]
     add HIGH(FirstCarInfo)
     ld d, a
     ld e, CARINFO_DESC
