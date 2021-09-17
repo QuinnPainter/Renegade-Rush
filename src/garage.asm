@@ -136,7 +136,11 @@ GarageLoop:
     jr .carUpgradeButton
 .carSelectButton:
     ld a, [ViewedCar]
-    ld [SelectedCar], a
+    ld hl, SelectedCar
+    cp [hl]
+    jr z, .noAPress ; do nothing if car is already selected
+    ld [hl], a
+    call drawCarEntry
     jr .noAPress
 .carBuyButton:
     ld l, CARINFO_PRICE
@@ -271,6 +275,7 @@ GarageLoop:
 ; Called when opening the garage menu, and when the user changes
 ; selection, or upgrades a car or something.
 drawCarEntry:
+SETCHARMAP MainMenuCharmap
     rom_bank_switch BANK("StarterCar Info")
     ld a, [ViewedCar]               ; \
     add HIGH(FirstCarInfo)          ; |
@@ -348,6 +353,21 @@ drawCarEntry:
     jr nz, :-                       ; |
     ld a, b                         ; |
     ld [$9CC7], a                   ; /
+
+    ld a, [SelectedCar]             ; \
+    ld hl, ViewedCar                ; |
+    cp [hl]                         ; |
+    jr nz, .curCarNotSelected       ; |
+    ld b, GROBJ_TILE_OFFSET + 6     ; |
+    jr .drawCarSelectedIcon         ; |
+.curCarNotSelected:                 ; | Draw icon for selected car
+    ld b, " "                       ; |
+.drawCarSelectedIcon:               ; |
+:   ldh a, [rSTAT]                  ; |
+    and STATF_BUSY                  ; |
+    jr nz, :-                       ; |
+    ld a, b                         ; |
+    ld [$9D47], a                   ; /
 
     ld a, [CurCarLockState]
     and a

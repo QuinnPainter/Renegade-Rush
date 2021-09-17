@@ -30,8 +30,8 @@ RoadTilesVRAM::
 
 RSSET (_VRAM8000)
 DEF GarageTilesVRAM RB 19 * 16 ; 19 tiles
-DEF GarageObjectTilesVRAM RB 6 * 16 ; 6 tiles
-DEF GCARPAD RB 16 ; CarTiles must be aligned on even number tile index
+DEF GarageObjectTilesVRAM RB 7 * 16 ; 7 tiles
+;DEF GCARPAD RB 16 ; CarTiles must be aligned on even number tile index
 DEF GarageCarTilesVRAM RB 16 * 16 ; SAME AS PlayerTilesVRAM above
 DEF FontPSwapTilesVRAM RB 26 * 16 ; 26 tiles
 
