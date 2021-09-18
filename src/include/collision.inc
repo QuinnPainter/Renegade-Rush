@@ -138,9 +138,9 @@ DEF ThisObjX\@ EQUS "\1"                    ; Address
 DEF ThisObjY\@ EQUS "\2"                    ; Address
 DEF KnockbackSpeedX\@ EQUS "\3"             ; Address
 DEF KnockbackSpeedY\@ EQUS "\4"             ; Address
-DEF KnockbackSlowdownSpeedOther\@ EQUS "\5" ; 8.8 fixed point constant [Slowdown speed if hit by non-player]
+DEF KnockbackSlowdownSpeedOther\@ EQUS "\5" ; Address [Slowdown speed if hit by non-player]
 IF _NARG >= 6
-DEF KnockbackSlowdownSpeedPlayer\@ EQUS "\6"; 8.8 fixed point constant (optional) [Slowdown speed if hit by player]
+DEF KnockbackSlowdownSpeedPlayer\@ EQUS "\6"; Address (optional) [Slowdown speed if hit by player]
 DEF ObjectLastTouched\@ EQUS "\7"           ; Address (optional)
 ENDC
     add_16 KnockbackSpeedX\@, ThisObjX\@, ThisObjX\@
@@ -150,13 +150,15 @@ IF DEF(ObjectLastTouched\@)
     ld a, [ObjectLastTouched\@]
     rra ; set carry to bit 1
     jr c, :+
-    ld bc, KnockbackSlowdownSpeedOther\@
+    ld hl, KnockbackSlowdownSpeedOther\@
     jr .doneSetSlowdownSpeed\@
-:   ld bc, KnockbackSlowdownSpeedPlayer\@
+:   ld hl, KnockbackSlowdownSpeedPlayer\@
 .doneSetSlowdownSpeed\@:
 ELSE
-    ld bc, KnockbackSlowdownSpeedOther\@
+    ld hl, KnockbackSlowdownSpeedOther\@
 ENDC
+    ld b, 0
+    ld c, [hl]
     push bc
 
     ld hl, KnockbackSpeedX\@

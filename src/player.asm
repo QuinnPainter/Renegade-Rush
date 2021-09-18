@@ -15,7 +15,6 @@ DEF GAME_OVER_TIME EQU 150 ; Number of frames after losing last life that the ga
 DEF PLAYER_MIN_Y EQU $4D ; Cap minimum Y ($10 is top of the screen)
 DEF PLAYER_MAX_Y EQU $79 ; Cap maximum Y ($89 is bottom of the screen)
 DEF KNOCKBACK_SPEED_CHANGE EQU $0090 ; How much each knockback changes the road speed by. 8.8 fixed point
-DEF BASE_KNOCKBACK_SLOWDOWN EQU 30
 
 DEF STARTING_ROAD_SPEED EQU $2CC ; Road speed when game starts or player respawns.
 
@@ -43,16 +42,50 @@ PlayerState: DS 1 ; 0 = Waiting to respawn, 1 = Active, 2 = Exploding, 3 = Waiti
 ExplosionAnimFrame: DS 1 ; Current frame of the explosion animation
 ExplosionAnimTimer: DS 1 ; Frame counter for the explosion animation
 PlayerStateTimer: DS 1 ; Used to count the time before respawning, number of invincibility frames, and time after death before game overing
+BaseKnockbackSlowdown: DS 1
 
 SECTION "PlayerCode", ROM0
 
 initPlayer::
+    ld a, [SelectedCar]             ; \
+    add HIGH(FirstCarInfo)          ; |
+    ld d, a                         ; |
+    ld e, CARINFO_GFXADDR           ; |
+    ld a, [de]  ; \                 ; |
+    ld b, a     ; |                 ; | Draw car sprite
+    inc e       ; | DE = GFX Addr   ; |
+    ld a, [de]  ; |                 ; |
+    ld d, a     ; |                 ; |
+    ld e, b     ; /                 ; |
+    ld hl, PlayerTilesVRAM          ; |
+    ld bc, SIZEOF("StarterCarTiles"); |
+    call memcpy                     ; /
+
+    ld a, [SelectedCar]
+    add HIGH(FirstCarInfo)
+    ld h, a
+    ld l, CARINFO_XSPEED
+    ld a, [hli]
+    ld [PlayerXSpeed], a
+    ld a, [hli]
+    ld [PlayerXSpeed + 1], a
+    ld a, [hli]
+    ld [PlayerAcceleration], a
+    ld a, [hli]
+    ld [PlayerAcceleration + 1], a
+    ld a, [hli]
+    ld [MissileChargeSpeed], a
+    ld [MissileChargeFrameCtr], a
+    ld a, [hli]
+    ld [SpecialChargeSpeed], a
+    ld [SpecialChargeFrameCtr], a
+    ld a, [hli]
+    ld [BaseKnockbackSlowdown], a
+
     ld a, $50
     ld [PlayerX], a
     ld a, $70
     ld [PlayerY], a
-    ld a, $1
-    ld [PlayerXSpeed], a
     ld a, HIGH(STARTING_ROAD_SPEED)
     ld [CurrentRoadScrollSpeed], a
     ld a, LOW(STARTING_ROAD_SPEED)
@@ -65,18 +98,12 @@ initPlayer::
     ld [PlayerMaxRoadSpeed], a
     xor a
     ld [PlayerMaxRoadSpeed + 1], a
-    xor a
-    ld [PlayerAcceleration], a
-    ld a, $07
-    ld [PlayerAcceleration + 1], a
     ld a, $55
     ld [PlayerYSpeed + 1], a
     xor a
     ld [PlayerYSpeed], a
     ld [PlayerX + 1], a
     ld [PlayerY + 1], a
-    ld a, $7F
-    ld [PlayerXSpeed + 1], a
     xor a
     ld [CurrentKnockbackSpeedX], a
     ld [CurrentKnockbackSpeedX + 1], a
@@ -85,12 +112,6 @@ initPlayer::
     ld [SpecialChargeValue], a
     ld [MissileChargeValue], a
     ld [PlayerStateTimer], a
-    ld a, 40
-    ld [SpecialChargeSpeed], a
-    ld [SpecialChargeFrameCtr], a
-    ld a, 20
-    ld [MissileChargeSpeed], a
-    ld [MissileChargeFrameCtr], a
     ld a, 4
     ld [LivesValue], a
     ld a, 1
@@ -224,11 +245,13 @@ updatePlayer::
     jr z, .noIncreaseMissileCharge
     play_sound_effect FX_PlayerMissileCharged
 .noIncreaseMissileCharge:
+    ld a, [SpecialChargeSpeed]      ; \
+    and a                           ; | Don't charge at all if charge speed = 0
+    jr z, .noIncreaseSpecialCharge  ; /
     ld hl, SpecialChargeFrameCtr ; Charge special bar
     dec [hl]
     jr nz, .noIncreaseSpecialCharge
-    ld a, [SpecialChargeSpeed]  ; Reset counter
-    ld [hl], a                  ;
+    ld [hl], a                  ; Reset counter
     ld hl, SpecialChargeValue
     ld a, [hl]
     scf
@@ -251,10 +274,10 @@ updatePlayer::
     or [hl] ; Y byte 1
     inc hl
     or [hl] ; Y byte 2
-    jr z, .noKnockback
+    jp z, .noKnockback
     ld a, 1
     ld [KnockbackThisFrame], a
-    update_knockback PlayerX, PlayerY, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY, BASE_KNOCKBACK_SLOWDOWN
+    update_knockback PlayerX, PlayerY, CurrentKnockbackSpeedX, CurrentKnockbackSpeedY, BaseKnockbackSlowdown
     ld c, 0 ; movement state = straight
     jp .controlsDisabled
 .noKnockback:

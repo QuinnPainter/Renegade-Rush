@@ -13,8 +13,6 @@ DEF PLAYER_SPEED_WINDOW EQU 1
 
 DEF Y_BORDER_POS EQU 207 ; The maximum and minimum Y position, which roughly makes the area off the top and off the bottom equal
 
-DEF PLAYER_KNOCKBACK_SLOWDOWN EQU 10 ; How fast the car slows down after being hit by the player, in 255s of a pixel per frame per frame
-DEF OTHER_KNOCKBACK_SLOWDOWN EQU 40 ; How fast the car slows down after being hit by some other object
 DEF CAR_SPAWN_CHANCE EQU 127 ; Chance of the car spawning each frame, out of 65535
 ; So, if you calculate 1 / (CAR_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
 ; so 520 frames, or 8 seconds
@@ -39,6 +37,8 @@ DEF CurrentKnockbackSpeedY RB 2
 DEF ObjectLastTouched RB 1 ; Which thing touched the car last? (0 = other enemy car, 1 = player)
 DEF EnemyCarActive RB 1 ; 0 = Inactive, 1 = Active, 2 = Exploding
 DEF KnockbackThisFrame RB 1 ; Was there any car knockback applied this frame? (0 or 1) Used to determine if car should explode when hitting a wall
+DEF PlayerKnockbackSlowdown RB 1 ; How fast the car slows down after being hit by the player, in 255s of a pixel per frame per frame. (0.8 fixed)
+DEF OtherKnockbackSlowdown RB 1 ; How fast the car slows down after being hit by some other object. (0.8 fixed)
 DEF sizeof_EnemyCarVars RB 0
 
 ; Init variables that only need to be initialised once, at the game start.
@@ -62,6 +62,10 @@ MACRO init_enemy_car
     ld [\1 + EnemyCarMaxRoadSpeed], a
     xor a
     ld [\1 + EnemyCarMaxRoadSpeed + 1], a
+    ld a, 10
+    ld [\1 + PlayerKnockbackSlowdown], a
+    ld a, 40
+    ld [\1 + OtherKnockbackSlowdown], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_Y], a ; make sure car is offscreen
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 2)) + OAMA_Y], a
@@ -233,7 +237,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     jp z, .noKnockback\@
     ld a, 1
     ld [\1 + KnockbackThisFrame], a
-    update_knockback \1 + EnemyCarX, \1 + EnemyCarY, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, OTHER_KNOCKBACK_SLOWDOWN, PLAYER_KNOCKBACK_SLOWDOWN, \1 + ObjectLastTouched
+    update_knockback \1 + EnemyCarX, \1 + EnemyCarY, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, \1 + OtherKnockbackSlowdown, \1 + PlayerKnockbackSlowdown, \1 + ObjectLastTouched
     jp .skipAI\@ ; if in knockback state, car shouldn't move around
 .noKnockback\@:
 

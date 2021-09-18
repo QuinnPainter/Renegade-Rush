@@ -10,7 +10,7 @@ DEF GARAGE_TOP_ITEM_POS EQU 112
 
 SECTION "GarageVars", WRAM0
 SelectedCar:: DS 1 ; Car the user has selected, and is currently using.
-ViewedCar:: DS 1 ; Car the user is currently viewing in the garage.
+ViewedCar: DS 1 ; Car the user is currently viewing in the garage.
 GarageOptionSelected: DS 1
 CurCarLockState: DS 1 ; Selected car's entry in CarLockStateArray
 CarLockStateArray:: DS NUM_PLAYER_CARS ; In each entry 0 = Locked, 1 = Unlocked, 2 = Upgraded
