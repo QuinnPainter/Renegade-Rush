@@ -61,10 +61,24 @@ initPlayer::
     ld bc, SIZEOF("StarterCarTiles"); |
     call memcpy                     ; /
 
+    ld hl, CarLockStateArray    ; \
+    ld b, 0                     ; |
+    ld a, [SelectedCar]         ; |
+    ld c, a                     ; |
+    add hl, bc                  ; |
+    ld a, [hl]                  ; |
+    dec a                       ; | Find if the car should use base or upgraded stats
+    jr z, .carNotUpgraded       ; |
+    ld l, CARINFO_UPGR_XSPEED   ; |
+    jr .donePickStats           ; |
+.carNotUpgraded:                ; |
+    ld l, CARINFO_XSPEED        ; |
+.donePickStats:                 ; /
+
     ld a, [SelectedCar]
     add HIGH(FirstCarInfo)
     ld h, a
-    ld l, CARINFO_XSPEED
+
     ld a, [hli]
     ld [PlayerXSpeed], a
     ld a, [hli]

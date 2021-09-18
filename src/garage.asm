@@ -280,6 +280,23 @@ GarageLoop:
 drawCarEntry:
 SETCHARMAP MainMenuCharmap
     rom_bank_switch BANK("StarterCar Info")
+    ld hl, CarLockStateArray    ; \
+    ld b, 0                     ; |
+    ld a, [ViewedCar]           ; |
+    ld c, a                     ; | Update the lock state
+    add hl, bc                  ; |
+    ld a, [hl]                  ; |
+    ld [CurCarLockState], a     ; /
+
+    and a                       ; \
+    jr nz, .carUnlockedPal      ; |
+    ld a, %11111111             ; |
+    jr .doneSetCarPal           ; | Set car palette based on lock state
+.carUnlockedPal:                ; |
+    ld a, %11100100             ; |
+.doneSetCarPal:                 ; |
+    ldh [rOBP0], a              ; /
+
     ld a, [ViewedCar]               ; \
     add HIGH(FirstCarInfo)          ; |
     ld d, a                         ; |
@@ -305,6 +322,11 @@ SETCHARMAP MainMenuCharmap
     ld c, 7                 ; |
     call LCDMemcpyFast      ; /
 
+    ld a, [CurCarLockState]         ; \
+    dec a                           ; |
+    jr z, .notUpgradedBars          ; | Switch to upgraded statbars if car is upgraded
+    ld e, CARINFO_UPGR_SPEEDBARS    ; |
+.notUpgradedBars:                   ; /
     ld hl, $9C4B        ; \
     call drawStatBar    ; |
     ld hl, $9C8B        ; |
@@ -313,23 +335,6 @@ SETCHARMAP MainMenuCharmap
     call drawStatBar    ; |
     ld hl, $9D0B        ; |
     call drawStatBar    ; /
-
-    ld hl, CarLockStateArray    ; \
-    ld b, 0                     ; |
-    ld a, [ViewedCar]           ; |
-    ld c, a                     ; | Update the lock state
-    add hl, bc                  ; |
-    ld a, [hl]                  ; |
-    ld [CurCarLockState], a     ; /
-
-    and a                       ; \
-    jr nz, .carUnlockedPal      ; |
-    ld a, %11111111             ; |
-    jr .doneSetCarPal           ; | Set car palette based on lock state
-.carUnlockedPal:                ; |
-    ld a, %11100100             ; |
-.doneSetCarPal:                 ; |
-    ldh [rOBP0], a              ; /
 
     call drawDescriptionBox
 
