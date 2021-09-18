@@ -66,6 +66,7 @@ MACRO init_enemy_car
     ld [\1 + PlayerKnockbackSlowdown], a
     ld a, 40
     ld [\1 + OtherKnockbackSlowdown], a
+    xor a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_Y], a ; make sure car is offscreen
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 2)) + OAMA_Y], a

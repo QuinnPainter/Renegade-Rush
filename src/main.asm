@@ -11,6 +11,12 @@ SECTION "MainGameCode", ROM0
 StartGame::
     call disableLCD
 
+    ; Initialize sprite buffer to 0
+	ld hl, STARTOF("SpriteBuffer")
+	ld c, SIZEOF("SpriteBuffer")
+	ld d, 0
+	rst memsetFast
+
     ; Copy tileset into VRAM
     rom_bank_switch BANK("RoadTiles")
     ld hl, RoadTilesVRAM
