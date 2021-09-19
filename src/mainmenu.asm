@@ -210,6 +210,19 @@ TitleScreenLoop:
     ld bc, MM_InfoString
     call LCDCopyString
 
+    ld hl, BestDistance ; \
+    ld a, [hli]         ; |
+    or [hl]             ; | Don't draw best distance if there isn't one yet
+    inc hl              ; |
+    or [hl]             ; |
+    jr z, .noDrawBest   ; /
+    ld hl, $9A28                ; Draw best distance
+    ld bc, MM_BestString
+    call LCDCopyString
+    ld hl, $9A2D
+    call mainMenuDrawBest
+.noDrawBest:
+
     ld hl, VblankVectorRAM          ; \
     ld a, LOW(MainMenuVBlank)       ; |
     ld [hli], a                     ; | Setup main menu Vblank

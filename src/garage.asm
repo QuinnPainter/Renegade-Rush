@@ -521,12 +521,14 @@ drawPrice:
     jr nz, .secondCharDollar
     ld a, " "
     ld [hli], a
+
     ld a, c
     and $F0
     jr nz, .thirdCharDollar
     ld a, " "
     ld [hli], a
     jr .fourthCharDollar
+    
 .firstCharDollar:
     ld a, "$"
     ld [hli], a

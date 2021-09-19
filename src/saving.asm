@@ -11,6 +11,7 @@ SECTION "SramInitialState", ROM0
 SramInitialState:
 DB $00, $00 ; MoneySRAM
 DB %11 ; AudioEnableFlagsSRAM
+DB 0, 0, 0 ; BestDistanceSRAM
 DB 0 ; SelectedCarSRAM
 DB 1 ; StarterCar Unlocked
 DS NUM_PLAYER_CARS, 0 ; Other Cars Locked
@@ -20,6 +21,7 @@ RSSET _SRAM
 DEF SaveVerifyStringSRAM RB (SaveVerifyStringEnd - SaveVerifyString)
 DEF MoneySRAM RB 2
 DEF AudioEnableFlagsSRAM RB 1
+DEF BestDistanceSRAM RB 3
 DEF SelectedCarSRAM RB 1
 DEF CarLockStateArraySRAM RB NUM_PLAYER_CARS
 
@@ -40,6 +42,12 @@ saveGame::
     ld a, [MoneyAmount + 1]
     ld [hli], a
     ld a, [AudioEnableFlags]
+    ld [hli], a
+    ld a, [BestDistance]
+    ld [hli], a
+    ld a, [BestDistance + 1]
+    ld [hli], a
+    ld a, [BestDistance + 2]
     ld [hli], a
     ld a, [SelectedCar]
     ld [hli], a
@@ -88,6 +96,12 @@ loadGameSave::
     ld [MoneyAmount + 1], a
     ld a, [hli]
     ld [AudioEnableFlags], a
+    ld a, [hli]
+    ld [BestDistance], a
+    ld a, [hli]
+    ld [BestDistance + 1], a
+    ld a, [hli]
+    ld [BestDistance + 2], a
     ld a, [hli]
     ld [SelectedCar], a
     ld d, h

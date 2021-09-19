@@ -7,11 +7,12 @@ MM_PlayString:: DB "PLAY<E>"
 MM_GarageString:: DB "GARAGE<E>"
 MM_SettingsString:: DB "SETTINGS<E>"
 MM_InfoString:: DB "INFO<E>"
+MM_BestString:: DB "BEST:      m<E>"
 
 SECTION "InfoPageStrings", ROM0 ; reminder - 20 chars per screen line
 INFO_Line1:: DB "<E>"
 DB " Renegade Rush<E>"
-DB " version 0.1<E>"
+DB " GBcompo21 Demo<E>"
 DB " by Quinn Painter<E>"
 DB "<E>"
 DB " Copyright 2021<E>"

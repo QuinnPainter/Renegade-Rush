@@ -168,7 +168,6 @@ updatePlayer::
     ld [PlayerState], a         ; |
     ld a, GAME_OVER_TIME        ; |
     ld [PlayerStateTimer], a    ; |
-    call saveGame               ; | save game since game is over
     xor a                       ; |
     jr :+                       ; /
 .explodeNormally:
@@ -567,4 +566,6 @@ setupGameOver:
     ld a, 1
     ld [IsGameOver], a
     call startMenuBarAnim ; open game over menu (A is still 1 = game over screen)
+    call updateBestDistance
+    call saveGame
     ret

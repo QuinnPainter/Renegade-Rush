@@ -63,6 +63,7 @@ StartGame::
     call genMenuBarTilemaps
 
     ; Initialise variables
+    call initDistance
     call initCollision
     call initGameUI
     call initRoadGen
@@ -171,6 +172,7 @@ updateRoad:
     sub 8
     ld [hl], a ; hl = RoadScrollCtr
     call GenRoadRow
+    call incrementDistance
     ret
 
 InGameVBlank:
