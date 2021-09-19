@@ -68,6 +68,7 @@ CHARMAP ":", "." + 1
 CHARMAP "<selOff>", ":" + 1
 CHARMAP "<selOn>", "<selOff>" + 1
 CHARMAP "$", "<selOn>" + 1
+CHARMAP "<metre>", "$" + 1
 CHARMAP " ", $CC
 
 NEWCHARMAP PSwapCharmap

@@ -3,11 +3,19 @@ INCLUDE "macros.inc"
 
 DEF STATUS_BAR_TILE_OFFSET EQUS "(((StatusBarVRAM - $8800) / 16) + 128)"
 DEF MENUBAR_TILE_OFFSET EQUS "(((MenuBarTilesVRAM - $8800) / 16) + 128)"
+DEF NUMBER_TILE_OFFSET EQUS "(((MenuBarNumbersVRAM - $8800) / 16) + 128)"
 DEF MENU_BAR_ANIM_SPEED EQU 3 ; How fast the menu bar opens / closes. Pixels per frame.
-DEF MENU_BAR_MID_POS EQU 64 ; Scanline number of the middle of the menu bar
-DEF MENU_BAR_HEIGHT EQU 24 ; Distance from middle of menu bar to the top and bottom
-DEF MENU_OPTION_1_POS EQU 64 ; Positions of the menu options
-DEF MENU_OPTION_2_POS EQU MENU_OPTION_1_POS + 8
+
+DEF PAUSE_MID_POS EQU 64 ; Scanline number of the middle of the menu bar
+DEF PAUSE_TOP_LINE EQU 64 - 24
+DEF PAUSE_BOTTOM_LINE EQU 64 + 24
+DEF PAUSE_MENU_OPTION_1_POS EQU 64
+DEF PAUSE_MENU_OPTION_2_POS EQU 64 + 8
+DEF GAMEOVER_MID_POS EQU 68
+DEF GAMEOVER_TOP_LINE EQU 32
+DEF GAMEOVER_BOTTOM_LINE EQU 104
+DEF GAMEOVER_MENU_OPTION_1_POS EQU 56
+DEF GAMEOVER_MENU_OPTION_2_POS EQU 56 + 8
 
 SECTION "StatusBarBuffer", WRAM0, ALIGN[6]
 DS 20 * 2 ; 20 tiles wide * 2 tiles tall
@@ -15,6 +23,11 @@ DS 20 * 2 ; 20 tiles wide * 2 tiles tall
 SECTION "MenuBarState", WRAM0
 menuBarTopLine: DS 1 ; Scanline of the top of the menu bar
 menuBarBottomLine: DS 1 ; Scanline of the bottom of the menu bar
+menuBarTargetTop: DS 1
+menuBarTargetBottom: DS 1
+menuBarCurrentMidPos: DS 1
+menuOption1Pos: DS 1
+menuOption2Pos: DS 1
 whichMenuOpen: DS 1 ; 0 = Pause Menu, nonzero = Game Over
 menuBarState: DS 1 ; 0 = growing, nonzero = shrinking
 menuBarDoneAnim: DS 1 ; 0 = still animating, menu functionality is disabled, nonzero = menu is ready
@@ -42,14 +55,6 @@ initGameUI::
     ld [STARTOF("StatusBarBuffer") + 20 + 18], a
     inc a
     ld [STARTOF("StatusBarBuffer") + 20 + 19], a
-    ; Setup interrupt options that tell the selection bar to go the bottom of the menu bar
-    ld hl, AfterSelIntVec
-    ld a, LOW(menuBarBottomLineFunc)
-    ld [hli], a
-    ld a, HIGH(menuBarBottomLineFunc)
-    ld [hl], a
-    ld a, MENU_BAR_MID_POS + MENU_BAR_HEIGHT
-    ld [AfterSelIntLine], a
     ret
 
 ; Generates the tilemaps for the Paused and Game Over menus, and puts them in the BG map
@@ -58,8 +63,8 @@ genMenuBarTilemaps::
     rom_bank_switch BANK("MenuBarTilemap")
     ld de, STARTOF("MenuBarTilemap")
     ld b, MENUBAR_TILE_OFFSET
-FOR N, 0, 12
-    ld hl, _SCRN1 + (32 * (18 + N))
+FOR N, 0, 15
+    ld hl, _SCRN1 + (32 * (15 + N))
     ld c, 20
     rst memcpyFastOffset
 ENDR
@@ -349,10 +354,10 @@ menuBarTopLineFunc:
     ld a, [whichMenuOpen]
     and a
     jr nz, .gameOverMenu
-    ld c, (8 * 18) - 40 ; 8 pix per tile * 24 tile lines to the position in VRAM - menu bar starts scanline 40
+    ld c, (8 * 15) - 40 ; 8 pix per tile * 15 tile lines to the position in VRAM - menu bar starts scanline 40
     jr .donePickMenu
 .gameOverMenu:
-    ld c, (8 * 24) - 40 ; 8 pix per tile * 24 tile lines to the position in VRAM - menu bar starts scanline 40
+    ld c, (8 * 21) - 32 ; 8 pix per tile * 21 tile lines to the position in VRAM - menu bar starts scanline 32
 .donePickMenu:
 
     ; Wait for safe VRAM access (next hblank)
@@ -418,8 +423,39 @@ menuBarBottomLineFunc:
 ; Sets - A to garbage
 startMenuBarAnim::
     ld [whichMenuOpen], a
-    ld a, MENU_BAR_MID_POS
-    ld [menuBarTopLine], a
+    and a
+    jr z, .pauseMenu
+    xor a
+    ld hl, $9F6C
+    call gameOverDrawDistance
+    ld a, 1
+    ld hl, $9F8C
+    call gameOverDrawDistance
+    ld a, GAMEOVER_MENU_OPTION_1_POS ; Game Over menu
+    ld [menuOption1Pos], a
+    ld a, GAMEOVER_MENU_OPTION_2_POS
+    ld [menuOption2Pos], a
+    ld a, GAMEOVER_BOTTOM_LINE
+    ld [menuBarTargetBottom], a
+    ld a, GAMEOVER_TOP_LINE
+    ld [menuBarTargetTop], a
+    ld a, GAMEOVER_MID_POS
+    ld [menuBarCurrentMidPos], a
+    jr .donePickMenu
+.pauseMenu:
+    ld a, PAUSE_MENU_OPTION_1_POS
+    ld [menuOption1Pos], a
+    ld a, PAUSE_MENU_OPTION_2_POS
+    ld [menuOption2Pos], a
+    ld a, PAUSE_BOTTOM_LINE
+    ld [menuBarTargetBottom], a
+    ld a, PAUSE_TOP_LINE
+    ld [menuBarTargetTop], a
+    ld a, PAUSE_MID_POS
+    ld [menuBarCurrentMidPos], a
+.donePickMenu:
+
+    ld [menuBarTopLine], a ; TopLine = MidPos
     inc a
     ld [menuBarBottomLine], a
     xor a
@@ -427,9 +463,18 @@ startMenuBarAnim::
     ld [menuBarDoneAnim], a
     ld [menuOptionSelected], a
     ld [SelBarTopLine + 1], a
-    ld a, 64 ; Start selection bar on "Resume"
+    ld a, [menuOption1Pos] ; Start selection bar on top item
     ld [SelBarTopLine], a
     ld [SelBarTargetPos], a
+
+    ; Setup interrupt options that tell the selection bar to go the bottom of the menu bar
+    ld hl, AfterSelIntVec
+    ld a, LOW(menuBarBottomLineFunc)
+    ld [hli], a
+    ld a, HIGH(menuBarBottomLineFunc)
+    ld [hl], a
+    ld a, [menuBarTargetBottom]
+    ld [AfterSelIntLine], a
     ret
 
 ; Run every frame when menu bar is open.
@@ -449,14 +494,15 @@ updateMenuBar::
     jr nc, .doneAnimBar
     xor a ; When menu bar is done closing, unpause the game
     ld [IsGamePaused], a ; Only the pause menu shrinks, the game over menu doesn't, so this is fine.
-    ld a, MENU_BAR_MID_POS    ; \
-    ld [menuBarTopLine], a    ; | Reset the bar positions to 1 line high
-    inc a                     ; | This prevents the bar from "glitching" for one frame after closing
-    ld [menuBarBottomLine], a ; /
+    ld a, [menuBarCurrentMidPos]    ; \
+    ld [menuBarTopLine], a          ; | Reset the bar positions to 1 line high
+    inc a                           ; | This prevents the bar from "glitching" for one frame after closing
+    ld [menuBarBottomLine], a       ; /
     jr .doneAnimBar
 .barGrowing:
     sub b
-    cp MENU_BAR_MID_POS - MENU_BAR_HEIGHT
+    ld hl, menuBarTargetTop
+    cp [hl]
     jr c, .doneGrowing
     ld [menuBarTopLine], a
     ld a, [menuBarBottomLine]
@@ -464,9 +510,9 @@ updateMenuBar::
     ld [menuBarBottomLine], a
     jr .doneAnimBar
 .doneGrowing:
-    ld a, MENU_BAR_MID_POS - MENU_BAR_HEIGHT
+    ld a, [menuBarTargetTop]
     ld [menuBarTopLine], a
-    ld a, MENU_BAR_MID_POS + MENU_BAR_HEIGHT
+    ld a, [menuBarTargetBottom]
     ld [menuBarBottomLine], a
     ld a, $FF
     ld [menuBarDoneAnim], a
@@ -513,7 +559,7 @@ updateMenuBar::
     jr z, .upNotPressed
     xor a
     ld [menuOptionSelected], a
-    ld a, MENU_OPTION_1_POS
+    ld a, [menuOption1Pos]
     ld [SelBarTargetPos], a
 .upNotPressed:
     ld a, [newButtons]
@@ -521,7 +567,7 @@ updateMenuBar::
     jr z, .downNotPressed
     ld a, 1
     ld [menuOptionSelected], a
-    ld a, MENU_OPTION_2_POS
+    ld a, [menuOption2Pos]
     ld [SelBarTargetPos], a
 .downNotPressed:
     ld a, [menuOptionSelected] ; Play menu "bip" sound if new MenuOption is different to old one

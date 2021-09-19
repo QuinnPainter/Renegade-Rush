@@ -58,6 +58,11 @@ StartGame::
     ld de, STARTOF("MenuBarTiles")
     ld bc, SIZEOF("MenuBarTiles")
     call memcpy
+    rom_bank_switch BANK("FontTiles")
+    ld hl, MenuBarNumbersVRAM
+    ld de, STARTOF("FontTiles") + 53 * 16
+    ld bc, 10 * 16
+    call memcpy
 
     ; Init menu bar tilemaps
     call genMenuBarTilemaps

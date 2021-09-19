@@ -7,7 +7,7 @@ MM_PlayString:: DB "PLAY<E>"
 MM_GarageString:: DB "GARAGE<E>"
 MM_SettingsString:: DB "SETTINGS<E>"
 MM_InfoString:: DB "INFO<E>"
-MM_BestString:: DB "BEST:      m<E>"
+MM_BestString:: DB "BEST:      <metre><E>"
 
 SECTION "InfoPageStrings", ROM0 ; reminder - 20 chars per screen line
 INFO_Line1:: DB "<E>"

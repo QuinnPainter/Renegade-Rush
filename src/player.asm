@@ -565,7 +565,7 @@ addMoney::
 setupGameOver:
     ld a, 1
     ld [IsGameOver], a
-    call startMenuBarAnim ; open game over menu (A is still 1 = game over screen)
     call updateBestDistance
+    call startMenuBarAnim ; open game over menu (A is still 1 = game over screen)
     call saveGame
     ret

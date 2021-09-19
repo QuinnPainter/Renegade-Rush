@@ -20,7 +20,9 @@ Explosion1TilesVRAM::
 StatusBarVRAM::
     DS 61 * 16 ; 60 tiles * 16 bytes per tile
 MenuBarTilesVRAM::
-    DS 50 * 16 ; no idea how many tiles needed, change this later
+    DS 40 * 16
+MenuBarNumbersVRAM::
+    DS 10 * 16
 
 SECTION "VRAM 9000", VRAM[_VRAM9000]
 RoadTilesVRAM::
