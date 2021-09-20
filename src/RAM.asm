@@ -25,7 +25,13 @@ MenuBarNumbersVRAM::
     DS 10 * 16
 
 SECTION "VRAM 9000", VRAM[_VRAM9000]
-RoadTilesVRAM::
+RoadTiles1VRAM::
+    DS 16 * 16 ; 16 tiles * 16 bytes per tile
+RoadTiles2VRAM::
+    DS 16 * 16 ; 16 tiles * 16 bytes per tile
+RoadTiles3VRAM::
+    DS 16 * 16 ; 16 tiles * 16 bytes per tile
+RoadTiles4VRAM::
     DS 16 * 16 ; 16 tiles * 16 bytes per tile
 
 ; Title Screen / Menus VRAM

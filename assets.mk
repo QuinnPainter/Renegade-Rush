@@ -22,7 +22,7 @@ endif
 
 all: road player policecar gameui explosion title font helicopter missile garage
 
-road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin
+road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin $(RESDIR)/lines2.2bpp $(RESDIR)/lines3.2bpp $(RESDIR)/lines4.2bpp
 player: $(RESDIR)/starterCar.2bpp $(RESDIR)/truck.2bpp
 policecar: $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecarcol.bin
 helicopter: $(RESDIR)/helicopter.2bpp $(RESDIR)/helicopterExplode.2bpp
@@ -35,7 +35,12 @@ garage: $(RESDIR)/garage.2bpp $(RESDIR)/garage.tilemap $(RESDIR)/garageObjects.2
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/lines.png
-#	$(ADDOFFSET) $(RESDIR)/lines.tilemap $(RESDIR)/lines.tilemap 0
+$(RESDIR)/lines2.2bpp: $(ASSETSDIR)/lines2.png | $(RESDIR)
+	$(GFX) -u -o $(RESDIR)/lines2.2bpp $(ASSETSDIR)/lines2.png
+$(RESDIR)/lines3.2bpp: $(ASSETSDIR)/lines3.png | $(RESDIR)
+	$(GFX) -u -o $(RESDIR)/lines3.2bpp $(ASSETSDIR)/lines3.png
+$(RESDIR)/lines4.2bpp: $(ASSETSDIR)/lines4.png | $(RESDIR)
+	$(GFX) -u -o $(RESDIR)/lines4.2bpp $(ASSETSDIR)/lines4.png
 
 $(RESDIR)/starterCar.2bpp: $(ASSETSDIR)/starterCar.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/starterCar.2bpp $(ASSETSDIR)/starterCar.png

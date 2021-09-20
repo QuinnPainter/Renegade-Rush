@@ -18,10 +18,25 @@ StartGame::
 	rst memsetFast
 
     ; Copy tileset into VRAM
-    rom_bank_switch BANK("RoadTiles")
-    ld hl, RoadTilesVRAM
-    ld de, STARTOF("RoadTiles")
-    ld bc, SIZEOF("RoadTiles")
+    rom_bank_switch BANK("RoadTiles1")
+    ld hl, RoadTiles1VRAM
+    ld de, STARTOF("RoadTiles1")
+    ld bc, SIZEOF("RoadTiles1")
+    call memcpy
+    rom_bank_switch BANK("RoadTiles2")
+    ld hl, RoadTiles2VRAM
+    ld de, STARTOF("RoadTiles2")
+    ld bc, SIZEOF("RoadTiles2")
+    call memcpy
+    rom_bank_switch BANK("RoadTiles3")
+    ld hl, RoadTiles3VRAM
+    ld de, STARTOF("RoadTiles3")
+    ld bc, SIZEOF("RoadTiles3")
+    call memcpy
+    rom_bank_switch BANK("RoadTiles4")
+    ld hl, RoadTiles4VRAM
+    ld de, STARTOF("RoadTiles4")
+    ld bc, SIZEOF("RoadTiles4")
     call memcpy
     rom_bank_switch BANK("PoliceCarTiles")
     ld hl, PoliceCarTilesVRAM

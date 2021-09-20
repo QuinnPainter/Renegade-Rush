@@ -14,7 +14,10 @@ INCBIN \2
 ENDM
 
 ; Road
-    compact_incbin RoadTiles, "res/lines.2bpp", ROMX
+    compact_incbin RoadTiles1, "res/lines.2bpp", ROMX
+    compact_incbin RoadTiles2, "res/lines2.2bpp", ROMX
+    compact_incbin RoadTiles3, "res/lines3.2bpp", ROMX
+    compact_incbin RoadTiles4, "res/lines4.2bpp", ROMX
     compact_incbin RoadTilemap, "res/lines.tilemap", ROMX
     compact_incbin RoadCollisionROM, "res/roadcollision.bin", ROMX
 
