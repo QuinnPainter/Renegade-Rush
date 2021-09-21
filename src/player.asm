@@ -563,9 +563,9 @@ addMoney::
 
 ; player just ran out of lives, time to setup game over stuff
 setupGameOver:
+    call updateBestDistance
     ld a, 1
     ld [IsGameOver], a
-    call updateBestDistance
-    call startMenuBarAnim ; open game over menu (A is still 1 = game over screen)
+    call startMenuBarAnim ; open game over menu (A is 1 = game over screen)
     call saveGame
     ret

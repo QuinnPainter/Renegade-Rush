@@ -4,13 +4,30 @@ INCLUDE "charmaps.inc"
 
 ; This file is in charge of keeping track of the player's travelled distance,
 ; and for increasing the difficulty accordingly.
+DEF AREA1_DISTBOUNDARY EQU $000200 ; 3 byte BCD
+DEF AREA2_DISTBOUNDARY EQU $000400
+DEF AREA3_DISTBOUNDARY EQU $000600
 
 DEF MENUBAR_TILE_OFFSET EQUS "(((MenuBarTilesVRAM - $8800) / 16) + 128)"
 DEF NUMBER_TILE_OFFSET EQUS "(((MenuBarNumbersVRAM - $8800) / 16) + 128)"
 
+; Input - \1 = Distance boundary value
+; Sets - A H L to garbage
+MACRO SET_AREA_BOUNDARY
+    ld hl, NextAreaBoundary
+    ld a, (\1) & $FF
+    ld [hli], a
+    ld a, (\1 >> 8) & $FF
+    ld [hli], a
+    ld a, (\1 >> 16) & $FF
+    ld [hli], a
+ENDM
+
 SECTION "DistanceVars", WRAM0
 DistanceTravelled: DS 3 ; Little endian BCD. Counts number of road lines travelled (8 pixels)
 BestDistance:: DS 3 ; "High Score" distance
+CurrentArea: DS 1 ; Index of the current area. Starts at 0
+NextAreaBoundary: DS 3 ; Distance value that marks when it should change to the next area
 
 SECTION "DistanceCode", ROM0
 
@@ -20,12 +37,45 @@ initDistance::
     ld [hli], a
     ld [hli], a
     ld [hli], a
+    ld [CurrentArea], a
+
+    call setArea
+    ret
+
+; Update the current area
+setArea:
+    ld a, [CurrentArea]
+    and a
+    jr z, .area0
+    dec a
+    jr z, .area1
+    dec a
+    jr z, .area2
+    ; Area 3 - Squares
+    xor a
+    ld [RoadTileOffset], a
+    SET_AREA_BOUNDARY $999999
+    ret
+.area0: ; Area 0 - Grassy
+    ld a, 16
+    ld [RoadTileOffset], a
+    SET_AREA_BOUNDARY AREA1_DISTBOUNDARY
+    ret
+.area1: ; Area 1 - Brick
+    ld a, 16 * 2
+    ld [RoadTileOffset], a
+    SET_AREA_BOUNDARY AREA2_DISTBOUNDARY
+    ret
+.area2: ; Area 2 - Rocky
+    ld a, 16 * 3
+    ld [RoadTileOffset], a
+    SET_AREA_BOUNDARY AREA3_DISTBOUNDARY
     ret
 
 ; Add 1 to the distance value
 ; Sets - A H L to garbage
 incrementDistance::
-    ld hl, DistanceTravelled
+    ld hl, DistanceTravelled ; Increment distance value
     ld a, [hl]
     add 1
     daa
@@ -38,7 +88,20 @@ incrementDistance::
     adc 0
     daa
     ld [hli], a
-    ret
+
+    ld hl, DistanceTravelled ; Check if we should transition to the next area
+    ld a, [NextAreaBoundary]
+    sub [hl]
+    inc hl
+    ld a, [NextAreaBoundary + 1]
+    sbc [hl]
+    inc hl
+    ld a, [NextAreaBoundary + 2]
+    sbc [hl]
+    ret nc   ; NextAreaBoundary >= DistanceTravelled
+    ld hl, CurrentArea
+    inc [hl]
+    jr setArea
 
 ; Sets the best distance if the current distance is greater
 ; Called when the game is over

@@ -91,9 +91,11 @@ ENDC
     ld d, h ; Move HL into DE for Memcpy
     ld e, l
     ld hl, RoadGenBuffer + RoadGenBufferOffset
+    ld a, [RoadTileOffset]
+    ld b, a
     ld a, 12 ; Half road is 12 tiles wide = 12 bytes
     ld c, a
-    rst memcpyFast
+    rst memcpyFastOffset
 
     rom_bank_switch BANK("RoadCollisionROM")
     ld de, STARTOF("RoadCollisionROM")
@@ -134,6 +136,7 @@ RoadTileWriteAddr:: DS 2 ; The next VRAM address to write a road tile to.
 RoadCollisionWriteIndexLeft:: DB ; The next RoadCollisionTable index to write to.
 RoadCollisionWriteIndexRight:: DB
 RoadLineReady:: DB ; Whether there is a line of road generated and ready to copy into VRAM (0 - false, nonzero - true)
+RoadTileOffset:: DB ; Offset applied to the road tile indices. Determines which "style" the road is drawn in.
 
 ; Road positions are the following format:
 ; First 3 bits - not stored in RAM, but are used in road gen
