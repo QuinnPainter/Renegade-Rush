@@ -1,12 +1,12 @@
 ; Collision Array Allocation
 RSRESET
+DEF MISSILE_COLLISION_1 RB 6 ; missile collisions are first, so they take precedence over other collisions
+DEF MISSILE_COLLISION_2 RB 6 ; if they happen in the same frame
 DEF PLAYER_COLLISION RB 6
 DEF ENEMYCAR_COLLISION_1 RB 6
 DEF ENEMYCAR_COLLISION_2 RB 6
 DEF ENEMYCAR_COLLISION_3 RB 6
 DEF HELICOPTER_COLLISION RB 6
-DEF MISSILE_COLLISION_1 RB 6
-DEF MISSILE_COLLISION_2 RB 6
 
 ; Calculate the knockback speeds after a collision has occured
 ; Has to be called directly after objCollisionCheck as the register outputs are used.
