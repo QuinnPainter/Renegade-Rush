@@ -84,6 +84,10 @@ initPlayer::
     ld a, [hli]
     ld [PlayerXSpeed + 1], a
     ld a, [hli]
+    ld [PlayerYSpeed], a
+    ld a, [hli]
+    ld [PlayerYSpeed + 1], a
+    ld a, [hli]
     ld [PlayerAcceleration], a
     ld a, [hli]
     ld [PlayerAcceleration + 1], a
@@ -112,10 +116,6 @@ initPlayer::
     ld [PlayerMaxRoadSpeed], a
     xor a
     ld [PlayerMaxRoadSpeed + 1], a
-    ld a, $55
-    ld [PlayerYSpeed + 1], a
-    xor a
-    ld [PlayerYSpeed], a
     ld [PlayerX + 1], a
     ld [PlayerY + 1], a
     xor a

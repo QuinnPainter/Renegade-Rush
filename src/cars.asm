@@ -16,11 +16,13 @@ DEF CARINFO_DESC RB 9 * 7 ; 9 chars * 7 lines
 DEF CARINFO_PRICE RB 2 ; Little endian BCD
 DEF CARINFO_UPGRADEPRICE RB 2 ; Little endian BCD
 DEF CARINFO_XSPEED RB 2 ; Big endian
+DEF CARINFO_YSPEED RB 2
 DEF CARINFO_YACCEL RB 2
 DEF CARINFO_MISSILECHG RB 1
 DEF CARINFO_SPECIALCHG RB 1
 DEF CARINFO_KNOCKSLOWDOWN RB 1
 DEF CARINFO_UPGR_XSPEED RB 2 ; Big endian
+DEF CARINFO_UPGR_YSPEED RB 2
 DEF CARINFO_UPGR_YACCEL RB 2
 DEF CARINFO_UPGR_MISSILECHG RB 1
 DEF CARINFO_UPGR_SPECIALCHG RB 1
@@ -55,11 +57,13 @@ DB "None     "
 DW $0000 ; Car Price
 DW $0500 ; Upgrade Price
 DB $01, $7F ; X Speed       -- BASE STATS --
+DB $00, $60 ; Y Speed
 DB $00, $07 ; Y Acceleration
 DB $40 ; Missile Charge Speed (lower = faster)
 DB $00 ; Special Charge Speed (lower = faster, 0 = disabled)
 DB 30 ; Knockback Slowdown (higher value = faster slowdown / higher weight)
 DB $01, $7F ; X Speed       -- UPGRADED STATS --
+DB $00, $60 ; Y Speed
 DB $00, $07 ; Y Acceleration
 DB $35 ; Missile Charge Speed (lower = faster)
 DB $00 ; Special Charge Speed (lower = faster, 0 = disabled)
@@ -87,11 +91,13 @@ DB "rock     "
 DW $1000 ; Car Price
 DW $1500 ; Upgrade Price
 DB $01, $20 ; X Speed       -- BASE STATS --
+DB $00, $45 ; Y Speed
 DB $00, $05 ; Y Acceleration
 DB $40 ; Missile Charge Speed (lower = faster)
 DB $48 ; Special Charge Speed (lower = faster, 0 = disabled)
 DB 38 ; Knockback Slowdown (higher value = faster slowdown / higher weight)
 DB $01, $50 ; X Speed       -- UPGRADED STATS --
+DB $00, $52 ; Y Speed
 DB $00, $06 ; Y Acceleration
 DB $35 ; Missile Charge Speed (lower = faster)
 DB $40 ; Special Charge Speed (lower = faster, 0 = disabled)
