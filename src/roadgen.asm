@@ -1,9 +1,6 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 
-DEF MIN_ROAD_WIDTH EQU 6
-DEF MAX_ROAD_OFFSET EQU (14 - MIN_ROAD_WIDTH)
-
 ; Generates one side of the road.
 ; \1 = 0 for left side, 1 for right side
 ; Sets - A B C D E H L to garbage
@@ -54,11 +51,15 @@ ENDC
     sra a ; needs to be shifted right to discard subtile position
     sra a
     ld b, a ; b = TarRoad
+
+    ld a, [MaxRoadOffset]
+    ld c, a ; c = MaxRoadOffset
+
     ld a, [TarOtherSide]
     sra a
     sra a
     add b ; a = TarOtherSide + TarRoad
-    sub MAX_ROAD_OFFSET ; a = (TarOtherSide + TarRoad) - MaxRoadOffset
+    sub c ; a = (TarOtherSide + TarRoad) - MaxRoadOffset
     jr c, .doneChange\@ ; Current offset is within limits, carry on
     ld c, a ; c = (TarOtherSide + TarRoad) - MaxRoadOffset
     ld a, b ; a = TarRoad
@@ -137,6 +138,7 @@ RoadCollisionWriteIndexLeft:: DB ; The next RoadCollisionTable index to write to
 RoadCollisionWriteIndexRight:: DB
 RoadLineReady:: DB ; Whether there is a line of road generated and ready to copy into VRAM (0 - false, nonzero - true)
 RoadTileOffset:: DB ; Offset applied to the road tile indices. Determines which "style" the road is drawn in.
+MaxRoadOffset:: DB ; Determines how wide the road needs to be. MaxRoadOffset = (14 - MIN_ROAD_WIDTH)
 
 ; Road positions are the following format:
 ; First 3 bits - not stored in RAM, but are used in road gen

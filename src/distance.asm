@@ -8,6 +8,26 @@ DEF AREA1_DISTBOUNDARY EQU $000200 ; 3 byte BCD
 DEF AREA2_DISTBOUNDARY EQU $000400
 DEF AREA3_DISTBOUNDARY EQU $000600
 
+DEF AREA0_MIN_ROAD_WIDTH EQU 11
+DEF AREA1_MIN_ROAD_WIDTH EQU 9
+DEF AREA2_MIN_ROAD_WIDTH EQU 7
+DEF AREA3_MIN_ROAD_WIDTH EQU 5
+DEF AREA0_MAX_ROAD_OFFSET EQU (14 - AREA0_MIN_ROAD_WIDTH)
+DEF AREA1_MAX_ROAD_OFFSET EQU (14 - AREA1_MIN_ROAD_WIDTH)
+DEF AREA2_MAX_ROAD_OFFSET EQU (14 - AREA2_MIN_ROAD_WIDTH)
+DEF AREA3_MAX_ROAD_OFFSET EQU (14 - AREA3_MIN_ROAD_WIDTH)
+
+; Chance of an enemy spawning each frame, out of 65535
+; So, if you calculate 1 / (SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
+DEF AREA0_CAR_SPAWN_CHANCE EQU 50
+DEF AREA0_HELI_SPAWN_CHANCE EQU 50
+DEF AREA1_CAR_SPAWN_CHANCE EQU 80
+DEF AREA1_HELI_SPAWN_CHANCE EQU 80
+DEF AREA2_CAR_SPAWN_CHANCE EQU 127
+DEF AREA2_HELI_SPAWN_CHANCE EQU 127
+DEF AREA3_CAR_SPAWN_CHANCE EQU 190
+DEF AREA3_HELI_SPAWN_CHANCE EQU 190
+
 DEF MENUBAR_TILE_OFFSET EQUS "(((MenuBarTilesVRAM - $8800) / 16) + 128)"
 DEF NUMBER_TILE_OFFSET EQUS "(((MenuBarNumbersVRAM - $8800) / 16) + 128)"
 
@@ -21,6 +41,22 @@ MACRO SET_AREA_BOUNDARY
     ld [hli], a
     ld a, (\1 >> 16) & $FF
     ld [hli], a
+ENDM
+
+; Input - \1 = Car spawn chance
+; Input - \2 = Heli spawn chance
+; Sets - A H L to garbage
+MACRO SET_ENEMY_SPAWN_CHANCES
+    ld hl, EnemyCarSpawnChance
+    ld a, LOW(\1)
+    ld [hli], a
+    ld a, HIGH(\1)
+    ld [hl], a
+    ld hl, HeliSpawnChance
+    ld a, LOW(\2)
+    ld [hli], a
+    ld a, HIGH(\2)
+    ld [hl], a
 ENDM
 
 SECTION "DistanceVars", WRAM0
@@ -54,21 +90,33 @@ setArea:
     ; Area 3 - Squares
     xor a
     ld [RoadTileOffset], a
+    ld a, AREA3_MAX_ROAD_OFFSET
+    ld [MaxRoadOffset], a
+    SET_ENEMY_SPAWN_CHANCES AREA3_CAR_SPAWN_CHANCE, AREA3_HELI_SPAWN_CHANCE
     SET_AREA_BOUNDARY $999999
     ret
 .area0: ; Area 0 - Grassy
     ld a, 16
     ld [RoadTileOffset], a
+    ld a, AREA0_MAX_ROAD_OFFSET
+    ld [MaxRoadOffset], a
+    SET_ENEMY_SPAWN_CHANCES AREA0_CAR_SPAWN_CHANCE, AREA0_HELI_SPAWN_CHANCE
     SET_AREA_BOUNDARY AREA1_DISTBOUNDARY
     ret
 .area1: ; Area 1 - Brick
     ld a, 16 * 2
     ld [RoadTileOffset], a
+    ld a, AREA1_MAX_ROAD_OFFSET
+    ld [MaxRoadOffset], a
+    SET_ENEMY_SPAWN_CHANCES AREA1_CAR_SPAWN_CHANCE, AREA1_HELI_SPAWN_CHANCE
     SET_AREA_BOUNDARY AREA2_DISTBOUNDARY
     ret
 .area2: ; Area 2 - Rocky
     ld a, 16 * 3
     ld [RoadTileOffset], a
+    ld a, AREA2_MAX_ROAD_OFFSET
+    ld [MaxRoadOffset], a
+    SET_ENEMY_SPAWN_CHANCES AREA2_CAR_SPAWN_CHANCE, AREA2_HELI_SPAWN_CHANCE
     SET_AREA_BOUNDARY AREA3_DISTBOUNDARY
     ret
 
@@ -101,7 +149,7 @@ incrementDistance::
     ret nc   ; NextAreaBoundary >= DistanceTravelled
     ld hl, CurrentArea
     inc [hl]
-    jr setArea
+    jp setArea
 
 ; Sets the best distance if the current distance is greater
 ; Called when the game is over

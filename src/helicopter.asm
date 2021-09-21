@@ -11,9 +11,6 @@ DEF DESTROYED_MONEY_GIVEN EQU $0040 ; Money given to the player when the enemy i
 DEF HELI_ANIM_SPEED EQU 3 ; Number of frames between each animation cel.
 DEF HELI_NUM_ANIM_CELS EQU 8 ; Number of animation cels.
 
-DEF HELI_SPAWN_CHANCE EQU 127 ; Chance of the helicopter spawning each frame, out of 65535
-; So, if you calculate 1 / (HELI_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
-; so 520 frames, or 8 seconds
 DEF HELI_LEFT_BOUND EQU 16      ; The left and right X positions the helicopter will "bounce" between
 DEF HELI_RIGHT_BOUND EQU 135    ;
 DEF HELI_X_SPEED EQU $00BB      ; The side-to-side movement speed, in pixels per frame. 8.8 fixed-point
@@ -34,6 +31,7 @@ HeliAnimationCel: DS 1
 HeliMovementState: DS 1 ; 0 - Moving Left, 1 = Moving Right
 HeliState: DS 1 ; 0 - Inactive, 1 = Spawning, 2 = Active, 3 = Exploding
 HeliMissileFrameCtr: DS 1 ; Frames left to wait before it can fire another missile (0 = missile is ready)
+HeliSpawnChance:: DS 2 ; little endian
 
 SECTION "HelicopterCode", ROM0
 
@@ -143,8 +141,10 @@ updateHelicopter::
 
 .StateInactive:
     call genRandom
-    ld bc, HELI_SPAWN_CHANCE
-    cp_16r bc, hl
+    ld a, [HeliSpawnChance]
+    sub l
+    ld a, [HeliSpawnChance + 1]
+    sbc h
     ret c
 
     ld a, 1

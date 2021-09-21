@@ -13,9 +13,6 @@ DEF PLAYER_SPEED_WINDOW EQU 1
 
 DEF Y_BORDER_POS EQU 207 ; The maximum and minimum Y position, which roughly makes the area off the top and off the bottom equal
 
-DEF CAR_SPAWN_CHANCE EQU 127 ; Chance of the car spawning each frame, out of 65535
-; So, if you calculate 1 / (CAR_SPAWN_CHANCE / 65535), you get the avg number of frames for it to spawn
-; so 520 frames, or 8 seconds
 DEF EXPLOSION_NUM_FRAMES EQU 5 ; Number of animation frames in the explosion animation.
 DEF EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of animation.
 
@@ -176,8 +173,10 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 
 .carInactive\@:
     call genRandom
-    ld bc, CAR_SPAWN_CHANCE
-    cp_16r bc, hl
+    ld a, [EnemyCarSpawnChance]
+    sub l
+    ld a, [EnemyCarSpawnChance + 1]
+    sbc h
     jp c, .doneUpdateCar\@
 
     ld a, 1
@@ -411,6 +410,9 @@ SECTION "EnemyCarStates", WRAM0
 EnemyCarState1: DS sizeof_EnemyCarVars
 EnemyCarState2: DS sizeof_EnemyCarVars
 EnemyCarState3: DS sizeof_EnemyCarVars
+
+SECTION "SharedEnemyCarVars", WRAM0
+EnemyCarSpawnChance:: DS 2 ; little endian
 
 SECTION "EnemyCarCode", ROM0
 
