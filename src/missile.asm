@@ -160,9 +160,12 @@ updateMissile:
     pop hl
     and a
     jr z, .noCol ; collision happened - missile was destroyed
-    ld l, LOW(Missile1Vars) + MissileState  ; \
-    xor a                                   ; | state = disabled
-    ld [hl], a                              ; /
+    ; disabling immediately can mean missed collisions
+    ; so just hide it, and it will be destroyed next frame due to going offscreen
+    ld a, 230
+    ;ld l, LOW(Missile1Vars) + MissileState  ; \
+    ;xor a                                   ; | state = disabled
+    ;ld [hl], a                              ; /
     ld l, LOW(Missile1Vars) + MissileY      ; move missile offscreen
     ld [hl], a                              ;
 .noCol:
