@@ -20,7 +20,7 @@ else
 	MKDIR_P := -mkdir
 endif
 
-all: road player policecar gameui explosion title font helicopter missile garage warning
+all: road player policecar gameui explosion title font helicopter missile garage warning roadobjects
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin $(RESDIR)/lines2.2bpp $(RESDIR)/lines3.2bpp $(RESDIR)/lines4.2bpp
 player: $(RESDIR)/starterCar.2bpp $(RESDIR)/truck.2bpp
@@ -33,6 +33,7 @@ title: $(RESDIR)/title.2bpp $(RESDIR)/title.tilemap $(RESDIR)/titleScreenBottom.
 font: $(RESDIR)/font.2bpp $(RESDIR)/fontPSwap.2bpp
 garage: $(RESDIR)/garage.2bpp $(RESDIR)/garage.tilemap $(RESDIR)/garageObjects.2bpp
 warning: $(RESDIR)/warning.2bpp
+roadobjects: $(RESDIR)/boulder.2bpp
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/road/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/road/lines.png
@@ -50,6 +51,9 @@ $(RESDIR)/truck.2bpp: $(ASSETSDIR)/gameobjs/truck.png | $(RESDIR)
 
 $(RESDIR)/warning.2bpp: $(ASSETSDIR)/gameobjs/warning.png | $(RESDIR)
 	$(GFX) -o $(RESDIR)/warning.2bpp $(ASSETSDIR)/gameobjs/warning.png
+
+$(RESDIR)/boulder.2bpp: $(ASSETSDIR)/gameobjs/boulder.png | $(RESDIR)
+	$(GFX) -o $(RESDIR)/boulder.2bpp $(ASSETSDIR)/gameobjs/boulder.png
 
 $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap: $(ASSETSDIR)/gameobjs/policecar.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/policecar.2bpp $(ASSETSDIR)/gameobjs/policecar.png

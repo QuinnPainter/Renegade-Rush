@@ -64,3 +64,4 @@ ENDM
 
 ; Road Object Stuff
     compact_incbin WarningTiles, "res/warning.2bpp", ROMX
+    compact_incbin BoulderTiles, "res/boulder.2bpp", ROMX

@@ -35,6 +35,8 @@ RoadTiles3VRAM::
     DS 16 * 16 ; 16 tiles * 16 bytes per tile
 RoadTiles4VRAM::
     DS 16 * 16 ; 16 tiles * 16 bytes per tile
+BoulderTilesVRAM::
+    DS 4 * 16
 
 ; Title Screen / Menus VRAM
 
