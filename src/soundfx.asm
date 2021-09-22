@@ -80,6 +80,7 @@ SECTION FRAGMENT "Sound FX", ROMX
 ; https://daid.github.io/gbsfx-studio/
 
 FX_ShortCrash:: ; (CH4) Played for small "bumps" between cars
+    DB 1 ; FX channel
     DB 0 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_MUTE, 0
     DB PAN_CH4, AUDTERM_4_LEFT | AUDTERM_4_RIGHT, 0
@@ -90,7 +91,8 @@ FX_ShortCrash:: ; (CH4) Played for small "bumps" between cars
     DB SOUND_END
 
 FX_CarExplode:: ; (CH4) Played for car explosions
-    DB 1
+    DB 1 ; FX channel
+    DB 1 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_MUTE, 0
     DB PAN_CH4, AUDTERM_4_LEFT | AUDTERM_4_RIGHT, 0
     CH4_VOLENV $D, AUDENV_DOWN, 2, 0
@@ -100,7 +102,8 @@ FX_CarExplode:: ; (CH4) Played for car explosions
     DB SOUND_END
 
 FX_PlayerMissile:: ; (CH4) When player fires a missile
-    DB 1
+    DB 1 ; FX channel
+    DB 1 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_MUTE, 0
     DB PAN_CH4, AUDTERM_4_LEFT | AUDTERM_4_RIGHT, 0
     CH4_VOLENV $C, AUDENV_DOWN, 3, 0
@@ -112,7 +115,8 @@ FX_PlayerMissile:: ; (CH4) When player fires a missile
     DB SOUND_END
 
 FX_EnemyMissile:: ; (CH4) When an enemy fires a missile
-    DB 1
+    DB 1 ; FX channel
+    DB 1 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_MUTE, 0
     DB PAN_CH4, AUDTERM_4_LEFT | AUDTERM_4_RIGHT, 0
     CH4_VOLENV $C, AUDENV_DOWN, 3, 0
@@ -124,7 +128,8 @@ FX_EnemyMissile:: ; (CH4) When an enemy fires a missile
     DB SOUND_END
 
 FX_HeliExplode:: ; (CH4) Played for helicopter explosions
-    DB 2
+    DB 1 ; FX channel
+    DB 2 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_MUTE, 0
     DB PAN_CH4, AUDTERM_4_LEFT | AUDTERM_4_RIGHT, 0
     CH4_VOLENV $E, AUDENV_DOWN, 3, 0
@@ -136,7 +141,8 @@ FX_HeliExplode:: ; (CH4) Played for helicopter explosions
     DB SOUND_END
 
 FX_WarningBeep:: ; (CH2) Played when the warning sign flashes
-    DB 0
+    DB 0 ; FX channel
+    DB 0 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
@@ -146,7 +152,8 @@ FX_WarningBeep:: ; (CH2) Played when the warning sign flashes
     DB SOUND_END
 
 FX_PlayerMissileCharged:: ; (CH2) Played when the player's missile bar is fully charged
-    DB 1
+    DB 0 ; FX channel
+    DB 1 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
@@ -157,7 +164,8 @@ FX_PlayerMissileCharged:: ; (CH2) Played when the player's missile bar is fully 
     DB SOUND_END
 
 FX_PlayerSpecialCharged:: ; (CH2) Played when the player's special bar is fully charged
-    DB 1
+    DB 0 ; FX channel
+    DB 1 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
@@ -168,7 +176,8 @@ FX_PlayerSpecialCharged:: ; (CH2) Played when the player's special bar is fully 
     DB SOUND_END
 
 FX_MenuBip:: ; (CH2) The small bip when moving between menu items
-    DB 0
+    DB 0 ; FX channel
+    DB 0 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_12_5, 0, 0
@@ -178,7 +187,8 @@ FX_MenuBip:: ; (CH2) The small bip when moving between menu items
     DB SOUND_END
 
 FX_CarSelect:: ; (CH2) When a car is selected in the garage
-    DB 0
+    DB 0 ; FX channel
+    DB 0 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
@@ -189,7 +199,8 @@ FX_CarSelect:: ; (CH2) When a car is selected in the garage
     DB SOUND_END
 
 FX_CarBuy:: ; (CH2) When a car is bought / upgraded in the garage
-    DB 0
+    DB 0 ; FX channel
+    DB 0 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
@@ -210,7 +221,8 @@ FX_CarBuy:: ; (CH2) When a car is bought / upgraded in the garage
     DB SOUND_END
 
 FX_CarFailBuy:: ; (CH2) When you try to buy / upgrade a car but don't have enough money
-    DB 0
+    DB 0 ; FX channel
+    DB 0 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
@@ -231,7 +243,8 @@ FX_CarFailBuy:: ; (CH2) When you try to buy / upgrade a car but don't have enoug
     DB SOUND_END
 
 FX_Pause:: ; (CH2) Played when the pause menu is opened
-    DB 0
+    DB 0 ; FX channel
+    DB 0 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
@@ -243,7 +256,8 @@ FX_Pause:: ; (CH2) Played when the pause menu is opened
     DB SOUND_END
 
 FX_Unpause:: ; (CH2) Played when the pause menu is closed
-    DB 0
+    DB 0 ; FX channel
+    DB 0 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
@@ -255,7 +269,8 @@ FX_Unpause:: ; (CH2) Played when the pause menu is closed
     DB SOUND_END
 
 FX_TitleScreenStart:: ; (CH2) Played when pressing "Start" on the title screen
-    DB 0
+    DB 0 ; FX channel
+    DB 0 ; Starting priority byte
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
     DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
     CH2_LENGTH_DUTY AUDLEN_DUTY_75, 0, 0
