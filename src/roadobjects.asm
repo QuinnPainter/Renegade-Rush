@@ -6,6 +6,7 @@ DEF WARNING_TILE_OFFSET EQUS "((WarningTilesVRAM - $8000) / 16)"
 DEF BOULDER_TILE_OFFSET EQUS "((BoulderTilesVRAM - $9000) / 16)"
 
 DEF ROAD_OBJ_TICK_RATE EQU 6 * 4 ; Frequency that the warning flashes in. Should match the tempo of the song * 4
+DEF WARNING_Y_POS EQU 20
 
 SECTION "Road Object Vars", WRAM0
 RoadObjSpawnChance:: DS 2 ; little endian
@@ -66,7 +67,7 @@ updateRoadObject::
     jr .setWarningFlash
 .warningFlashVisible:
     play_sound_effect FX_WarningBeep
-    ld a, 16
+    ld a, WARNING_Y_POS
 .setWarningFlash:
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (WARNING_SPRITE + 0)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (WARNING_SPRITE + 1)) + OAMA_Y], a
