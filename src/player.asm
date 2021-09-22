@@ -47,6 +47,7 @@ BaseKnockbackSlowdown: DS 1
 SECTION "PlayerCode", ROM0
 
 initPlayer::
+    rom_bank_switch BANK("StarterCar Info")
     ld a, [SelectedCar]             ; \
     add HIGH(FirstCarInfo)          ; |
     ld d, a                         ; |

@@ -70,6 +70,10 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     ; Start up audio
     call initAudio
 
+    ld a, BANK("Song Data")
+    ld hl, SAMPLESONG
+    call playSong
+
     ; Copy tileset into VRAM
     rom_bank_switch BANK("TitleTiles")
     ld hl, TitleTilesVRAM

@@ -11,11 +11,13 @@ INCLUDE "hardware.inc"
 ; FC = Change CH2 Pan
 ; FB = Change CH3 Pan
 ; FA = Change CH4 Pan
+; F9 = Set Music Mute
 ; Everything else = Set Register
 
 ; Byte 2 = Command Parameter
 ; for Change Priority, this is the priority number
 ; for Set Register, this is the value the reg gets set to
+; for Set Music Mute, top 4 bits are sound channel (0-3) and bottom 4 are if the music should mute (1) or unmute (0)
 
 ; Byte 3 = Frame Wait
 ; Number of frames to wait before next command
@@ -65,7 +67,7 @@ PlayNewFX::
 
 ; Update the current sound effect
 ; Run this once every frame
-; Sets - A B C H L to garbage
+; Sets - A B C E H L to garbage
 UpdateFXEngine::
     ; Check if a sound is playing
     ld a, [FXPlaying]
@@ -94,6 +96,8 @@ UpdateFXEngine::
     jr z, .ch3Pan
     inc b ; cp $FA
     jr z, .ch4Pan
+    inc b ; cp $F9
+    jr z, .musicMute
     ; Set Register command
     ld c, a     ; C = Pointer to sound register
     ld a, [hli] ; A = Command Parameter
@@ -134,6 +138,19 @@ UpdateFXEngine::
     or [hl]
     inc hl
     ldh [rNR51], a
+    jr .doneProcessCommand
+.musicMute:
+    ld a, [hli]
+    ld b, a
+    and $0F
+    ld c, a
+    ld a, b
+    swap a
+    and $0F
+    ld b, a
+    push hl
+    call hUGE_mute_channel
+    pop hl
 .doneProcessCommand:
     ld a, [hli] ; A = Frames to wait
     and a
