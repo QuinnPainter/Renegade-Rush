@@ -487,6 +487,14 @@ SettingsPageLoop:
     ld a, [hl]
     xor %10
     ld [hl], a
+    bit 1, a
+    jr z, .musicJustDisabled
+    ld a, 1             ; music was just enabled
+    ld [MusicPlaying], a ; this will create problems if there's no menu music playing
+    jr .doneHandleMusic
+.musicJustDisabled:
+    call stopMusic ; music was just disabled
+.doneHandleMusic:
     call drawSettingsPageToggles
     jr .aNotPressed
 .aNotPressed:

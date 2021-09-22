@@ -26,9 +26,12 @@ initAudio::
 updateAudio::
     rom_bank_switch BANK("Sound FX")
     call UpdateFXEngine
-    ld a, [MusicPlaying]
-    and a
-    ret z
+    ld a, [MusicPlaying]    ; \
+    and a                   ; | Return if music isn't playing
+    ret z                   ; /
+    ld a, [AudioEnableFlags]    ; \
+    bit 1, a                    ; | Return if music isn't enabled
+    ret z                       ; /
     ld a, [CurrentMusicBank]
     ld [rROMB0], a
     call hUGE_dosound
@@ -51,15 +54,34 @@ stopMusic::
     xor a
     ld [MusicPlaying], a
     ld b, 0
-    ld c, 1
-    call hUGE_mute_channel
-    ld b, 1
-    ld c, 1
-    call hUGE_mute_channel
-    ld b, 2
-    ld c, 1
-    call hUGE_mute_channel
-    ld b, 3
-    ld c, 1
-    call hUGE_mute_channel
+    call note_cut
+    inc b
+    call note_cut
+    inc b
+    call note_cut
+    inc b
+    call note_cut
+    ret
+
+; Taken from hUGEDriver source.
+; Cuts note on a channel.
+; Input - B = Current channel ID (0 = CH1, 1 = CH2, etc.)
+; Sets - A H L to garbage
+note_cut:
+    ld a, b
+    add a
+    add a
+    add b ; multiply by 5
+    add LOW(rAUD1ENV)
+    ld l, a
+    ld h, HIGH(rAUD1ENV)
+    xor a
+    ld [hl+], a
+    ld a, b
+    cp 2
+    ret z ; return early if CH3-- no need to retrigger note
+
+    ; Retrigger note
+    inc l ; Not `inc hl` because H stays constant (= $FF)
+    ld [hl], $FF
     ret
