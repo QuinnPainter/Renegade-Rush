@@ -28,6 +28,11 @@ DEF AREA2_HELI_SPAWN_CHANCE EQU 127
 DEF AREA3_CAR_SPAWN_CHANCE EQU 190
 DEF AREA3_HELI_SPAWN_CHANCE EQU 190
 
+DEF AREA0_ROADOBJ_SPAWN_CHANCE EQU 100
+DEF AREA1_ROADOBJ_SPAWN_CHANCE EQU 100
+DEF AREA2_ROADOBJ_SPAWN_CHANCE EQU 100
+DEF AREA3_ROADOBJ_SPAWN_CHANCE EQU 100
+
 DEF MENUBAR_TILE_OFFSET EQUS "(((MenuBarTilesVRAM - $8800) / 16) + 128)"
 DEF NUMBER_TILE_OFFSET EQUS "(((MenuBarNumbersVRAM - $8800) / 16) + 128)"
 
@@ -45,8 +50,9 @@ ENDM
 
 ; Input - \1 = Car spawn chance
 ; Input - \2 = Heli spawn chance
+; Input - \3 = Road object spawn chance
 ; Sets - A H L to garbage
-MACRO SET_ENEMY_SPAWN_CHANCES
+MACRO SET_SPAWN_CHANCES
     ld hl, EnemyCarSpawnChance
     ld a, LOW(\1)
     ld [hli], a
@@ -56,6 +62,11 @@ MACRO SET_ENEMY_SPAWN_CHANCES
     ld a, LOW(\2)
     ld [hli], a
     ld a, HIGH(\2)
+    ld [hl], a
+    ld hl, RoadObjSpawnChance
+    ld a, LOW(\3)
+    ld [hli], a
+    ld a, HIGH(\3)
     ld [hl], a
 ENDM
 
@@ -86,13 +97,13 @@ setArea:
     dec a
     jr z, .area1
     dec a
-    jr z, .area2
+    jp z, .area2
     ; Area 3 - Squares
     xor a
     ld [RoadTileOffset], a
     ld a, AREA3_MAX_ROAD_OFFSET
     ld [MaxRoadOffset], a
-    SET_ENEMY_SPAWN_CHANCES AREA3_CAR_SPAWN_CHANCE, AREA3_HELI_SPAWN_CHANCE
+    SET_SPAWN_CHANCES AREA3_CAR_SPAWN_CHANCE, AREA3_HELI_SPAWN_CHANCE, AREA3_ROADOBJ_SPAWN_CHANCE
     SET_AREA_BOUNDARY $999999
     ret
 .area0: ; Area 0 - Grassy
@@ -100,7 +111,7 @@ setArea:
     ld [RoadTileOffset], a
     ld a, AREA0_MAX_ROAD_OFFSET
     ld [MaxRoadOffset], a
-    SET_ENEMY_SPAWN_CHANCES AREA0_CAR_SPAWN_CHANCE, AREA0_HELI_SPAWN_CHANCE
+    SET_SPAWN_CHANCES AREA0_CAR_SPAWN_CHANCE, AREA0_HELI_SPAWN_CHANCE, AREA0_ROADOBJ_SPAWN_CHANCE
     SET_AREA_BOUNDARY AREA1_DISTBOUNDARY
     ret
 .area1: ; Area 1 - Brick
@@ -108,7 +119,7 @@ setArea:
     ld [RoadTileOffset], a
     ld a, AREA1_MAX_ROAD_OFFSET
     ld [MaxRoadOffset], a
-    SET_ENEMY_SPAWN_CHANCES AREA1_CAR_SPAWN_CHANCE, AREA1_HELI_SPAWN_CHANCE
+    SET_SPAWN_CHANCES AREA1_CAR_SPAWN_CHANCE, AREA1_HELI_SPAWN_CHANCE, AREA1_ROADOBJ_SPAWN_CHANCE
     SET_AREA_BOUNDARY AREA2_DISTBOUNDARY
     ret
 .area2: ; Area 2 - Rocky
@@ -116,7 +127,7 @@ setArea:
     ld [RoadTileOffset], a
     ld a, AREA2_MAX_ROAD_OFFSET
     ld [MaxRoadOffset], a
-    SET_ENEMY_SPAWN_CHANCES AREA2_CAR_SPAWN_CHANCE, AREA2_HELI_SPAWN_CHANCE
+    SET_SPAWN_CHANCES AREA2_CAR_SPAWN_CHANCE, AREA2_HELI_SPAWN_CHANCE, AREA2_ROADOBJ_SPAWN_CHANCE
     SET_AREA_BOUNDARY AREA3_DISTBOUNDARY
     ret
 

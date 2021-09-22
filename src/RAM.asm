@@ -15,6 +15,8 @@ MissileTilesVRAM::
     DS 4 * 16
 Explosion1TilesVRAM::
     DS 20 * 16
+WarningTilesVRAM::
+    DS 2 * 16
 
 ;SECTION "VRAM 8800", VRAM[_VRAM8800]
 StatusBarVRAM::

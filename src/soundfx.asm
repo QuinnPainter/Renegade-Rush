@@ -135,6 +135,16 @@ FX_HeliExplode:: ; (CH4) Played for helicopter explosions
     DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_UNMUTE, 0
     DB SOUND_END
 
+FX_WarningBeep:: ; (CH2) Played when the warning sign flashes
+    DB 0
+    DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0
+    DB PAN_CH2, AUDTERM_2_LEFT | AUDTERM_2_RIGHT, 0
+    CH2_LENGTH_DUTY AUDLEN_DUTY_50, 0, 0
+    CH2_VOLENV $E, AUDENV_DOWN, 1, 0
+    CH2_FREQ NOTE_D_4, AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 7
+    DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_UNMUTE, 0
+    DB SOUND_END
+
 FX_PlayerMissileCharged:: ; (CH2) Played when the player's missile bar is fully charged
     DB 1
     DB SET_MUSIC_MUTE, MUTE_CH2 | MUSIC_MUTE, 0

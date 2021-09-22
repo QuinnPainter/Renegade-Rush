@@ -63,6 +63,11 @@ StartGame::
     ld de, STARTOF("Explosion1Tiles")
     ld bc, SIZEOF("Explosion1Tiles")
     call memcpy
+    rom_bank_switch BANK("WarningTiles")
+    ld hl, WarningTilesVRAM
+    ld de, STARTOF("WarningTiles")
+    ld bc, SIZEOF("WarningTiles")
+    call memcpy
     rom_bank_switch BANK("StatusBar")
     ld hl, StatusBarVRAM
     ld de, STARTOF("StatusBar")
@@ -91,6 +96,7 @@ StartGame::
     call initEnemyCars
     call initHelicopter
     call initMissiles
+    call initRoadObject
 
     xor a
     ld [IsGamePaused], a
@@ -160,6 +166,7 @@ GameLoop:
     call updateEnemyCars
     call updateHelicopter
     call updateMissiles
+    call updateRoadObject
     call updateStatusBar
 .paused:
     call updateAudio
