@@ -3,13 +3,15 @@
 ;   Bit 0 = Player / Enemy Car Layer
 ;   Bit 1 = Player / Enemy Missile Layer
 ;   Bit 2 = Player Missile / Missile-able Enemy Layer
+;   Bit 3 = Player Car / Player Car-Destroying Object Layer (isn't this the same as player / enemy missile layer? TODO: should consolidate these)
+;   Bit 4 = Enemy Car / Enemy Car-Destroying Object Layer
 ; Byte 2 = Y Position (of top)
 ; Byte 3 = Y Position (of bottom)
 ; Byte 4 = X Position (of left)
 ; Byte 5 = X Position (of right)
 ; Byte 6 = Movement Info (used for car collisions)
 ;   Bits 0 - 3 = Car Speed
-;   Bit  4     = Car Type (1 = player, 0 = not player)
+;   Bit  4 - 5 = Object Type (0 = enemy car, 1 = player, 2 = road obstacle)
 ;   Bits 5 - 7 = Unused
 SECTION "ObjCollisionArray", WRAM0, ALIGN[6]
 ObjCollisionArray::

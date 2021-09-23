@@ -339,31 +339,9 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 .animState1\@:
     set_car_tiles CAR_SPRITE\@
 
-    ld a, [\1 + EnemyCarY]  ; \
-    ld b, a                 ; | setup inputs for roadEdgeCollision
-    ld de, \1 + EnemyCarX   ; /
-    call roadEdgeCollision
-    ld a, [\1 + KnockbackThisFrame]
-    and b ; if car is in knockback state AND car hit a wall, car should explode
-    jr z, .noStartExplode\@
-    ld a, [\1 + EnemyCarY]      ; \ no exploding when car is offscreen
-    cp 144 + 16 - 15            ; | height of screen + sprite Y offset - status bar height
-    jp nc, .noStartExplode\@    ; /
-    ld a, 2
-    ld [\1 + EnemyCarActive], a ; set car state to "Exploding"
-    xor a
-    ld [\1 + ExplosionAnimFrame], a
-    ld [\1 + ExplosionAnimTimer], a
-    ld [ObjCollisionArray + CAR_OBJ_COLLISION\@], a ; Disable collision array entry
-    ld bc, DESTROYED_MONEY_GIVEN
-    call addMoney
-    play_sound_effect FX_CarExplode ; play explode sound effect
-    jp .doneUpdateCar\@
-.noStartExplode\@:
-
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + CAR_OBJ_COLLISION\@
-    ld a, %00000001 ; Collision Layer Flags
+    ld a, %00010001 ; Collision Layer Flags
     ld [hli], a
     ld a, [\1 + EnemyCarY] ; Top Y
     ld [hli], a
@@ -379,7 +357,11 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld a, CAR_OBJ_COLLISION\@
     call objCollisionCheck
     and a
-    jp z, .noCol\@ ; collision happened - now apply knockback
+    jp z, .noCol\@ ; collision happened
+    ld a, e
+    and $F0
+    cp 2 << 4 ; check if collision was with road object
+    jp z, .checkExplode\@
     ld a, [\1 + EnemyCarY]      ; \ no crash sounds when car is offscreen
     cp 144 + 16 - 15            ; | height of screen + sprite Y offset - status bar height
     jp nc, :+                   ; /
@@ -387,6 +369,29 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 :   rom_bank_switch BANK("PoliceCarCollision")
     process_knockback \1 + EnemyCarX, \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, \1 + ObjectLastTouched
 .noCol\@:
+
+    ld a, [\1 + EnemyCarY]  ; \
+    ld b, a                 ; | setup inputs for roadEdgeCollision
+    ld de, \1 + EnemyCarX   ; /
+    call roadEdgeCollision
+    ld a, [\1 + KnockbackThisFrame]
+    and b ; if car is in knockback state AND car hit a wall, car should explode
+    jr z, .noStartExplode\@
+.checkExplode\@:
+    ld a, [\1 + EnemyCarY]      ; \ no exploding when car is offscreen
+    cp 144 + 16 - 15            ; | height of screen + sprite Y offset - status bar height
+    jp nc, .noStartExplode\@    ; /
+    ld a, 2
+    ld [\1 + EnemyCarActive], a ; set car state to "Exploding"
+    xor a
+    ld [\1 + ExplosionAnimFrame], a
+    ld [\1 + ExplosionAnimTimer], a
+    ld [ObjCollisionArray + CAR_OBJ_COLLISION\@], a ; Disable collision array entry
+    ld bc, DESTROYED_MONEY_GIVEN
+    call addMoney
+    play_sound_effect FX_CarExplode ; play explode sound effect
+    jp .doneUpdateCar\@
+.noStartExplode\@:
 
     ; Move the 4 car sprites to (EnemyCarX, EnemyCarY)
     ld a, [\1 + EnemyCarX]

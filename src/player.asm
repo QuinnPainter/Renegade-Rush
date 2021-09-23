@@ -409,7 +409,7 @@ updatePlayer::
 
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + PLAYER_COLLISION
-    ld a, %00000011 ; Collision Layer Flags
+    ld a, %00001011 ; Collision Layer Flags
     ld [hli], a
     ld a, [PlayerY] ; Top Y
     ld [hli], a
@@ -427,7 +427,7 @@ updatePlayer::
     call objCollisionCheck
     and a
     jp z, .noCol ; collision happened - now apply knockback
-    bit 1, b ; check if collision was with enemy missile or car
+    and %1010 ; check if collision was with enemy missile / road object
     jr z, .doKnockback
     ld a, [PlayerStateTimer]    ; \
     and a                       ; | don't explode if currently invincible

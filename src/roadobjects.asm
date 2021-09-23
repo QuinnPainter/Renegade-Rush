@@ -1,6 +1,7 @@
 INCLUDE "hardware.inc"
 INCLUDE "macros.inc"
 INCLUDE "spriteallocation.inc"
+INCLUDE "collision.inc"
 
 DEF WARNING_TILE_OFFSET EQUS "((WarningTilesVRAM - $8000) / 16)"
 DEF BOULDER_TILE_OFFSET EQUS "((BoulderTilesVRAM - $9000) / 16)"
@@ -15,6 +16,7 @@ RoadObjTickCtr: DS 1
 WarningFlashCtr: DS 1
 RoadObjTileX: DS 1 ; X position in tiles, relative to the start of the line in VRAM.
 RoadObjSpriteX: DS 1 ; X position in sprite terms, used for the warning sign + object collision box.
+RoadObjSpriteY: DS 2 ; Y position used for the collision box. 8.8 fixed point.
 
 SECTION "Road Object Code", ROM0
 
@@ -47,12 +49,37 @@ updateRoadObject::
 
     ld a, [RoadObjState]
     and a
-    jr z, .stateInactive
+    jp z, .stateInactive
     dec a
     jr z, .stateWarning
     ; Active State
-    xor a ;todo
+    add_16 CurrentRoadScrollSpeed, RoadObjSpriteY, RoadObjSpriteY
+
+    ld a, [RoadObjSpriteY]
+    cp 160
+    jr c, .notOffBottom
+    cp 200
+    jr nc, .notOffBottom
+    xor a ; Went off the bottom of the screen, time to disable it
     ld [RoadObjState], a
+    ld [ObjCollisionArray + ROADOBJ_COLLISION], a
+    ret
+.notOffBottom:
+
+    ; Update entry in object collision array
+    ld hl, ObjCollisionArray + ROADOBJ_COLLISION
+    ld a, %00011000 ; Collision Layer Flags
+    ld [hli], a
+    ld a, [RoadObjSpriteY] ; Top Y
+    ld [hli], a
+    add 16 ; Bottom Y - object is 16 px tall
+    ld [hli], a
+    ld a, [RoadObjSpriteX] ; Left X
+    ld [hli], a
+    add 16 ; Right X - object is 16 px wide
+    ld [hli], a
+    ld a, 2 << 4 ; object type = road obstacle
+    ld [hl], a
     ret
 
 .stateWarning:
@@ -86,6 +113,7 @@ updateRoadObject::
     ld a, [RoadObjTileX]
     add l
     ld l, a
+    push hl
     ld b, BOULDER_TILE_OFFSET
     call drawObjectTile
     inc b
@@ -100,6 +128,14 @@ updateRoadObject::
     inc b
     inc l
     call drawObjectTile
+
+    pop hl  ; set sprite Y pos
+    call TileToSpriteYPos
+    ld hl, RoadObjSpriteY
+    ld a, b
+    ld [hli], a
+    ld a, c
+    ld [hl], a
     ret
 
 .stateInactive:
@@ -157,3 +193,24 @@ drawObjectTile:
     jr nz, drawObjectTile   ; /
     ld [hl], b
     ret
+
+; Converts a VRAM $9800 tile position to a sprite Y position
+; Input - HL = Tile address
+; Sets - A H L to garbage
+; Sets - BC to 8.8 fixed point position
+TileToSpriteYPos:
+    ld bc, -$9800 & $FFFF   ; change tile range from 9800 - 9BFF (need "& $FFFF" so rgbds doesn't compain that "expression must be 16-bit")
+    add hl, bc              ; to 0 - 3FF
+    srl h       ; divide by 32 (32 tiles in a line)
+    rr l        ; (this part actually only divides by 4)
+    srl h       ; instead of dividing by 32 and multiplying by 8, just divide by 4
+    rr l        ; and mask off the last 3 bits
+    ld a, $F8   ;
+    and l       ;
+    add OAM_Y_OFS ; add 16 to line up with sprites
+    ld hl, CurrentRoadScrollPos
+    sub [hl] ; apply Y scroll offset
+    ld b, a
+    inc hl
+    ld c, [hl] ; set fractional part to be the same as road scroll fractional part
+    ret ; (is that wrong? whatever, at most it will be off by a pixel)
