@@ -3,7 +3,7 @@
 ;   Bit 0 = Player / Enemy Car Layer
 ;   Bit 1 = Player / Enemy Missile Layer
 ;   Bit 2 = Player Missile / Missile-able Enemy Layer
-;   Bit 3 = Player Car / Player Car-Destroying Object Layer (isn't this the same as player / enemy missile layer? TODO: should consolidate these)
+;   Bit 3 = Player Car / Player Car-Destroying Object Layer (isn't this the same as player / enemy missile layer? I guess this prevents missiles colliding with roadblocks?)
 ;   Bit 4 = Enemy Car / Enemy Car-Destroying Object Layer
 ; Byte 2 = Y Position (of top)
 ; Byte 3 = Y Position (of bottom)

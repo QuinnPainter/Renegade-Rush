@@ -33,7 +33,7 @@ title: $(RESDIR)/title.2bpp $(RESDIR)/title.tilemap $(RESDIR)/titleScreenBottom.
 font: $(RESDIR)/font.2bpp $(RESDIR)/fontPSwap.2bpp
 garage: $(RESDIR)/garage.2bpp $(RESDIR)/garage.tilemap $(RESDIR)/garageObjects.2bpp
 warning: $(RESDIR)/warning.2bpp
-roadobjects: $(RESDIR)/boulder.2bpp
+roadobjects: $(RESDIR)/boulder.2bpp $(RESDIR)/boulder2.2bpp $(RESDIR)/barrel.2bpp $(RESDIR)/cube.2bpp $(RESDIR)/dirtpile.2bpp $(RESDIR)/hole.2bpp $(RESDIR)/manhole.2bpp $(RESDIR)/stump.2bpp
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/road/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/road/lines.png
@@ -52,8 +52,22 @@ $(RESDIR)/truck.2bpp: $(ASSETSDIR)/gameobjs/truck.png | $(RESDIR)
 $(RESDIR)/warning.2bpp: $(ASSETSDIR)/gameobjs/warning.png | $(RESDIR)
 	$(GFX) -o $(RESDIR)/warning.2bpp $(ASSETSDIR)/gameobjs/warning.png
 
-$(RESDIR)/boulder.2bpp: $(ASSETSDIR)/gameobjs/boulder.png | $(RESDIR)
-	$(GFX) -o $(RESDIR)/boulder.2bpp $(ASSETSDIR)/gameobjs/boulder.png
+$(RESDIR)/boulder.2bpp: $(ASSETSDIR)/gameobjs/obstacles/boulder.png | $(RESDIR)
+	$(GFX) -o $(RESDIR)/boulder.2bpp $(ASSETSDIR)/gameobjs/obstacles/boulder.png
+$(RESDIR)/boulder2.2bpp: $(ASSETSDIR)/gameobjs/obstacles/boulder2.png | $(RESDIR)
+	$(GFX) -o $(RESDIR)/boulder2.2bpp $(ASSETSDIR)/gameobjs/obstacles/boulder2.png
+$(RESDIR)/barrel.2bpp: $(ASSETSDIR)/gameobjs/obstacles/barrel.png | $(RESDIR)
+	$(GFX) -o $(RESDIR)/barrel.2bpp $(ASSETSDIR)/gameobjs/obstacles/barrel.png
+$(RESDIR)/cube.2bpp: $(ASSETSDIR)/gameobjs/obstacles/cube.png | $(RESDIR)
+	$(GFX) -o $(RESDIR)/cube.2bpp $(ASSETSDIR)/gameobjs/obstacles/cube.png
+$(RESDIR)/dirtpile.2bpp: $(ASSETSDIR)/gameobjs/obstacles/dirtpile.png | $(RESDIR)
+	$(GFX) -o $(RESDIR)/dirtpile.2bpp $(ASSETSDIR)/gameobjs/obstacles/dirtpile.png
+$(RESDIR)/hole.2bpp: $(ASSETSDIR)/gameobjs/obstacles/hole.png | $(RESDIR)
+	$(GFX) -o $(RESDIR)/hole.2bpp $(ASSETSDIR)/gameobjs/obstacles/hole.png
+$(RESDIR)/manhole.2bpp: $(ASSETSDIR)/gameobjs/obstacles/manhole.png | $(RESDIR)
+	$(GFX) -o $(RESDIR)/manhole.2bpp $(ASSETSDIR)/gameobjs/obstacles/manhole.png
+$(RESDIR)/stump.2bpp: $(ASSETSDIR)/gameobjs/obstacles/stump.png | $(RESDIR)
+	$(GFX) -o $(RESDIR)/stump.2bpp $(ASSETSDIR)/gameobjs/obstacles/stump.png
 
 $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap: $(ASSETSDIR)/gameobjs/policecar.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/policecar.2bpp $(ASSETSDIR)/gameobjs/policecar.png

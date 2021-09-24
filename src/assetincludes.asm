@@ -64,4 +64,12 @@ ENDM
 
 ; Road Object Stuff
     compact_incbin WarningTiles, "res/warning.2bpp", ROMX
-    compact_incbin BoulderTiles, "res/boulder.2bpp", ROMX
+SECTION "RoadObjectTiles", ROMX
+INCBIN "res/boulder.2bpp"
+INCBIN "res/boulder2.2bpp"
+INCBIN "res/barrel.2bpp"
+INCBIN "res/dirtpile.2bpp"
+INCBIN "res/hole.2bpp"
+INCBIN "res/manhole.2bpp"
+INCBIN "res/stump.2bpp"
+INCBIN "res/cube.2bpp"

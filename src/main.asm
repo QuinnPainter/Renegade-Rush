@@ -38,10 +38,10 @@ StartGame::
     ld de, STARTOF("RoadTiles4")
     ld bc, SIZEOF("RoadTiles4")
     call memcpy
-    rom_bank_switch BANK("BoulderTiles")
-    ld hl, BoulderTilesVRAM
-    ld de, STARTOF("BoulderTiles")
-    ld bc, SIZEOF("BoulderTiles")
+    rom_bank_switch BANK("RoadObjectTiles")
+    ld hl, RoadObjectTilesVRAM
+    ld de, STARTOF("RoadObjectTiles")
+    ld bc, SIZEOF("RoadObjectTiles")
     call memcpy
     rom_bank_switch BANK("PoliceCarTiles")
     ld hl, PoliceCarTilesVRAM

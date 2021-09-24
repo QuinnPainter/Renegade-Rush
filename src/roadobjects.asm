@@ -4,7 +4,7 @@ INCLUDE "spriteallocation.inc"
 INCLUDE "collision.inc"
 
 DEF WARNING_TILE_OFFSET EQUS "((WarningTilesVRAM - $8000) / 16)"
-DEF BOULDER_TILE_OFFSET EQUS "((BoulderTilesVRAM - $9000) / 16)"
+DEF ROADOBJ_TILE_OFFSET EQUS "((RoadObjectTilesVRAM - $9000) / 16)"
 
 DEF ROAD_OBJ_TICK_RATE EQU 6 * 4 ; Frequency that the warning flashes in. Should match the tempo of the song * 4
 DEF WARNING_Y_POS EQU 20
@@ -105,6 +105,12 @@ updateRoadObject::
     ret nz ; warning is done - time to place the object
     ld a, 2 ; set state to Active
     ld [RoadObjState], a
+
+    call genRandom
+    and $07 << 2 ; get number between 0 and 7 (multiplied by 4 so it's a tile index)
+    add ROADOBJ_TILE_OFFSET
+    ld b, a
+
     ld hl, RoadTileWriteAddr ; draw boulder
     ld a, [hli]
     ld l, [hl]
@@ -114,7 +120,6 @@ updateRoadObject::
     add l
     ld l, a
     push hl
-    ld b, BOULDER_TILE_OFFSET
     call drawObjectTile
     inc b
     inc l
