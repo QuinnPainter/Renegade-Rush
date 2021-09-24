@@ -2,5 +2,8 @@ ROMX $01 ; Car info and car gfx data must be in same bank
     "StarterCar Info"
     ALIGN 8
     "Truck Info"
+    ALIGN 8
+    "TimeCar Info"
     "StarterCarTiles"
     "TruckTiles"
+    "TimeCarTiles"

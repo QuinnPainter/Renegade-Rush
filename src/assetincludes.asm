@@ -24,6 +24,7 @@ ENDM
 ; Player Car
     compact_incbin StarterCarTiles, "res/starterCar.2bpp", ROMX
     compact_incbin TruckTiles, "res/truck.2bpp", ROMX
+    compact_incbin TimeCarTiles, "res/timecar.2bpp", ROMX
     compact_incbin PlayerTilemap, "staticres/player.tilemap", ROMX
     compact_incbin PlayerAttrmap, "staticres/player.attrmap", ROMX
 

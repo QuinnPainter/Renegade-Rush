@@ -23,7 +23,7 @@ endif
 all: road player policecar gameui explosion title font helicopter missile garage warning roadobjects
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin $(RESDIR)/lines2.2bpp $(RESDIR)/lines3.2bpp $(RESDIR)/lines4.2bpp
-player: $(RESDIR)/starterCar.2bpp $(RESDIR)/truck.2bpp
+player: $(RESDIR)/starterCar.2bpp $(RESDIR)/truck.2bpp $(RESDIR)/timecar.2bpp
 policecar: $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap $(RESDIR)/policecarcol.bin
 helicopter: $(RESDIR)/helicopter.2bpp $(RESDIR)/helicopterExplode.2bpp
 missile: $(RESDIR)/missile.2bpp
@@ -48,6 +48,8 @@ $(RESDIR)/starterCar.2bpp: $(ASSETSDIR)/gameobjs/starterCar.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/starterCar.2bpp $(ASSETSDIR)/gameobjs/starterCar.png
 $(RESDIR)/truck.2bpp: $(ASSETSDIR)/gameobjs/truck.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/truck.2bpp $(ASSETSDIR)/gameobjs/truck.png
+$(RESDIR)/timecar.2bpp: $(ASSETSDIR)/gameobjs/timecar.png | $(RESDIR)
+	$(GFX) -h -o $(RESDIR)/timecar.2bpp $(ASSETSDIR)/gameobjs/timecar.png
 
 $(RESDIR)/warning.2bpp: $(ASSETSDIR)/gameobjs/warning.png | $(RESDIR)
 	$(GFX) -o $(RESDIR)/warning.2bpp $(ASSETSDIR)/gameobjs/warning.png
@@ -115,7 +117,7 @@ $(RESDIR)/garageObjects.2bpp: $(ASSETSDIR)/interface/garageObjects.png | $(RESDI
 	$(GFX) -u -o $(RESDIR)/garageObjects.2bpp $(ASSETSDIR)/interface/garageObjects.png
 
 $(RESDIR)/font.2bpp: $(ASSETSDIR)/interface/font.png | $(RESDIR)
-	$(GFX) -x 11 -o $(RESDIR)/font.2bpp $(ASSETSDIR)/interface/font.png
+	$(GFX) -x 10 -o $(RESDIR)/font.2bpp $(ASSETSDIR)/interface/font.png
 
 $(RESDIR)/fontPSwap.2bpp: $(ASSETSDIR)/interface/fontPSwap.png | $(RESDIR)
 	$(GFX) -x 6 -o $(RESDIR)/fontPSwap.2bpp $(ASSETSDIR)/interface/fontPSwap.png

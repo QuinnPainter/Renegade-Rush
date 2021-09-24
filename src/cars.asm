@@ -76,11 +76,11 @@ DB "       "
 DB 4 ; Speed
 DB 6 ; Weight
 DB 3 ; Missile
-DB 2 ; Special
+DB 3 ; Special
 DB 5 ; Upgraded Speed
 DB 6 ; Upgraded Weight
 DB 4 ; Upgraded Missile
-DB 3 ; Upgraded Special
+DB 4 ; Upgraded Special
 DB "Big and  "
 DB "beefy.   "
 DB "         "
@@ -102,3 +102,37 @@ DB $00, $06 ; Y Acceleration
 DB $35 ; Missile Charge Speed (lower = faster)
 DB $40 ; Special Charge Speed (lower = faster, 0 = disabled)
 DB 38 ; Knockback Slowdown (higher value = faster slowdown / higher weight)
+
+SECTION "TimeCar Info", ROMX, ALIGN[8]
+DW TimeCarTiles
+DB "TIME   "
+DB " MASTER"
+DB 5 ; Speed
+DB 5 ; Weight
+DB 4 ; Missile
+DB 2 ; Special
+DB 6 ; Upgraded Speed
+DB 5 ; Upgraded Weight
+DB 4 ; Upgraded Missile
+DB 3 ; Upgraded Special
+DB "Return   "
+DB "to the   "
+DB "future!  "
+DB "         "
+DB "Special: "
+DB "Disappear"
+DB "for a bit"
+DW $2000 ; Car Price
+DW $2500 ; Upgrade Price
+DB $01, $7F ; X Speed       -- BASE STATS --
+DB $00, $60 ; Y Speed
+DB $00, $07 ; Y Acceleration
+DB $35 ; Missile Charge Speed (lower = faster)
+DB $54 ; Special Charge Speed (lower = faster, 0 = disabled)
+DB 34 ; Knockback Slowdown (higher value = faster slowdown / higher weight)
+DB $01, $AA ; X Speed       -- UPGRADED STATS --
+DB $00, $65 ; Y Speed
+DB $00, $08 ; Y Acceleration
+DB $35 ; Missile Charge Speed (lower = faster)
+DB $48 ; Special Charge Speed (lower = faster, 0 = disabled)
+DB 34 ; Knockback Slowdown (higher value = faster slowdown / higher weight)
