@@ -43,6 +43,8 @@ ExplosionAnimFrame: DS 1 ; Current frame of the explosion animation
 ExplosionAnimTimer: DS 1 ; Frame counter for the explosion animation
 PlayerStateTimer: DS 1 ; Used to count the time before respawning, number of invincibility frames, and time after death before game overing
 BaseKnockbackSlowdown: DS 1
+IsPlayerInvisible:: DS 1 ; Used for the "time car" special.
+PlayerCollisionMask:: DS 1 ; 0 to disable collisions, FF to enable all. also used for "time car" special
 
 SECTION "PlayerCode", ROM0
 
@@ -119,7 +121,6 @@ initPlayer::
     ld [PlayerMaxRoadSpeed + 1], a
     ld [PlayerX + 1], a
     ld [PlayerY + 1], a
-    xor a
     ld [CurrentKnockbackSpeedX], a
     ld [CurrentKnockbackSpeedX + 1], a
     ld [CurrentKnockbackSpeedY], a
@@ -127,6 +128,9 @@ initPlayer::
     ld [SpecialChargeValue], a
     ld [MissileChargeValue], a
     ld [PlayerStateTimer], a
+    ld [IsPlayerInvisible], a
+    ld a, $FF
+    ld [PlayerCollisionMask], a
     ld a, 4
     ld [LivesValue], a
     ld a, 1
@@ -407,9 +411,12 @@ updatePlayer::
     ret
 .noStartExplode:
 
+    ld a, [PlayerCollisionMask]
+    ld b, %00001011 ; Collision Layer Flags
+    and b
+
     ; Update entry in object collision array
     ld hl, ObjCollisionArray + PLAYER_COLLISION
-    ld a, %00001011 ; Collision Layer Flags
     ld [hli], a
     ld a, [PlayerY] ; Top Y
     ld [hli], a
@@ -466,11 +473,15 @@ updatePlayer::
 .doneApplyKnockback:
 .noCol:
 
+    ld a, [IsPlayerInvisible]
+    and a
+    jr nz, .drawInvisible
     ; Flash the car every other frame if currently invincible
     ld a, [PlayerStateTimer]
     and 1 ; determine if time number is even or odd
     ld a, [PlayerY]
     jr z, .notInvisible ; if even, draw car as normal
+.drawInvisible:
     ld a, 200 ; if odd, put player Y off the screen so car is invisible
 .notInvisible:
 

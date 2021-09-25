@@ -3,19 +3,26 @@ INCLUDE "macros.inc"
 INCLUDE "collision.inc"
 INCLUDE "spriteallocation.inc"
 
+DEF TIME_CAR_INVISIBLE_TIME EQU 200 ; number of frames.
+DEF TIME_CAR_SCREEN_FLASH_FRAMES EQU 10
+
 SECTION "SpecialVars", WRAM0
-SpecialState: DS 1 ; For rock: 0 = On car, 1 = On road
+SpecialState: DS 1 ; For rock: 0 = On car, 1 = On road. For time car: 0 = Effect inactive, 1 = Active
 SpecialSpriteX: DS 1 ; X position in sprite terms, used for the warning sign + object collision box.
 SpecialSpriteY: DS 2 ; Y position used for the collision box. 8.8 fixed point.
+SpecialTimer: DS 1 ; For time car: counts frames left in effect
+ScreenFlashTimer: DS 1
 
 SECTION "SpecialCode", ROM0
 
+; Initialise special-related stuff
 initSpecial::
     xor a
     ld [SpecialState], a
     ld [SpecialSpriteX], a
     ld [SpecialSpriteY], a
     ld [SpecialSpriteY + 1], a
+    ld [ScreenFlashTimer], a
 
     xor a ; Set sprite attributes
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (SPECIAL_SPRITE + 0)) + OAMA_FLAGS], a
@@ -25,12 +32,45 @@ initSpecial::
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (SPECIAL_SPRITE + 0)) + OAMA_Y], a
     ret
 
+; Update the special stuff
+; Runs once per frame
 updateSpecial::
     ld a, [SelectedCar]
     dec a
     jr z, .updateTruckSpecial
     ; Time Car Special
+    ld hl, ScreenFlashTimer
+    ld a, [hl]
+    and a
+    jr z, .noScreenFlash
+    dec [hl]
+    jr z, .screenFlashOver
+    xor a
+    ld [rBGP], a
+    ld [rOBP0], a
+    jr .noScreenFlash
+.screenFlashOver:
+    ld a, %11100100
+    ld [rBGP], a
+    ld [rOBP0], a
+.noScreenFlash:
+
+    ld a, [SpecialState]
+    and a
+    ret z
+
+    ld hl, SpecialTimer
+    dec [hl]
+    ret nz
+    xor a ; time has run out
+    ld [IsPlayerInvisible], a
+    ld [SpecialState], a
+    ld a, $FF
+    ld [PlayerCollisionMask], a
+    ld a, TIME_CAR_SCREEN_FLASH_FRAMES
+    ld [ScreenFlashTimer], a
     ret
+
 .updateTruckSpecial:
     ld a, [SpecialState]
     and a
@@ -69,11 +109,21 @@ updateSpecial::
 
     ret
 
+; Runs when the user presses the button to activate a special
 activateSpecial::
     ld a, [SelectedCar]
     dec a
     jr z, .activateTruckSpecial
     ; Activate Time car special
+    ld a, TIME_CAR_INVISIBLE_TIME
+    ld [SpecialTimer], a
+    ld a, 1
+    ld [IsPlayerInvisible], a
+    ld [SpecialState], a
+    xor a
+    ld [PlayerCollisionMask], a
+    ld a, TIME_CAR_SCREEN_FLASH_FRAMES
+    ld [ScreenFlashTimer], a
     ret
 .activateTruckSpecial
     ld a, [PlayerX]

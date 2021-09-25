@@ -89,6 +89,11 @@ StartGame::
     ld bc, 10 * 16
     call memcpy
 
+    ld a, %11100100 ; Init background palette
+	ldh [rBGP], a
+    ldh [rOBP0], a ; Init sprite palettes
+	ldh [rOBP1], a
+
     ; Init menu bar tilemaps
     call genMenuBarTilemaps
 
