@@ -240,11 +240,13 @@ LCDScreenTilemapCopy::
     ;ld de, 12 ; Offset needed to jump from end of this line to start of next line
     ;ld e, 20 ; 20 tiles in a line
 .tilemapCopyLp:
+    di
     ldh a, [rSTAT]          ; \
 	and STATF_BUSY          ; | Wait for VRAM to be ready
 	jr nz, .tilemapCopyLp   ; /
     ld a, [bc]
     ld [hli], a
+    ei
     inc bc
     dec d
     jr nz, .tilemapCopyLp
@@ -270,11 +272,13 @@ LCDMemset::
     inc c
     jr .decCounter
 .loadByte:
+    di
 	ldh a, [rSTAT]      ; \
 	and STATF_BUSY      ; | Wait for VRAM to be ready
 	jr nz, .loadByte    ; /
-    ld [hl], d ;ld a, d
-    inc hl ;ld [hli], a
+    ld a, d
+    ld [hli], a
+    ei
 .decCounter:
     dec c
     jr nz, .loadByte
@@ -292,11 +296,13 @@ SECTION "LCD Memset Fast", ROM0
 ; Sets  - C  = 0
 ; Sets  - A  = B
 LCDMemsetFast::
+    di
 	ldh a, [rSTAT]          ; \
 	and STATF_BUSY          ; | Wait for VRAM to be ready
 	jr nz, LCDMemsetFast    ; /
 	ld a, b
 	ld [hli], a
+    ei
 	dec c
 	jr nz, LCDMemsetFast
 	ret
@@ -311,11 +317,13 @@ LCDMemcpy::
     inc b
     inc c
 .loop:
+    di
     ldh a, [rSTAT]          ; \
     and STATF_BUSY          ; | Wait for VRAM to be ready
     jr nz, .loop            ; /
     ld a, [de]
     ld [hli], a
+    ei
     inc de
     dec c
     jr nz, .loop
@@ -349,10 +357,12 @@ SECTION "LCD Copy String", ROM0
 ; Sets	- A to garbage
 ; Sets  - HL BC to original values + string length
 LCDCopyString::
+    di
     ldh a, [rSTAT]          ; \
     and STATF_BUSY          ; | Wait for VRAM to be ready
     jr nz, LCDCopyString    ; /
 	ld a, [bc]
+    ei
     and a
     ret z
 	ld [hli], a
