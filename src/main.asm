@@ -102,6 +102,7 @@ StartGame::
     call initHelicopter
     call initMissiles
     call initRoadObject
+    call initSpecial
 
     xor a
     ld [IsGamePaused], a
@@ -172,6 +173,7 @@ GameLoop:
     call updateHelicopter
     call updateMissiles
     call updateRoadObject
+    call updateSpecial
     call updateStatusBar
 .paused:
     call updateAudio

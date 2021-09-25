@@ -73,7 +73,7 @@ $(RESDIR)/stump.2bpp: $(ASSETSDIR)/gameobjs/obstacles/stump.png | $(RESDIR)
 
 $(RESDIR)/policecar.2bpp $(RESDIR)/policecar.tilemap: $(ASSETSDIR)/gameobjs/policecar.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/policecar.2bpp $(ASSETSDIR)/gameobjs/policecar.png
-	$(ADDOFFSET) $(MAPSDIR)/policecar.tilemap $(RESDIR)/policecar.tilemap 16
+	$(ADDOFFSET) $(MAPSDIR)/policecar.tilemap $(RESDIR)/policecar.tilemap 18
 
 $(RESDIR)/explosion1.2bpp: $(ASSETSDIR)/gameobjs/explosion1.png | $(RESDIR)
 	$(GFX) -h -o $(RESDIR)/explosion1.2bpp $(ASSETSDIR)/gameobjs/explosion1.png

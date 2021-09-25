@@ -74,7 +74,7 @@ CHARMAP " ", $CC
 
 NEWCHARMAP PSwapCharmap
 CHARMAP "<E>", 0
-CHARMAP "A", $2A
+CHARMAP "A", $1A
 CHARMAP "B", "A" + 1
 CHARMAP "C", "B" + 1
 CHARMAP "D", "C" + 1

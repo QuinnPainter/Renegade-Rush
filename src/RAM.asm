@@ -1,10 +1,12 @@
 INCLUDE "hardware.inc"
 
 ; In Game VRAM
+DEF PLAYER_NUM_TILES EQU 18 ; 8 for straight, 8 for turn, 2 for special
+EXPORT PLAYER_NUM_TILES
 
 SECTION "VRAM 8000", VRAM[_VRAM8000]
 PlayerTilesVRAM::
-    DS 16 * 16 ; 16 tiles * 16 bytes per tile
+    DS PLAYER_NUM_TILES * 16
 PoliceCarTilesVRAM::
     DS 18 * 16 ; 18 tiles * 16 bytes per tile
 HelicopterTilesVRAM::
@@ -44,8 +46,8 @@ RSSET (_VRAM8000)
 DEF GarageTilesVRAM RB 19 * 16 ; 19 tiles
 DEF GarageObjectTilesVRAM RB 7 * 16 ; 7 tiles
 ;DEF GCARPAD RB 16 ; CarTiles must be aligned on even number tile index
-DEF GarageCarTilesVRAM RB 16 * 16 ; SAME AS PlayerTilesVRAM above
 DEF FontPSwapTilesVRAM RB 26 * 16 ; 26 tiles
+DEF GarageCarTilesVRAM RB PLAYER_NUM_TILES * 16 ; SAME AS PlayerTilesVRAM above
 
 RSSET (_VRAM8800 + (3 * 16))
 DEF MainMenuFontVRAM RB 73 * 16 ; 73 tiles (overallocated)

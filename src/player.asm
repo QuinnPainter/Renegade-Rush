@@ -59,7 +59,7 @@ initPlayer::
     ld d, a     ; |                 ; |
     ld e, b     ; /                 ; |
     ld hl, PlayerTilesVRAM          ; |
-    ld bc, SIZEOF("StarterCarTiles"); |
+    ld bc, PLAYER_NUM_TILES * 16    ; |
     call memcpy                     ; /
 
     ld hl, CarLockStateArray    ; \
@@ -503,7 +503,12 @@ updatePlayer::
     ld a, [newButtons]
     and PADF_B
     jr z, .bNotPressed
-    ; todo : special
+    ld hl, SpecialChargeValue   ; \
+    bit 5, [hl]                 ; | only activate if bar is fully charged
+    jr z, .bNotPressed          ; /
+    xor a                       ; reset bar to empty
+    ld [hl], a                  ;
+    call activateSpecial
 .bNotPressed:
 
     ret

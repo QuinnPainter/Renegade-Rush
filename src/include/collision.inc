@@ -8,6 +8,7 @@ DEF ENEMYCAR_COLLISION_2 RB 6
 DEF ENEMYCAR_COLLISION_3 RB 6
 DEF HELICOPTER_COLLISION RB 6
 DEF ROADOBJ_COLLISION RB 6
+DEF SPECIAL_COLLISION RB 6
 
 ; Calculate the knockback speeds after a collision has occured
 ; Has to be called directly after objCollisionCheck as the register outputs are used.
