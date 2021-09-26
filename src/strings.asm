@@ -9,7 +9,7 @@ MM_SettingsString:: DB "SETTINGS<E>"
 MM_InfoString:: DB "INFO<E>"
 MM_BestString:: DB "BEST:      <metre><E>"
 
-SECTION "InfoPageStrings", ROM0 ; reminder - 20 chars per screen line
+SECTION "InfoPageStrings", ROMX ; reminder - 20 chars per screen line
 INFO_Line1:: DB "<E>"
 DB " Renegade Rush<E>"
 DB " GBcompo21 Demo<E>"
@@ -37,7 +37,7 @@ SP_ResetSave::      DB " RESET SAVE<E>"
 SP_SelectionOn::    DB "     <selOn><E>"
 SP_SelectionOff::   DB "     <selOff><E>"
 
-SECTION "ResetSavegameStrings", ROM0
+SECTION "ResetSavegameStrings", ROMX
 RS_Line1:: DB "<E>"
 DB " - SAVEGAME RESET - <E>"
 DB "<E>"

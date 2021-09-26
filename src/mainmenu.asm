@@ -310,6 +310,7 @@ MainMenuLoop::
     ld hl, $9C00
     ld de, $0020
     ld bc, INFO_Line1
+    rom_bank_switch BANK("InfoPageStrings")
 .drawInfoLoop:
     call LCDCopyString
     ld a, $E0               ; \
@@ -462,6 +463,7 @@ SettingsPageLoop:
     ld hl, $9C00
     ld de, $0020
     ld bc, RS_Line1
+    rom_bank_switch BANK("ResetSavegameStrings")
 .drawSaveResetLoop:
     call LCDCopyString
     ld a, $E0               ; \
