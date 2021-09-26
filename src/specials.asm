@@ -69,6 +69,7 @@ updateSpecial::
     ld [PlayerCollisionMask], a
     ld a, TIME_CAR_SCREEN_FLASH_FRAMES
     ld [ScreenFlashTimer], a
+    play_sound_effect FX_TimeCarBlip
     ret
 
 .updateTruckSpecial:
@@ -124,6 +125,7 @@ activateSpecial::
     ld [PlayerCollisionMask], a
     ld a, TIME_CAR_SCREEN_FLASH_FRAMES
     ld [ScreenFlashTimer], a
+    play_sound_effect FX_TimeCarBlip
     ret
 .activateTruckSpecial
     ld a, [PlayerX]
@@ -134,4 +136,5 @@ activateSpecial::
     ld [SpecialSpriteY], a
     ld a, 1
     ld [SpecialState], a
+    play_sound_effect FX_TruckDropRock
     ret

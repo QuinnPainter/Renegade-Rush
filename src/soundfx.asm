@@ -140,6 +140,30 @@ FX_HeliExplode:: ; (CH4) Played for helicopter explosions
     DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_UNMUTE, 0
     DB SOUND_END
 
+FX_TruckDropRock:: ; (CH4) Played when the truck uses it's special to drop a rock
+    DB 1 ; FX channel
+    DB 1 ; Starting priority byte
+    DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_MUTE, 0
+    DB PAN_CH4, AUDTERM_4_LEFT | AUDTERM_4_RIGHT, 0
+    CH4_VOLENV $D, AUDENV_DOWN, 2, 0
+    CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 0
+    CH4_POLYCT AUD4POLY_15STEP, $4, 3, 20
+    DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_UNMUTE, 0
+    DB SOUND_END
+
+FX_TimeCarBlip:: ; (CH4) Played when the time car activates it's special
+    DB 1 ; FX channel
+    DB 1 ; Starting priority byte
+    DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_MUTE, 0
+    DB PAN_CH4, AUDTERM_4_LEFT | AUDTERM_4_RIGHT, 0
+    CH4_VOLENV $C, AUDENV_DOWN, 3, 0
+    CH4_POLYCT AUD4POLY_7STEP, $2, 7, 0
+    CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 2
+    CH4_POLYCT AUD4POLY_15STEP, $1, 6, 0
+    CH4_RESTART AUDHIGH_LENGTH_OFF, AUDHIGH_RESTART, 20
+    DB SET_MUSIC_MUTE, MUTE_CH4 | MUSIC_UNMUTE, 0
+    DB SOUND_END
+
 FX_WarningBeep:: ; (CH2) Played when the warning sign flashes
     DB 0 ; FX channel
     DB 0 ; Starting priority byte
