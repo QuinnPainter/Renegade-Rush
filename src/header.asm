@@ -103,6 +103,7 @@ VblankHandler:
 VblankEnd::
 	ld a, 1
     ld [HasVblankHappened], a
+LCDIntEnd::
 	pop de
 	pop bc
 	pop af
@@ -119,9 +120,3 @@ LCDIntHandler:
 	ld h, [hl]
 	ld l, a
 	jp hl ; jump to [LCDIntVectorRAM]
-LCDIntEnd::
-	pop de
-	pop bc
-	pop af
-	pop hl
-	reti
