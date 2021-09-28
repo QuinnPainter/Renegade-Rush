@@ -320,6 +320,16 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld a, [\1 + EnemyCarY]
     cp Y_BORDER_POS         ; offscreen in the above-screen zone = slow down
     jr nc, .wantSlowDown\@  ;
+
+    add 6
+    cp [hl] ; c set if EnemyY + 6 < PlayerY
+    jr c, .notInAttackWindow\@
+    sub 6 * 2
+    cp [hl] ; c set if EnemyY - 6 < PlayerY
+    jr nc, .notInAttackWindow\@
+    jr .idleMatchPlayerSpeed\@ ; inside a reasonable distance from player, so match player speed
+.notInAttackWindow\@:
+    add 6 ; undo offset from earlier
     cp [hl] ; c set if EnemyY < PlayerY (enemy is higher on the screen)
     jr z, .doneWantChangeSpeed\@
     jr c, .wantSlowDown\@
@@ -328,8 +338,8 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 .wantSlowDown\@:
     set 0, e
 .doneWantChangeSpeed\@:
-
     jp .doneProcessAI\@
+
 .aiIdle\@:  ; --- Idle AI ---
     ld a, [IsCarAttacking]  ; \
     and a                   ; | don't attack if there's already a car doing that
