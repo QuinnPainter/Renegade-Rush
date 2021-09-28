@@ -79,7 +79,7 @@ updateSpecial::
 
     add_16 CurrentRoadScrollSpeed, SpecialSpriteY, SpecialSpriteY
     ld a, [SpecialSpriteY]
-    cp 160
+    cp 190
     jr c, .notOffBottom
     xor a ; Went off the bottom of the screen, time to disable it
     ld [SpecialState], a
