@@ -265,36 +265,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ; jeez, this AI part sure is a mess
     ; need to reorganise this at some point
 
-    ld a, [\1 + AIState]
-    and a
-    jr z, .aiIdle\@
-    
-    ; Attacking AI
-    ld hl, PlayerY ; Try to match player's Y position
-    ld a, [\1 + EnemyCarY]
-    cp Y_BORDER_POS         ; offscreen in the above-screen zone = slow down
-    jr nc, .wantSlowDown\@  ;
-    cp [hl] ; c set if EnemyY < PlayerY (enemy is higher on the screen)
-    jr z, .doneWantChangeSpeed\@
-    jr c, .wantSlowDown\@
-    set 1, e
-    jr .doneWantChangeSpeed\@
-.wantSlowDown\@:
-    set 0, e
-.doneWantChangeSpeed\@:
-
-    jp .doneProcessAI\@
-.aiIdle\@:
-    ld a, [IsCarAttacking]  ; \
-    and a                   ; | don't attack if there's already a car doing that
-    jr nz, .noAttack\@      ; /
-    call genRandom          ;
-    cp ATTACK_CHANCE        ;
-    jr nc, .noAttack\@      ; check if we should start attacking or not
-    ld a, 1                 ;
-    ld [\1 + AIState], a    ;
-    ld [IsCarAttacking], a  ;
-.noAttack\@:
+    ; X AI is same regardless of attacking or idle
     ld hl, \1 + AIFrameCtr
     inc [hl]
     ld a, %00001111 ; run X AI once every 16 frames
@@ -340,7 +311,36 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 
 .doneProcessXMovement\@:
 
-    ; --- Y Movement ---
+    ld a, [\1 + AIState]
+    and a
+    jr z, .aiIdle\@
+    
+    ; --- Attacking AI ---
+    ld hl, PlayerY ; Try to match player's Y position
+    ld a, [\1 + EnemyCarY]
+    cp Y_BORDER_POS         ; offscreen in the above-screen zone = slow down
+    jr nc, .wantSlowDown\@  ;
+    cp [hl] ; c set if EnemyY < PlayerY (enemy is higher on the screen)
+    jr z, .doneWantChangeSpeed\@
+    jr c, .wantSlowDown\@
+    set 1, e
+    jr .doneWantChangeSpeed\@
+.wantSlowDown\@:
+    set 0, e
+.doneWantChangeSpeed\@:
+
+    jp .doneProcessAI\@
+.aiIdle\@:  ; --- Idle AI ---
+    ld a, [IsCarAttacking]  ; \
+    and a                   ; | don't attack if there's already a car doing that
+    jr nz, .noAttack\@      ; /
+    call genRandom          ;
+    cp ATTACK_CHANCE        ;
+    jr nc, .noAttack\@      ; check if we should start attacking or not
+    ld a, 1                 ;
+    ld [\1 + AIState], a    ;
+    ld [IsCarAttacking], a  ;
+.noAttack\@:
 
     ; First, see if we need to try and match player's speed
     ld hl, CurrentRoadScrollSpeed
