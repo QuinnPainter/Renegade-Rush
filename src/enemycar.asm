@@ -12,6 +12,14 @@ DEF Y_BORDER_POS EQU 207 ; The maximum and minimum Y position, which roughly mak
 DEF EXPLOSION_NUM_FRAMES EQU 5 ; Number of animation frames in the explosion animation.
 DEF EXPLOSION_ANIM_SPEED EQU 4 ; Number of game frames between each frame of animation.
 
+; Car tries to have a speed within:
+; CurrentRoadScrollSpeed - PLAYER_SPEED_WINDOW and CurrentRoadScrollSpeed + PLAYER_SPEED_WINDOW. 8 bit integer.
+DEF PLAYER_SPEED_WINDOW EQU 2
+DEF IDLE_PLAYER_Y_WINDOW_IN EQU 55 ; In Idle state, the enemy will stay this far away from the player on the Y axis. 8 bit integer.
+DEF IDLE_PLAYER_Y_WINDOW_OUT EQU 65
+
+DEF ATTACK_CHANCE EQU 40 ; Chance the enemy will start attacking if there's no other car attacking. Out of 255.
+
 RSRESET
 DEF EnemyCarX RB 2 ; Coordinates of the top-left of the car. 8.8 fixed point.
 DEF EnemyCarY RB 2
@@ -33,8 +41,9 @@ DEF KnockbackThisFrame RB 1 ; Was there any car knockback applied this frame? (0
 DEF PlayerKnockbackSlowdown RB 1 ; How fast the car slows down after being hit by the player, in 255s of a pixel per frame per frame. (0.8 fixed)
 DEF OtherKnockbackSlowdown RB 1 ; How fast the car slows down after being hit by some other object. (0.8 fixed)
 
-DEF LastMovementIntention RB 1 ;
+DEF LastMovementIntention RB 1 ; AI movement intention on the last frame
 DEF AIFrameCtr RB 1
+DEF AIState RB 1 ; 0 = Idle, 1 = Attacking
 DEF sizeof_EnemyCarVars RB 0
 
 ; Init variables that only need to be initialised once, at the game start.
@@ -70,6 +79,7 @@ MACRO init_enemy_car
 
     ld [\1 + AIFrameCtr], a
     ld [\1 + LastMovementIntention], a
+    ld [\1 + AIState], a
 ENDM
 
 ; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
@@ -252,16 +262,49 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ; Bit 2 = Want to turn left
     ; Bit 3 = Want to turn right
 
+    ; jeez, this AI part sure is a mess
+    ; need to reorganise this at some point
+
+    ld a, [\1 + AIState]
+    and a
+    jr z, .aiIdle\@
+    
+    ; Attacking AI
+    ld hl, PlayerY ; Try to match player's Y position
+    ld a, [\1 + EnemyCarY]
+    cp Y_BORDER_POS         ; offscreen in the above-screen zone = slow down
+    jr nc, .wantSlowDown\@  ;
+    cp [hl] ; c set if EnemyY < PlayerY (enemy is higher on the screen)
+    jr z, .doneWantChangeSpeed\@
+    jr c, .wantSlowDown\@
+    set 1, e
+    jr .doneWantChangeSpeed\@
+.wantSlowDown\@:
+    set 0, e
+.doneWantChangeSpeed\@:
+
+    jp .doneProcessAI\@
+.aiIdle\@:
+    ld a, [IsCarAttacking]  ; \
+    and a                   ; | don't attack if there's already a car doing that
+    jr nz, .noAttack\@      ; /
+    call genRandom          ;
+    cp ATTACK_CHANCE        ;
+    jr nc, .noAttack\@      ; check if we should start attacking or not
+    ld a, 1                 ;
+    ld [\1 + AIState], a    ;
+    ld [IsCarAttacking], a  ;
+.noAttack\@:
     ld hl, \1 + AIFrameCtr
     inc [hl]
-    ld a, %00001111 ; run AI once every 16 frames
+    ld a, %00001111 ; run X AI once every 16 frames
     and [hl]
-    jr z, .doAI\@
+    jr z, .doXAI\@
     ld a, [\1 + LastMovementIntention]
+    and %1100
     ld e, a
-    jr .doneProcessYMovement\@
-
-.doAI\@:
+    jp .doneProcessXMovement\@
+.doXAI\@:
     ; --- X Movement ---
     call genRandom
     cp 100
@@ -298,40 +341,64 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
 .doneProcessXMovement\@:
 
     ; --- Y Movement ---
-    call genRandom
-    cp 100
-    jr c, .randomYState\@
-    cp 200
-    jr c, .keepCurrentYIntention\@
+
+    ; First, see if we need to try and match player's speed
+    ld hl, CurrentRoadScrollSpeed
+    ld a, [hli]
+    ld c, [hl]
+    add PLAYER_SPEED_WINDOW
+    ld b, a ; BC = CurrentRoadScrollSpeed + PLAYER_SPEED_WINDOW
+    ld hl, \1 + EnemyCarRoadSpeed
+    ld a, [hli]
+    ld l, [hl]
+    ld h, a ; HL = EnemyCarRoadSpeed
+    cp_16r bc, hl ; C set if BC < HL
+    jr nc, :+
+    set 0, e ; Car speed is significantly higher than player's speed - so slow down
+    jr .doneProcessYMovement\@
+:   ld a, b
+    sub PLAYER_SPEED_WINDOW * 2 ; it was CurrentRoadScrollSpeed + PLAYER_SPEED_WINDOW before, now it's RoadScroll - P_S_W
+    ld b, a
+    cp_16r hl, bc ; C set if HL < BC
+    jr nc, :+
+    set 1, e ; Car speed is significantly lower than player's speed - so speed up
+    jr .doneProcessYMovement\@
+:
 
     ld hl, PlayerY
     ld a, [\1 + EnemyCarY]
-    cp Y_BORDER_POS         ; offscreen in the above-screen zone = slow down
-    jr nc, .wantSlowDown\@  ;
+    cp Y_BORDER_POS             ; offscreen in the above-screen zone = above player
+    jr nc, .idleMoveDown\@      ;
     cp [hl] ; c set if EnemyY < PlayerY (enemy is higher on the screen)
-    jr z, .doneWantChangeSpeed\@
-    jr c, .wantSlowDown\@
+    jr c, .idleYAbovePlayer\@
+    sub IDLE_PLAYER_Y_WINDOW_IN ; EnemyY > PlayerY (enemy is below player)
+    cp [hl] ; c set if EnemyY - IDLE_PLAYER_Y_WINDOW_IN < PlayerY
+    jr c, .idleMoveDown\@
+    sub (IDLE_PLAYER_Y_WINDOW_OUT - IDLE_PLAYER_Y_WINDOW_IN)
+    cp [hl] ; c set if EnemyY - IDLE_PLAYER_Y_WINDOW_OUT < PlayerY
+    jr nc, .idleMoveUp\@
+    jr .idleMatchPlayerSpeed\@
+.idleYAbovePlayer\@:
+    ld a, [\1 + EnemyCarY]
+    add IDLE_PLAYER_Y_WINDOW_OUT
+    cp [hl] ; c set if EnemyY + IDLE_PLAYER_Y_WINDOW_OUT < PlayerY
+    jr c, .idleMoveDown\@
+    sub (IDLE_PLAYER_Y_WINDOW_OUT - IDLE_PLAYER_Y_WINDOW_IN)
+    cp [hl] ; c set if EnemyY + IDLE_PLAYER_Y_WINDOW_IN < PlayerY
+    jr nc, .idleMoveUp\@
+.idleMatchPlayerSpeed\@: ; We're in an appropriate "window" from the player, now hold that position by matching player speed
+    cp_16 CurrentRoadScrollSpeed, \1 + EnemyCarRoadSpeed ; c set if CurrentRoadScrollSpeed < EnemyCarRoadSpeed (enemy is faster)
+    jr c, .idleMoveDown\@
+    ;jr .idleMoveUp\@
+
+.idleMoveUp\@:
     set 1, e
-    jr .doneWantChangeSpeed\@
-.wantSlowDown\@:
+    jr .doneCheckIdleY\@
+.idleMoveDown\@:
     set 0, e
-.doneWantChangeSpeed\@:
-    jr .doneProcessYMovement\@
-
-.randomYState\@:
-    ld a, h
-    and %11
-    or e
-    ld e, a
-    jr .doneProcessYMovement\@
-
-.keepCurrentYIntention\@:
-    ld a, [\1 + LastMovementIntention]
-    and %11
-    or e
-    ld e, a
-
+.doneCheckIdleY\@:
 .doneProcessYMovement\@:
+.doneProcessAI\@:
 
     ; Process movement intentions
     ld c, 0 ; Determines which sprite is used. 0 = straight, 4 = turning left, 8 = turning right
@@ -372,7 +439,7 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld [hl], a
 .speedBelowMax\@:
 
-.skipAI\@
+.skipAI\@:
 
     ; Take car speed from road speed to get the Y offset
     sub_16 CurrentRoadScrollSpeed, \1 + EnemyCarRoadSpeed, Scratchpad
@@ -453,7 +520,12 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld [ObjCollisionArray + CAR_OBJ_COLLISION\@], a ; Disable collision array entry
     ld bc, DESTROYED_MONEY_GIVEN
     call addMoney
-    play_sound_effect FX_CarExplode ; play explode sound effect
+    ld a, [\1 + AIState]    ; \
+    and a                   ; |
+    jr z, :+                ; | reset IsCarAttacking if the attacking car is being exploded
+    xor a                   ; |
+    ld [IsCarAttacking], a  ; /
+:   play_sound_effect FX_CarExplode ; play explode sound effect
     jp .doneUpdateCar\@
 .noStartExplode\@:
 
@@ -482,10 +554,13 @@ EnemyCarState3: DS sizeof_EnemyCarVars
 
 SECTION "SharedEnemyCarVars", WRAM0
 EnemyCarSpawnChance:: DS 2 ; little endian
+IsCarAttacking: DS 1
 
 SECTION "EnemyCarCode", ROM0
 
 initEnemyCars::
+    xor a
+    ld [IsCarAttacking], a
     init_enemy_car EnemyCarState1, ENEMYCAR_SPRITE_1
     init_enemy_car EnemyCarState2, ENEMYCAR_SPRITE_2
     init_enemy_car EnemyCarState3, ENEMYCAR_SPRITE_3
