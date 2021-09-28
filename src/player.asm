@@ -111,7 +111,7 @@ initPlayer::
     ld [CurrentRoadScrollSpeed], a
     ld a, LOW(STARTING_ROAD_SPEED)
     ld [CurrentRoadScrollSpeed + 1], a
-    ld a, $1
+    ld a, $2
     ld [PlayerMinRoadSpeed], a
     xor a
     ld [PlayerMinRoadSpeed + 1], a
