@@ -30,9 +30,10 @@ ENDM
 
 ; Police Car
     compact_incbin PoliceCarTiles, "res/policecar.2bpp", ROMX
-    compact_incbin PoliceCarTilemap, "res/policecar.tilemap", ROMX
+    compact_incbin PoliceCarTilemap, "staticres/policecar.tilemap", ROMX
     compact_incbin PoliceCarAttrmap, "staticres/policecar.attrmap", ROMX
     compact_incbin PoliceCarCollision, "res/policecarcol.bin", ROMX
+    compact_incbin PoliceHeavyTiles, "res/policeheavy.2bpp", ROMX
 
 ; Helicopter
     compact_incbin HelicopterTiles, "res/helicopter.2bpp", ROMX

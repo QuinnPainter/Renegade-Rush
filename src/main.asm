@@ -48,6 +48,11 @@ StartGame::
     ld de, STARTOF("PoliceCarTiles")
     ld bc, SIZEOF("PoliceCarTiles")
     call memcpy
+    rom_bank_switch BANK("PoliceHeavyTiles")
+    ld hl, PoliceHeavyTilesVRAM
+    ld de, STARTOF("PoliceHeavyTiles")
+    ld bc, SIZEOF("PoliceHeavyTiles")
+    call memcpy
     rom_bank_switch BANK("HelicopterTiles")
     ld hl, HelicopterTilesVRAM
     ld de, STARTOF("HelicopterTiles")

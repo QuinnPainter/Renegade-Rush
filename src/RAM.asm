@@ -9,6 +9,8 @@ PlayerTilesVRAM::
     DS PLAYER_NUM_TILES * 16
 PoliceCarTilesVRAM::
     DS 18 * 16 ; 18 tiles * 16 bytes per tile
+PoliceHeavyTilesVRAM::
+    DS 18 * 16
 HelicopterTilesVRAM::
     DS 36 * 16
 HelicopterExplosionTilesVRAM::
@@ -28,7 +30,7 @@ MenuBarTilesVRAM::
 MenuBarNumbersVRAM::
     DS 10 * 16
 
-SECTION "VRAM 9000", VRAM[_VRAM9000]
+;SECTION "VRAM 9000", VRAM[_VRAM9000]
 RoadTiles1VRAM::
     DS 16 * 16 ; 16 tiles * 16 bytes per tile
 RoadTiles2VRAM::

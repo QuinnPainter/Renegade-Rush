@@ -3,6 +3,8 @@ include "spriteallocation.inc"
 include "macros.inc"
 include "collision.inc"
 
+DEF POLICECAR_TILE_OFFSET EQUS "((PoliceCarTilesVRAM - $8000) / 16)"
+DEF POLICEHEAVY_TILE_OFFSET EQUS "((PoliceHeavyTilesVRAM - $8000) / 16)"
 DEF EXPLOSION_TILE_OFFSET EQUS "((Explosion1TilesVRAM - $8000) / 16)"
 
 DEF DESTROYED_MONEY_GIVEN EQU $0020 ; Money given to the player when the enemy is destroyed. 16 bit BCD
@@ -40,6 +42,7 @@ DEF EnemyCarActive RB 1 ; 0 = Inactive, 1 = Active, 2 = Exploding
 DEF KnockbackThisFrame RB 1 ; Was there any car knockback applied this frame? (0 or 1) Used to determine if car should explode when hitting a wall
 DEF PlayerKnockbackSlowdown RB 1 ; How fast the car slows down after being hit by the player, in 255s of a pixel per frame per frame. (0.8 fixed)
 DEF OtherKnockbackSlowdown RB 1 ; How fast the car slows down after being hit by some other object. (0.8 fixed)
+DEF CarTileOffset RB 1 ; Determines the style of the car (normal policecar or heavy)
 
 DEF LastMovementIntention RB 1 ; AI movement intention on the last frame
 DEF AIFrameCtr RB 1
@@ -50,14 +53,6 @@ DEF sizeof_EnemyCarVars RB 0
 ; Input - \1 = Car State Offset
 ; Input - \2 = Sprite Offset
 MACRO init_enemy_car
-    ld a, $1
-    ld [\1 + EnemyCarXSpeed], a
-    ld a, $20
-    ld [\1 + EnemyCarXSpeed + 1], a
-    xor a
-    ld [\1 + EnemyCarAcceleration], a
-    ld a, $0F
-    ld [\1 + EnemyCarAcceleration + 1], a
     xor a
     ld [\1 + EnemyCarActive], a
     ld [\1 + EnemyCarMinRoadSpeed], a
@@ -67,11 +62,6 @@ MACRO init_enemy_car
     ld [\1 + EnemyCarMaxRoadSpeed], a
     xor a
     ld [\1 + EnemyCarMaxRoadSpeed + 1], a
-    ld a, 10
-    ld [\1 + PlayerKnockbackSlowdown], a
-    ld a, 40
-    ld [\1 + OtherKnockbackSlowdown], a
-    xor a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 0)) + OAMA_Y], a ; make sure car is offscreen
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 1)) + OAMA_Y], a
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\2 + 2)) + OAMA_Y], a
@@ -84,7 +74,8 @@ ENDM
 
 ; Set the tiles and attributes from PoliceCarTilemap and PoliceCarAttrmap
 ; Input - \1 = Which sprite to write to
-; Input - C = Offset into tilemap (number of tiles)
+; Input - C = Offset into tilemap (number of tiles) (determines animation state)
+; Input - D = Offset to apply to tiles (determines car type)
 ; Sets - A to garbage
 ; Sets - B to 0
 MACRO set_car_tiles
@@ -94,12 +85,16 @@ MACRO set_car_tiles
     ld hl, PoliceCarTilemap ; Set tiles
     add hl, bc
     ld a, [hli]
+    add d
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 0)) + OAMA_TILEID], a
     ld a, [hli]
+    add d
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 1)) + OAMA_TILEID], a
     ld a, [hli]
+    add d
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 2)) + OAMA_TILEID], a
     ld a, [hli]
+    add d
     ld [SpriteBuffer + (sizeof_OAM_ATTRS * (\1 + 3)) + OAMA_TILEID], a
 
     rom_bank_switch BANK("PoliceCarAttrmap")
@@ -216,6 +211,43 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld [\1 + CurrentKnockbackSpeedX + 1], a
     ld [\1 + CurrentKnockbackSpeedY], a
     ld [\1 + CurrentKnockbackSpeedY + 1], a
+
+    call genRandom
+    ld a, [HeavySpawnChance]
+    cp l
+    jr c, .spawnNormalCar\@
+    ; Spawn a heavy car
+    ld a, POLICEHEAVY_TILE_OFFSET
+    ld [\1 + CarTileOffset], a
+    ld a, $1
+    ld [\1 + EnemyCarXSpeed], a
+    ld a, $00
+    ld [\1 + EnemyCarXSpeed + 1], a
+    xor a
+    ld [\1 + EnemyCarAcceleration], a
+    ld a, $0C
+    ld [\1 + EnemyCarAcceleration + 1], a
+    ld a, 20
+    ld [\1 + PlayerKnockbackSlowdown], a
+    ld a, 45
+    ld [\1 + OtherKnockbackSlowdown], a
+    jr .doneSpawn\@
+.spawnNormalCar\@:
+    ld a, POLICECAR_TILE_OFFSET
+    ld [\1 + CarTileOffset], a
+    ld a, $1
+    ld [\1 + EnemyCarXSpeed], a
+    ld a, $20
+    ld [\1 + EnemyCarXSpeed + 1], a
+    xor a
+    ld [\1 + EnemyCarAcceleration], a
+    ld a, $0F
+    ld [\1 + EnemyCarAcceleration + 1], a
+    ld a, 10
+    ld [\1 + PlayerKnockbackSlowdown], a
+    ld a, 40
+    ld [\1 + OtherKnockbackSlowdown], a
+.doneSpawn\@:
     ; car is now active, so just fall into the "active" section
 
 .carActive\@:
@@ -478,6 +510,8 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     add c
     ld c, a
 .animState1\@:
+    ld a, [\1 + CarTileOffset]
+    ld d, a
     set_car_tiles CAR_SPRITE\@
 
     ; Update entry in object collision array
@@ -564,6 +598,7 @@ EnemyCarState3: DS sizeof_EnemyCarVars
 
 SECTION "SharedEnemyCarVars", WRAM0
 EnemyCarSpawnChance:: DS 2 ; little endian
+HeavySpawnChance:: DS 1 ; Chance a newly-spawned car will be a heavy. Out of 255
 IsCarAttacking: DS 1
 
 SECTION "EnemyCarCode", ROM0
