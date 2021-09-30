@@ -238,7 +238,8 @@ firePlayerMissile::
     ret
 
 ; Fire an enemy missile
-; Will "dynamically" allocate any missile other than missile 1 (reserved for player)
+; todo: ""Will "dynamically" allocate any missile other than missile 1 (reserved for player)""
+; Will always use missile 2
 ; If there aren't any missiles available, nothing will happen.
 ; Input - B = Missile X
 ; Input - C = Missile Y
