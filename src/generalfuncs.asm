@@ -354,17 +354,19 @@ SECTION "LCD Copy String", ROM0
 ; Copies a string (ending in 0), while making sure VRAM is accessible.
 ; Input - HL = Destination address
 ; Input - BC = Start address
-; Sets	- A to garbage
+; Sets	- A D to garbage
 ; Sets  - HL BC to original values + string length
 LCDCopyString::
+    ld a, [bc]
+    and a
+    ret z
+    ld d, a
     di
     ldh a, [rSTAT]          ; \
     and STATF_BUSY          ; | Wait for VRAM to be ready
     jr nz, LCDCopyString    ; /
-	ld a, [bc]
-    ei
-    and a
-    ret z
+	ld a, d
 	ld [hli], a
+    ei
 	inc bc
 	jr LCDCopyString
