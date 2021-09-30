@@ -7,7 +7,7 @@ DEF POLICECAR_TILE_OFFSET EQUS "((PoliceCarTilesVRAM - $8000) / 16)"
 DEF POLICEHEAVY_TILE_OFFSET EQUS "((PoliceHeavyTilesVRAM - $8000) / 16)"
 DEF EXPLOSION_TILE_OFFSET EQUS "((Explosion1TilesVRAM - $8000) / 16)"
 
-DEF DESTROYED_MONEY_GIVEN EQU $0020 ; Money given to the player when the enemy is destroyed. 16 bit BCD
+DEF DESTROYED_MONEY_GIVEN EQU $0010 ; Money given to the player when the enemy is destroyed. 16 bit BCD
 
 DEF Y_BORDER_POS EQU 207 ; The maximum and minimum Y position, which roughly makes the area off the top and off the bottom equal
 
