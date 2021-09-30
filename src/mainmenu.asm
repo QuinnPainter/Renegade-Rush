@@ -71,7 +71,7 @@ EntryPoint:: ; At this point, interrupts are already disabled from the header co
     call initAudio
 
     ld a, BANK("Song Data")
-    ld hl, SAMPLESONG
+    ld hl, MUSIC_INGAME
     call playSong
 
     ; Copy tileset into VRAM
