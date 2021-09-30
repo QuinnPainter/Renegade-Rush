@@ -5,6 +5,7 @@ ADDOFFSET = $(PYTHON) scripts/AddBinaryOffset.py
 ROADCOLGEN = $(PYTHON) scripts/GenRoadCollision.py
 CARCOLGEN = $(PYTHON) scripts/GenCarCollision.py
 CURVEBARGEN = $(PYTHON) scripts/GenCurvedBarTilemap.py
+SCREENSHAKEGEN = $(PYTHON) scripts/ScreenShakeGen.py
 
 RESDIR = res
 MAPSDIR = staticres
@@ -20,7 +21,7 @@ else
 	MKDIR_P := -mkdir
 endif
 
-all: road player policecar gameui explosion title font helicopter missile garage warning roadobjects
+all: road player policecar gameui explosion title font helicopter missile garage warning roadobjects screenshake
 
 road: $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap $(RESDIR)/roadcollision.bin $(RESDIR)/lines2.2bpp $(RESDIR)/lines3.2bpp $(RESDIR)/lines4.2bpp
 player: $(RESDIR)/starterCar.2bpp $(RESDIR)/truck.2bpp $(RESDIR)/timecar.2bpp
@@ -34,6 +35,10 @@ font: $(RESDIR)/font.2bpp $(RESDIR)/fontPSwap.2bpp
 garage: $(RESDIR)/garage.2bpp $(RESDIR)/garage.tilemap $(RESDIR)/garageObjects.2bpp
 warning: $(RESDIR)/warning.2bpp
 roadobjects: $(RESDIR)/boulder.2bpp $(RESDIR)/boulder2.2bpp $(RESDIR)/barrel.2bpp $(RESDIR)/cube.2bpp $(RESDIR)/dirtpile.2bpp $(RESDIR)/hole.2bpp $(RESDIR)/manhole.2bpp $(RESDIR)/stump.2bpp
+screenshake: $(RESDIR)/screenShakeLUT.bin
+
+$(RESDIR)/screenShakeLUT.bin: | $(RESDIR)
+	$(SCREENSHAKEGEN) $(RESDIR)/screenShakeLUT.bin
 
 $(RESDIR)/lines.2bpp $(RESDIR)/lines.tilemap: $(ASSETSDIR)/road/lines.png | $(RESDIR)
 	$(GFX) -u -o $(RESDIR)/lines.2bpp -t $(RESDIR)/lines.tilemap $(ASSETSDIR)/road/lines.png

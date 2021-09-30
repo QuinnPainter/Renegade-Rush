@@ -13,6 +13,9 @@ SECTION "\1", \3, ALIGN[\4]
 INCBIN \2
 ENDM
 
+; Screen Shake
+    compact_incbin ScreenShakeLUT, "res/screenShakeLUT.bin", ROMX
+
 ; Road
     compact_incbin RoadTiles1, "res/lines.2bpp", ROMX
     compact_incbin RoadTiles2, "res/lines2.2bpp", ROMX

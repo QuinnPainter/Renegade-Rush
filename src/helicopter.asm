@@ -260,6 +260,8 @@ updateHelicopter::
     play_sound_effect FX_HeliExplode
     ld bc, DESTROYED_MONEY_GIVEN
     call addMoney
+    ld a, 20
+    call startScreenShake
 .noCol:
 
     ; Update animation

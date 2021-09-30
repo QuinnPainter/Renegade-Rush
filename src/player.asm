@@ -395,6 +395,8 @@ updatePlayer::
     and a                       ; | UNLESS player is currently invincible
     jr nz, .noStartExplode      ; /
 .explodePlayer:
+    ld a, 15
+    call startScreenShake
     ld a, 2
     ld [PlayerState], a ; set car state to "Exploding"
     xor a
@@ -471,6 +473,8 @@ updatePlayer::
     ld a, l
     ld [CurrentRoadScrollSpeed + 1], a
 .doneApplyKnockback:
+    ld a, 6
+    call startScreenShake
 .noCol:
 
     ld a, [IsPlayerInvisible]

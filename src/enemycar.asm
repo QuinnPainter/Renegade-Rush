@@ -537,12 +537,13 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     and $F0
     cp 2 << 4 ; check if collision was with road object
     jp z, .checkExplode\@
+    rom_bank_switch BANK("PoliceCarCollision")
+    process_knockback \1 + EnemyCarX, \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, \1 + ObjectLastTouched
     ld a, [\1 + EnemyCarY]      ; \ no crash sounds when car is offscreen
     cp 144 + 16 - 15            ; | height of screen + sprite Y offset - status bar height
     jp nc, :+                   ; /
     play_sound_effect FX_ShortCrash ; play crash sound effect
-:   rom_bank_switch BANK("PoliceCarCollision")
-    process_knockback \1 + EnemyCarX, \1 + EnemyCarY, PoliceCarCollision, \1 + CurrentKnockbackSpeedX, \1 + CurrentKnockbackSpeedY, \1 + ObjectLastTouched
+:
 .noCol\@:
 
     ld a, [\1 + EnemyCarY]  ; \
@@ -570,6 +571,8 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     xor a                   ; |
     ld [IsCarAttacking], a  ; /
 :   play_sound_effect FX_CarExplode ; play explode sound effect
+    ld a, 12
+    call startScreenShake
     jp .doneUpdateCar\@
 .noStartExplode\@:
 

@@ -113,6 +113,7 @@ StartGame::
     call initMissiles
     call initRoadObject
     call initSpecial
+    call initScreenShake
 
     xor a
     ld [IsGamePaused], a
@@ -185,6 +186,7 @@ GameLoop:
     call updateRoadObject
     call updateSpecial
     call updateStatusBar
+    call updateScreenShake
 .paused:
     call updateAudio
 .doneGameLoop:
