@@ -60,6 +60,15 @@ updateSpecial::
     ret z
 
     ld hl, SpecialTimer
+    ld a, [hl]
+    and %11
+    jr z, .drawVisible
+    ld a, 1
+    jr .doneSetVisibility
+.drawVisible:
+    xor a
+.doneSetVisibility:
+    ld [IsPlayerInvisible], a
     dec [hl]
     ret nz
     xor a ; time has run out
