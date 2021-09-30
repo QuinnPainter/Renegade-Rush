@@ -7,7 +7,8 @@ DEF POLICECAR_TILE_OFFSET EQUS "((PoliceCarTilesVRAM - $8000) / 16)"
 DEF POLICEHEAVY_TILE_OFFSET EQUS "((PoliceHeavyTilesVRAM - $8000) / 16)"
 DEF EXPLOSION_TILE_OFFSET EQUS "((Explosion1TilesVRAM - $8000) / 16)"
 
-DEF DESTROYED_MONEY_GIVEN EQU $0010 ; Money given to the player when the enemy is destroyed. 16 bit BCD
+DEF CAR_MONEY_GIVEN EQU $10 ; 8 bit BCD
+DEF HEAVY_MONEY_GIVEN EQU $15
 
 DEF Y_BORDER_POS EQU 207 ; The maximum and minimum Y position, which roughly makes the area off the top and off the bottom equal
 
@@ -43,6 +44,7 @@ DEF KnockbackThisFrame RB 1 ; Was there any car knockback applied this frame? (0
 DEF PlayerKnockbackSlowdown RB 1 ; How fast the car slows down after being hit by the player, in 255s of a pixel per frame per frame. (0.8 fixed)
 DEF OtherKnockbackSlowdown RB 1 ; How fast the car slows down after being hit by some other object. (0.8 fixed)
 DEF CarTileOffset RB 1 ; Determines the style of the car (normal policecar or heavy)
+DEF DestroyedMoneyGiven RB 1 ; How much money is given when car is destroyed. 8 bit BCD
 
 DEF LastMovementIntention RB 1 ; AI movement intention on the last frame
 DEF AIFrameCtr RB 1
@@ -231,6 +233,8 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld [\1 + PlayerKnockbackSlowdown], a
     ld a, 45
     ld [\1 + OtherKnockbackSlowdown], a
+    ld a, HEAVY_MONEY_GIVEN
+    ld [\1 + DestroyedMoneyGiven], a
     jr .doneSpawn\@
 .spawnNormalCar\@:
     ld a, POLICECAR_TILE_OFFSET
@@ -247,6 +251,8 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld [\1 + PlayerKnockbackSlowdown], a
     ld a, 40
     ld [\1 + OtherKnockbackSlowdown], a
+    ld a, CAR_MONEY_GIVEN
+    ld [\1 + DestroyedMoneyGiven], a
 .doneSpawn\@:
     ; car is now active, so just fall into the "active" section
 
@@ -563,7 +569,9 @@ DEF CAR_OBJ_COLLISION\@ EQUS "\3"
     ld [\1 + ExplosionAnimFrame], a
     ld [\1 + ExplosionAnimTimer], a
     ld [ObjCollisionArray + CAR_OBJ_COLLISION\@], a ; Disable collision array entry
-    ld bc, DESTROYED_MONEY_GIVEN
+    ld b, a
+    ld a, [\1 + DestroyedMoneyGiven]
+    ld c, a
     call addMoney
     ld a, [\1 + AIState]    ; \
     and a                   ; |
