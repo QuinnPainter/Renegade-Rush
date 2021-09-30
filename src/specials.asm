@@ -62,12 +62,10 @@ updateSpecial::
     ld hl, SpecialTimer
     ld a, [hl]
     and %11
+    ld a, 0 ; preserve flags
     jr z, .drawVisible
-    ld a, 1
-    jr .doneSetVisibility
+    inc a
 .drawVisible:
-    xor a
-.doneSetVisibility:
     ld [IsPlayerInvisible], a
     dec [hl]
     ret nz

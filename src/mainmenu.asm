@@ -308,7 +308,6 @@ MainMenuLoop::
     ld d, $CC               ; |
     call LCDMemset          ; /
     ld hl, $9C00
-    ld de, $0020
     ld bc, INFO_Line1
     rom_bank_switch BANK("InfoPageStrings")
 .drawInfoLoop:
@@ -316,6 +315,7 @@ MainMenuLoop::
     ld a, $E0               ; \
     and l                   ; | return to beginning of line
     ld l, a                 ; /
+    ld de, $0020
     add hl, de              ; go to next line
     inc bc                  ; progress forward from the end-string character
     ld a, [bc]              ; value of 1 indicates the string block should end
@@ -461,7 +461,6 @@ SettingsPageLoop:
     ld d, $CC               ; |
     call LCDMemset          ; /
     ld hl, $9C00
-    ld de, $0020
     ld bc, RS_Line1
     rom_bank_switch BANK("ResetSavegameStrings")
 .drawSaveResetLoop:
@@ -469,6 +468,7 @@ SettingsPageLoop:
     ld a, $E0               ; \
     and l                   ; | return to beginning of line
     ld l, a                 ; /
+    ld de, $0020
     add hl, de              ; go to next line
     inc bc                  ; progress forward from the end-string character
     ld a, [bc]              ; value of 1 indicates the string block should end
@@ -578,5 +578,6 @@ saveResetPageLoop:
     jp EntryPoint
 .noResetSave:
 
+    call updateAudio
     call waitVblank
     jr saveResetPageLoop

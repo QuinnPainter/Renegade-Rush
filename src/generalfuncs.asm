@@ -241,9 +241,9 @@ LCDScreenTilemapCopy::
     ;ld e, 20 ; 20 tiles in a line
 .tilemapCopyLp:
     di
-    ldh a, [rSTAT]          ; \
+:   ldh a, [rSTAT]          ; \
 	and STATF_BUSY          ; | Wait for VRAM to be ready
-	jr nz, .tilemapCopyLp   ; /
+	jr nz, :-               ; /
     ld a, [bc]
     ld [hli], a
     ei
@@ -297,9 +297,9 @@ SECTION "LCD Memset Fast", ROM0
 ; Sets  - A  = B
 LCDMemsetFast::
     di
-	ldh a, [rSTAT]          ; \
+:	ldh a, [rSTAT]          ; \
 	and STATF_BUSY          ; | Wait for VRAM to be ready
-	jr nz, LCDMemsetFast    ; /
+	jr nz, :-               ; /
 	ld a, b
 	ld [hli], a
     ei
@@ -362,9 +362,9 @@ LCDCopyString::
     ret z
     ld d, a
     di
-    ldh a, [rSTAT]          ; \
+:   ldh a, [rSTAT]          ; \
     and STATF_BUSY          ; | Wait for VRAM to be ready
-    jr nz, LCDCopyString    ; /
+    jr nz, :-               ; /
 	ld a, d
 	ld [hli], a
     ei
