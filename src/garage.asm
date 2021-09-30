@@ -219,11 +219,11 @@ GarageLoop:
 .viewedCarChanged:
     ld [ViewedCar], a
     play_sound_effect FX_MenuBip
-    call drawCarEntry
     ld a, GARAGE_TOP_ITEM_POS
     ld [SelBarTargetPos], a
     xor a
     ld [GarageOptionSelected], a
+    call drawCarEntry
 .doneViewedCarChange:
 
     ; Up / Down Inputs
