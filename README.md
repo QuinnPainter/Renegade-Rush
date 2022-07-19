@@ -1,7 +1,8 @@
 # Renegade Rush
 ![](screenshots/title.png)
 
-A work-in-progess homebrew game for the Gameboy.
+A work-in-progess homebrew game for the Gameboy.  
+Play it online [here](https://hh.gbdev.io/game/renegade-rush)!
 
 ## Building
 Requirements:
